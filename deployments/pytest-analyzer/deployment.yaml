@@ -1,0 +1,70 @@
+project_name: "pytest-analyzer"
+framework_version: "1.0.0"
+deployment_date: "2024-12-23"
+deployment_type: "initial"
+
+project_info:
+  repository: "llm-pytest-analyzer"
+  branch: "mnt/review-cleanup"
+  type: "python_testing_framework"
+  ci_platform: "github_actions"
+
+features_enabled:
+  - knowledge_capture
+  - knowledge_retrieve
+  - integrated_ci_workflow
+  - session_tracking
+  - pattern_recognition
+
+custom_configurations:
+  knowledge_storage_path: ".claude/knowledge/"
+  session_backup_enabled: true
+  auto_capture_enabled: false  # Manual capture for v1.0.0
+  search_optimization: "basic"
+
+integration_points:
+  taskmaster_ai: true
+  pytest_analyzer_mcp: true
+  git_mcp: true
+  github_mcp: true
+
+quality_gates:
+  - "hatch -e dev run pytest"
+  - "hatch -e dev run ruff check --select=F,E9"
+  - "hatch -e dev run pre-commit run --all-files"
+
+migration_status:
+  from_version: null
+  to_version: "1.0.0"
+  completed: true
+  migration_date: "2024-12-23"
+  notes: "Initial framework deployment"
+
+performance_targets:
+  max_context_usage: "2000_tokens_per_search"
+  max_search_time: "5_seconds"
+  knowledge_base_size_limit: "100_sessions"
+
+monitoring:
+  success_rate_tracking: true
+  resolution_time_tracking: true
+  pattern_effectiveness_tracking: true
+  
+deployment_notes: |
+  Initial deployment of Claude Code Knowledge Framework for pytest-analyzer project.
+  
+  Key Setup:
+  - Framework symlinked to ../../claude-code-knowledge-framework/
+  - Knowledge storage in .claude/knowledge/ 
+  - Commands available via .claude/commands/knowledge_*.md
+  - Core implementation in framework/core/knowledge_manager.py
+  
+  Usage:
+  - Use /knowledge_capture after CI troubleshooting sessions
+  - Use /knowledge_retrieve before starting new sessions
+  - Use /knowledge_integrated_ci for enhanced workflow
+  
+  Next Steps:
+  - Complete 3-5 sessions to build initial knowledge base
+  - Monitor performance and context usage
+  - Plan migration to v1.1.0 with MCP server optimization
