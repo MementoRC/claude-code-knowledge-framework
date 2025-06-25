@@ -3,7 +3,6 @@
 Tests for Flag Configuration Template
 """
 
-import pytest
 from framework.core.feature_flags.flag_configuration_template import (
     FlagConfigurationTemplate,
     AtomicComponent,

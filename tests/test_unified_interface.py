@@ -3,7 +3,6 @@
 Tests for Unified Knowledge Management Interface
 """
 
-import pytest
 from unittest.mock import Mock, patch
 from framework.bridge.unified_interface import UnifiedKnowledgeManager
 
@@ -39,7 +38,7 @@ def test_health_status():
     assert "feature_template" in health
 
 
-@patch('framework.core.knowledge_manager.ClaudeCodeKnowledgeManager')
+@patch('framework.bridge.unified_interface.ClaudeCodeKnowledgeManager')
 def test_capture_session_knowledge_with_feature_flags(mock_km):
     """Test session knowledge capture with feature flag integration."""
     mock_instance = Mock()
@@ -54,7 +53,7 @@ def test_capture_session_knowledge_with_feature_flags(mock_km):
     mock_instance.capture_session_knowledge.assert_called_once()
 
 
-@patch('framework.core.knowledge_manager.ClaudeCodeKnowledgeManager')  
+@patch('framework.bridge.unified_interface.ClaudeCodeKnowledgeManager')  
 def test_search_knowledge_with_capabilities(mock_km):
     """Test knowledge search with capability checking."""
     mock_instance = Mock()
