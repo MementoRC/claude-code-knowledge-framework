@@ -5,13 +5,14 @@ Core implementation for capturing and retrieving CI troubleshooting knowledge
 """
 
 import json
-import os
 import hashlib
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Dict, List, Optional, Any
 import uuid
 import re
+
+from .semantic_search import SemanticSearchEngine
 
 class ClaudeCodeKnowledgeManager:
     """
@@ -33,6 +34,9 @@ class ClaudeCodeKnowledgeManager:
         
         # Initialize indexes
         self._initialize_indexes()
+        
+        # Initialize semantic search engine
+        self.semantic_search = SemanticSearchEngine(knowledge_dir)
     
     def _initialize_indexes(self):
         """Initialize search indexes if they don't exist"""
@@ -126,8 +130,6 @@ class ClaudeCodeKnowledgeManager:
         Returns:
             List of relevant session records with similarity scores
         """
-        results = []
-        
         # 1. Keyword search
         keyword_results = self._keyword_search(query)
         
@@ -346,14 +348,34 @@ class ClaudeCodeKnowledgeManager:
         return results
     
     def _semantic_search(self, query: str) -> List[Dict[str, Any]]:
-        """Placeholder for semantic search - would use embeddings in full implementation"""
-        # In a full implementation, this would:
-        # 1. Generate embedding for query
-        # 2. Compare with stored session embeddings
-        # 3. Return most similar sessions
-        
-        # For now, return empty list (would be replaced with actual implementation)
-        return []
+        """Perform semantic search using embeddings"""
+        try:
+            # Use semantic search engine
+            results = self.semantic_search.search_similar_sessions(
+                query=query,
+                max_results=5,
+                similarity_threshold=0.6
+            )
+            
+            # Convert to expected format
+            formatted_results = []
+            for result in results:
+                session_id = result["session_id"]
+                session_data = self._load_session(session_id)
+                
+                if session_data:
+                    formatted_results.append({
+                        "session_data": session_data,
+                        "similarity_score": result["similarity_score"],
+                        "search_type": "semantic",
+                        "metadata": result.get("metadata", {})
+                    })
+                    
+            return formatted_results
+            
+        except Exception as e:
+            print(f"Semantic search error: {e}")
+            return []
     
     def _deduplicate_results(self, results: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Remove duplicate sessions from results"""
@@ -471,12 +493,18 @@ class ClaudeCodeKnowledgeManager:
         self._save_json(metadata_index_path, metadata_index)
     
     def _generate_session_embeddings(self, session_record: Dict[str, Any]):
-        """Generate embeddings for semantic search (placeholder)"""
-        # In a full implementation, this would:
-        # 1. Combine relevant text from session
-        # 2. Generate embeddings using a local model
-        # 3. Store embeddings for fast similarity search
-        pass
+        """Generate embeddings for semantic search"""
+        try:
+            session_id = session_record["session_id"]
+            success = self.semantic_search.store_session_embedding(session_id, session_record)
+            
+            if success:
+                print(f"Generated embeddings for session {session_id}")
+            else:
+                print(f"Failed to generate embeddings for session {session_id}")
+                
+        except Exception as e:
+            print(f"Error generating session embeddings: {e}")
     
     def _load_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         """Load a session record by ID"""
@@ -589,7 +617,7 @@ def main():
         print(f"Knowledge Base Summary (last {days} days)")
         print(f"Total sessions: {summary['total_sessions']}")
         print(f"Success rate: {summary['success_rate']:.1%}")
-        print(f"\nRecent sessions:")
+        print("\nRecent sessions:")
         for session in summary['recent_sessions'][:5]:
             print(f"  - {session['session_id']}: {session['final_status']}")
     

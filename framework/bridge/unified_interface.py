@@ -93,10 +93,15 @@ class UnifiedKnowledgeManager:
         try:
             capabilities = self.get_capabilities()
             
-            # Use semantic search if enabled
+            # Use semantic search if enabled and available
             if capabilities.get("semantic_search", False):
-                self._logger.info("Using semantic search capabilities")
-                # Would integrate with semantic search implementation
+                self._logger.info("Using enhanced semantic search capabilities")
+                
+                # Check if semantic search is available
+                if self._knowledge_manager.semantic_search.is_available():
+                    self._logger.info("Semantic search engine available")
+                else:
+                    self._logger.info("Semantic search unavailable, using keyword fallback")
                 
             return self._knowledge_manager.search_knowledge(query, context, max_results)
             
