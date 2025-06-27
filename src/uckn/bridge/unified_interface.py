@@ -10,8 +10,9 @@ from typing import Dict, List, Optional, Any
 import logging
 from pathlib import Path
 
-from ..core.knowledge_manager import ClaudeCodeKnowledgeManager
-from ..core.feature_flags.flag_configuration_template import (
+# Updated to use current UCKN atomic framework
+from ..core.organisms.knowledge_manager import KnowledgeManager
+from ..feature_flags.flag_configuration_template import (
     FlagConfigurationTemplate,
     AtomicComponent,
     TemplateLevel
@@ -39,8 +40,8 @@ class UnifiedKnowledgeManager:
         "performance_monitoring"
     ]
 
-    def __init__(self, knowledge_dir: str = ".claude/knowledge"):
-        self._knowledge_manager = ClaudeCodeKnowledgeManager(knowledge_dir)
+    def __init__(self, knowledge_dir: str = ".uckn/knowledge"):
+        self._knowledge_manager = KnowledgeManager(knowledge_dir)
         self._feature_template = self._create_feature_template()
         self._logger = logging.getLogger(__name__)
         # Runtime feature flag state (default: use template defaults)
@@ -79,75 +80,54 @@ class UnifiedKnowledgeManager:
             for cap in self.KNOWN_CAPABILITIES
         }
 
-    def capture_session_knowledge(self, session_data: Dict[str, Any],
-                                 lessons_learned: Optional[List[str]] = None,
-                                 solution_patterns: Optional[List[Dict[str, Any]]] = None,
-                                 manual_insights: Optional[List[str]] = None) -> str:
-        """Capture session knowledge with feature flag checks."""
+    def add_knowledge_pattern(self, pattern_data: Dict[str, Any]) -> Optional[str]:
+        """Add a knowledge pattern with feature flag checks."""
         try:
             capabilities = self.get_capabilities()
             if not capabilities.get("enhanced_indexing", True):
                 self._logger.warning("Enhanced indexing disabled by feature flag")
-            # Always call the underlying manager for backward compatibility
-            return self._knowledge_manager.capture_session_knowledge(
-                session_data,
-                lessons_learned or [],
-                solution_patterns or [],
-                manual_insights
-            )
+                return None
+            return self._knowledge_manager.add_pattern(pattern_data)
         except Exception as e:
-            self._logger.error(f"Failed to capture session knowledge: {e}")
-            raise
+            self._logger.error(f"Failed to add knowledge pattern: {e}")
+            return None
 
-    def search_knowledge(self, query: str, context: Optional[Dict[str, Any]] = None,
-                        max_results: int = 10) -> List[Dict[str, Any]]:
-        """Search knowledge with feature-controlled capabilities."""
+    def search_patterns(self, query: str, limit: int = 10, 
+                       min_similarity: float = 0.7,
+                       metadata_filter: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+        """Search knowledge patterns with feature-controlled capabilities."""
         try:
             capabilities = self.get_capabilities()
             if not capabilities.get("semantic_search", True):
-                self._logger.info("Semantic search disabled by feature flag, using fallback")
-                # Optionally, could force keyword search here if supported
-            else:
-                if hasattr(self._knowledge_manager, "semantic_search"):
-                    if self._knowledge_manager.semantic_search.is_available():
-                        self._logger.info("Semantic search engine available")
-                    else:
-                        self._logger.info("Semantic search unavailable, using keyword fallback")
-            return self._knowledge_manager.search_knowledge(query, context, max_results)
+                self._logger.info("Semantic search disabled by feature flag")
+                return []
+            return self._knowledge_manager.search_patterns(query, limit, min_similarity, metadata_filter)
         except Exception as e:
-            self._logger.error(f"Knowledge search failed: {e}")
-            # Graceful degradation - return empty results
+            self._logger.error(f"Pattern search failed: {e}")
             return []
 
-    def get_session_context_summary(self, days_back: int = 7) -> Dict[str, Any]:
-        """Get session context summary with feature flag control."""
+    def get_pattern(self, pattern_id: str) -> Optional[Dict[str, Any]]:
+        """Get a specific pattern with feature flag control."""
         capabilities = self.get_capabilities()
         if not capabilities.get("pattern_extraction", True):
             self._logger.warning("Pattern extraction disabled by feature flag")
-            return {"total_sessions": 0, "success_rate": 0.0}
+            return None
         try:
-            return self._knowledge_manager.get_session_context_summary(days_back)
+            return self._knowledge_manager.get_pattern(pattern_id)
         except Exception as e:
-            self._logger.error(f"Session context summary failed: {e}")
-            return {"total_sessions": 0, "success_rate": 0.0}
+            self._logger.error(f"Pattern retrieval failed: {e}")
+            return None
 
-    def suggest_solutions(self, context: Dict[str, Any], error_pattern: str) -> List[Dict[str, Any]]:
-        """Suggest solutions with feature gating."""
+    def search_error_solutions(self, error_query: str, limit: int = 5) -> List[Dict[str, Any]]:
+        """Search for error solutions with feature gating."""
         capabilities = self.get_capabilities()
         if not capabilities.get("session_analysis", True):
             self._logger.warning("Solution suggestions disabled by feature flag")
             return []
         try:
-            # The underlying manager expects (current_failures, context)
-            # For backward compatibility, try both signatures
-            try:
-                # Newer signature: (current_failures, context)
-                return self._knowledge_manager.suggest_solutions([error_pattern], context)
-            except TypeError:
-                # Fallback: (context, error_pattern)
-                return self._knowledge_manager.suggest_solutions(context, error_pattern)
+            return self._knowledge_manager.search_error_solutions(error_query, limit)
         except Exception as e:
-            self._logger.error(f"Solution suggestion failed: {e}")
+            self._logger.error(f"Error solution search failed: {e}")
             return []
 
     def backup_knowledge_base(self, backup_path: str) -> bool:
@@ -170,11 +150,10 @@ class UnifiedKnowledgeManager:
         if not capabilities.get("performance_monitoring", True):
             return {"monitoring": "disabled"}
         try:
-            context_summary = self._knowledge_manager.get_session_context_summary(30)
             return {
-                "total_sessions": context_summary.get("total_sessions", 0),
                 "knowledge_base_size": self._get_knowledge_base_size(),
-                "success_rate": context_summary.get("success_rate", 0.0)
+                "chromadb_available": self._knowledge_manager.chroma_connector.is_available(),
+                "semantic_search_available": self._knowledge_manager.semantic_search.is_available()
             }
         except Exception as e:
             self._logger.error(f"Performance metrics failed: {e}")

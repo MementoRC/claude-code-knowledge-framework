@@ -1,0 +1,58 @@
+name: Status Check
+
+on:
+  push:
+    branches: [ feature/* ]
+  workflow_dispatch:
+
+jobs:
+  quick-check:
+    name: Quick Status Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.12"
+
+    - name: Install minimal dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest ruff
+
+    - name: Quick smoke test
+      run: |
+        echo "🚀 UCKN Framework Quick Check"
+        
+        # Check basic structure
+        echo "📁 Checking project structure..."
+        test -d "src/uckn" || (echo "❌ Missing src/uckn" && exit 1)
+        test -f "src/uckn/__init__.py" || (echo "❌ Missing __init__.py" && exit 1)
+        test -d "src/uckn/core/atoms" || (echo "❌ Missing atoms" && exit 1)
+        test -d "src/uckn/core/molecules" || (echo "❌ Missing molecules" && exit 1)
+        test -d "src/uckn/core/organisms" || (echo "❌ Missing organisms" && exit 1)
+        echo "✅ Structure valid"
+        
+        # Quick import test
+        echo "🔍 Testing imports..."
+        python -c "
+        try:
+            import sys
+            sys.path.insert(0, 'src')
+            from uckn import KnowledgeManager
+            print('✅ KnowledgeManager import successful')
+        except Exception as e:
+            print(f'❌ Import failed: {e}')
+            exit(1)
+        "
+        
+        # Basic lint check
+        echo "🔍 Quick lint check..."
+        ruff check src/ --select=F,E9 --quiet
+        echo "✅ Critical lint issues: None"
+        
+        echo "🎉 Quick check passed!"

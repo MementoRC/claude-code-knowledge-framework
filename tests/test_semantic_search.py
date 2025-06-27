@@ -10,7 +10,7 @@ import shutil
 import json
 from pathlib import Path
 from unittest.mock import patch
-from framework.core.semantic_search import SemanticSearchEngine
+from src.uckn.core.semantic_search import SemanticSearchEngine
 
 
 @pytest.fixture

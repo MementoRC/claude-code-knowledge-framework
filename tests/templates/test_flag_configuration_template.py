@@ -3,7 +3,7 @@
 Tests for Flag Configuration Template
 """
 
-from framework.core.feature_flags.flag_configuration_template import (
+from src.uckn.feature_flags.flag_configuration_template import (
     FlagConfigurationTemplate,
     AtomicComponent,
     TemplateLevel,
