@@ -4,7 +4,7 @@ Tests for Unified Knowledge Management Interface
 """
 
 from unittest.mock import Mock, patch
-from framework.bridge.unified_interface import UnifiedKnowledgeManager
+from src.uckn.bridge.unified_interface import UnifiedKnowledgeManager
 
 
 def test_unified_interface_initialization():
@@ -38,34 +38,34 @@ def test_health_status():
     assert "feature_template" in health
 
 
-@patch('framework.bridge.unified_interface.ClaudeCodeKnowledgeManager')
-def test_capture_session_knowledge_with_feature_flags(mock_km):
-    """Test session knowledge capture with feature flag integration."""
-    mock_instance = Mock()
-    mock_instance.capture_session_knowledge.return_value = "session-123"
-    mock_km.return_value = mock_instance
-    
-    manager = UnifiedKnowledgeManager()
-    session_data = {"test": "data"}
-    
-    result = manager.capture_session_knowledge(session_data)
-    assert result == "session-123"
-    mock_instance.capture_session_knowledge.assert_called_once()
+def test_add_knowledge_pattern_with_feature_flags():
+    """Test knowledge pattern addition with feature flag integration."""
+    with patch('src.uckn.bridge.unified_interface.KnowledgeManager') as mock_km:
+        mock_instance = Mock()
+        mock_instance.add_pattern.return_value = "pattern-123"
+        mock_km.return_value = mock_instance
+        
+        manager = UnifiedKnowledgeManager()
+        pattern_data = {"document": "test pattern", "metadata": {}}
+        
+        result = manager.add_knowledge_pattern(pattern_data)
+        assert result == "pattern-123"
+        mock_instance.add_pattern.assert_called_once()
 
 
-@patch('framework.bridge.unified_interface.ClaudeCodeKnowledgeManager')  
-def test_search_knowledge_with_capabilities(mock_km):
-    """Test knowledge search with capability checking."""
-    mock_instance = Mock()
-    mock_instance.search_knowledge.return_value = [{"result": "test"}]
-    mock_km.return_value = mock_instance
-    
-    manager = UnifiedKnowledgeManager()
-    results = manager.search_knowledge("test query")
-    
-    assert len(results) == 1
-    assert results[0]["result"] == "test"
-    mock_instance.search_knowledge.assert_called_once()
+def test_search_patterns_with_capabilities():
+    """Test pattern search with capability checking."""
+    with patch('src.uckn.bridge.unified_interface.KnowledgeManager') as mock_km:
+        mock_instance = Mock()
+        mock_instance.search_patterns.return_value = [{"result": "test"}]
+        mock_km.return_value = mock_instance
+        
+        manager = UnifiedKnowledgeManager()
+        results = manager.search_patterns("test query")
+        
+        assert len(results) == 1
+        assert results[0]["result"] == "test"
+        mock_instance.search_patterns.assert_called_once()
 
 
 def test_graceful_degradation():
@@ -76,12 +76,12 @@ def test_graceful_degradation():
     with patch.object(manager, 'get_capabilities') as mock_caps:
         mock_caps.return_value = {cap: False for cap in manager.KNOWN_CAPABILITIES}
         
-        # Should return default results but not crash
-        context_summary = manager.get_session_context_summary()
-        assert context_summary["total_sessions"] == 0
+        # Should return None when pattern extraction disabled
+        pattern = manager.get_pattern("test-pattern")
+        assert pattern is None
         
-        # Should return empty solutions
-        solutions = manager.suggest_solutions({}, "test error")
+        # Should return empty error solutions
+        solutions = manager.search_error_solutions("test error")
         assert solutions == []
         
         # Should return disabled status

@@ -7,7 +7,7 @@ import pytest
 import tempfile
 import shutil
 from pathlib import Path
-from framework.core.semantic_search import SemanticSearchEngine
+from src.uckn.core.semantic_search import SemanticSearchEngine
 
 
 @pytest.fixture
@@ -98,15 +98,14 @@ def test_availability_check(temp_knowledge_dir):
 
 
 def test_integration_with_knowledge_manager(temp_knowledge_dir):
-    """Test integration with knowledge manager."""
-    from framework.core.knowledge_manager import ClaudeCodeKnowledgeManager
+    """Test integration with current UCKN knowledge manager."""
+    from src.uckn.core import KnowledgeManager
     
-    km = ClaudeCodeKnowledgeManager(temp_knowledge_dir)
+    km = KnowledgeManager(temp_knowledge_dir)
     
     # Should have semantic search engine
     assert hasattr(km, 'semantic_search')
-    assert isinstance(km.semantic_search, SemanticSearchEngine)
     
-    # Should be able to search (even if returns empty)
-    results = km.search_knowledge("test query")
+    # Should be able to search patterns (even if returns empty)
+    results = km.search_patterns("test query")
     assert isinstance(results, list)

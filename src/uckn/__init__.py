@@ -7,12 +7,15 @@ __version__ = "1.0.0"
 __author__ = "Claude Code Community"
 __email__ = "noreply@anthropic.com"
 
-from .core import KnowledgeManager, SemanticSearch
+from .core.organisms.knowledge_manager import KnowledgeManager
+from .core.atoms.semantic_search import SemanticSearch
+from .bridge.unified_interface import UnifiedKnowledgeManager
 from .cli import main as cli_main
 
 __all__ = [
     "KnowledgeManager",
-    "SemanticSearch", 
+    "SemanticSearch",
+    "UnifiedKnowledgeManager", 
     "cli_main",
     "__version__",
 ]
