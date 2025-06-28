@@ -32,7 +32,7 @@ class ChromaDBConnector:
                 "pattern_id", "created_at", "updated_at"
             ],
             "metadata_types": {
-                "technology_stack": list,
+                "technology_stack": str,  # Comma-separated string, e.g. "python,pytest"
                 "pattern_type": str,
                 "success_rate": float,
                 "pattern_id": str,
