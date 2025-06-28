@@ -42,6 +42,8 @@ dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.21.0",
+    "pytest-benchmark>=4.0.0",
+    "memory-profiler>=0.61.0",
     "ruff>=0.1.0",
     "black>=23.0.0",
     "mypy>=1.0.0",
@@ -100,6 +102,8 @@ uckn-framework = {path = ".", editable = true}
 pytest = "*"
 pytest-cov = "*"
 pytest-asyncio = "*"
+pytest-benchmark = "*"
+memory-profiler = "*"
 ruff = "*"
 black = "*"
 mypy = "*"
@@ -126,6 +130,9 @@ install = "pip install -e ."
 dev = "pip install -e .[dev,mcp,ml]"
 test = "pytest tests/ -v"
 test-cov = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term"
+benchmark = "pytest tests/benchmarks/ --benchmark-only --benchmark-sort=mean"
+benchmark-save = "pytest tests/benchmarks/ --benchmark-only --benchmark-save=baseline"
+benchmark-compare = "pytest tests/benchmarks/ --benchmark-only --benchmark-compare"
 lint = "ruff check src/ tests/"
 format = "ruff format src/ tests/"
 typecheck = "mypy src/uckn"
@@ -191,7 +198,19 @@ markers = [
     "integration: Integration tests",
     "e2e: End-to-end tests",
     "slow: Slow tests",
+    "benchmark: Performance benchmark tests",
 ]
+
+[tool.pytest.benchmark]
+disable = false
+min_rounds = 5
+max_time = 60
+min_time = 0.01
+sort = "mean"
+group_by = "group"
+columns = ["mean", "stddev", "rounds", "min", "max"]
+histogram = true
+save_data = true
 
 [tool.coverage.run]
 source = ["src/uckn"]
