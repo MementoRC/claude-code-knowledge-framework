@@ -1,1 +1,2 @@
 from .project_dna_fingerprinter import ProjectDNAFingerprinter
+from .multi_modal_embeddings import MultiModalEmbeddings
