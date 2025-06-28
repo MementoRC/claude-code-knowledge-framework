@@ -47,7 +47,7 @@ class ChromaDBConnector:
             ],
             "metadata_types": {
                 "error_category": str,
-                "resolution_steps": list,
+                "resolution_steps": str,  # Comma-separated string, e.g. "step1,step2"
                 "avg_resolution_time": (int, float),
                 "solution_id": str,
                 "created_at": str,
