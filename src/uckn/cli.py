@@ -61,14 +61,54 @@ def search(query: str, limit: int):
     console.print("3. GitHub Actions for Python projects")
 
 @main.command()
-@click.option("--source", help="Source knowledge directory")
-@click.option("--target", help="Target database")
-def migrate(source: str, target: str):
+@click.option("--source", required=True, help="Source knowledge directory (e.g. .claude/knowledge)")
+@click.option("--target", required=False, help="Target UCKN knowledge directory (e.g. .uckn/knowledge)")
+@click.option("--dry-run", is_flag=True, default=False, help="Perform a dry run without writing to the database")
+@click.option("--validate-only", is_flag=True, default=False, help="Only validate patterns, do not migrate")
+@click.option("--report-only", is_flag=True, default=False, help="Only generate a migration report, do not migrate or validate")
+def migrate(source: str, target: str, dry_run: bool, validate_only: bool, report_only: bool):
     """Migrate existing knowledge patterns to UCKN format"""
-    console.print(f"📦 Migrating patterns from {source} to {target}")
-    
-    # TODO: Implement migration
-    console.print("✅ Migration completed successfully!")
+    from uckn.core.molecules.pattern_migrator import PatternMigrator
+
+    import logging
+    logger = logging.getLogger("uckn.migrate")
+    logger.setLevel(logging.INFO)
+
+    if not target:
+        # Default: sibling of source, named .uckn/knowledge
+        from pathlib import Path
+        target = str(Path(source).parent / ".uckn" / "knowledge")
+
+    console.print(f"📦 Migrating patterns from [bold]{source}[/bold] to [bold]{target}[/bold]")
+    if dry_run:
+        console.print("[yellow]Dry run mode: No data will be written.[/yellow]")
+    if validate_only:
+        console.print("[yellow]Validation only: No data will be migrated.[/yellow]")
+    if report_only:
+        console.print("[yellow]Report only: Only a report will be generated.[/yellow]")
+
+    migrator = PatternMigrator(
+        source_dir=source,
+        target_dir=target,
+        dry_run=dry_run,
+        validate_only=validate_only,
+        report_only=report_only,
+        logger=logger,
+        console=console,
+    )
+
+    if report_only:
+        report = migrator.report_only_mode()
+    elif validate_only:
+        report = migrator.validate()
+    else:
+        report = migrator.migrate()
+
+    report.print_report(console=console)
+    if report.failed or report.errors:
+        console.print("[red]Some patterns failed to migrate or validate. See report above.[/red]")
+    else:
+        console.print("[green]✅ Migration/validation completed successfully![/green]")
 
 if __name__ == "__main__":
     main()
