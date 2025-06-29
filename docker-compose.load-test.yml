@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  uckn-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: uckn-server:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - UCKN_ENV=loadtest
+    volumes:
+      - ./:/app
+    command: ["python", "-m", "uckn.server"]
+
+  locust:
+    image: locustio/locust:2.22.0
+    volumes:
+      - ./tests/load_tests:/mnt/locust
+    working_dir: /mnt/locust
+    ports:
+      - "8089:8089"
+    environment:
+      - LOCUST_HOST=http://uckn-server:8000
+    command: [
+      "locust",
+      "-f", "locustfile.py",
+      "--host=http://uckn-server:8000",
+      "--users=200",
+      "--spawn-rate=20"
+    ]
+    depends_on:
+      - uckn-server

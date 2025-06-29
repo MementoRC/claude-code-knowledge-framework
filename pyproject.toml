@@ -50,6 +50,11 @@ dev = [
     "pre-commit>=3.0.0",
     "aider-chat>=0.30.0",
 ]
+loadtest = [
+    "locust>=2.22.0",
+    "psutil>=5.9.0",
+    "requests>=2.31.0",
+]
 mcp = [
     "mcp>=0.1.0",
     "websockets>=11.0.0",
@@ -104,6 +109,8 @@ pytest-cov = "*"
 pytest-asyncio = "*"
 pytest-benchmark = "*"
 memory-profiler = "*"
+locust = "*"
+psutil = "*"
 ruff = "*"
 black = "*"
 mypy = "*"
@@ -133,6 +140,9 @@ test-cov = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term"
 benchmark = "pytest tests/benchmarks/ --benchmark-only --benchmark-sort=mean"
 benchmark-save = "pytest tests/benchmarks/ --benchmark-only --benchmark-save=baseline"
 benchmark-compare = "pytest tests/benchmarks/ --benchmark-only --benchmark-compare"
+load-test = "cd tests/load_tests && locust -f locustfile.py --host=http://localhost:8000"
+load-test-ui = "cd tests/load_tests && locust -f locustfile.py --host=http://localhost:8000 --web-host=0.0.0.0"
+load-test-headless = "cd tests/load_tests && locust -f locustfile.py --host=http://localhost:8000 --headless --users=100 --spawn-rate=10 --run-time=2m"
 lint = "ruff check src/ tests/"
 format = "ruff format src/ tests/"
 typecheck = "mypy src/uckn"
