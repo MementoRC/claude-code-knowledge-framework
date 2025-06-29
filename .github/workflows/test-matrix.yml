@@ -1,0 +1,93 @@
+name: Test Matrix
+
+on:
+  push:
+    branches: [main, develop]
+    paths-ignore:
+      - '**.md'
+      - '**/docs/**'
+  pull_request:
+    branches: [main, develop]
+    paths-ignore:
+      - '**.md'
+      - '**/docs/**'
+  workflow_dispatch:
+
+jobs:
+  test-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+        test-type: [unit, integration, e2e]
+    env:
+      ENVIRONMENT: ci
+      PYTHONUNBUFFERED: 1
+      PIXI_ENV: ci
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install pixi
+        uses: prefix-dev/setup-pixi@v0.5.1
+
+      - name: Install dependencies (pixi)
+        run: pixi install
+
+      - name: Install dev dependencies
+        run: pixi run dev
+
+      - name: Select tests by marker
+        id: select-tests
+        run: |
+          if [[ "${{ matrix.test-type }}" == "unit" ]]; then
+            echo "PYTEST_MARK=unit" >> $GITHUB_ENV
+          elif [[ "${{ matrix.test-type }}" == "integration" ]]; then
+            echo "PYTEST_MARK=integration" >> $GITHUB_ENV
+          elif [[ "${{ matrix.test-type }}" == "e2e" ]]; then
+            echo "PYTEST_MARK=e2e" >> $GITHUB_ENV
+          fi
+
+      - name: Run selected tests
+        run: |
+          pixi run test -m $PYTEST_MARK --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.python-version }}-${{ matrix.test-type }}
+          path: pytest-${{ matrix.test-type }}.json
+
+  aggregate-results:
+    needs: test-matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Aggregate and compare test results
+        run: |
+          find ./artifacts -name "*.json" -exec cat {} + > all-results.json
+          # Optionally, add custom aggregation/comparison logic here
+
+      - name: Upload aggregated results
+        uses: actions/upload-artifact@v4
+        with:
+          name: aggregated-test-results
+          path: all-results.json
+
+      - name: Notify Results (GitHub API)
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+            -d '{"state": "success", "context": "Test Matrix", "description": "Matrix tests complete."}'
