@@ -1,0 +1,61 @@
+"""
+UCKN Batch Processing Optimizer
+
+- Efficient batching for embeddings and DB ops
+- Bulk insert/update/search
+- Memory-efficient chunking
+- Progress tracking and cancellation
+"""
+
+import logging
+import threading
+from typing import List, Callable, Any, Optional, Iterator
+
+class BatchProcessor:
+    """
+    Batch processor for large-scale operations.
+    - Batches items for embedding or DB ops
+    - Supports progress tracking and cancellation
+    """
+    def __init__(self, batch_size=128):
+        self.batch_size = batch_size
+        self.logger = logging.getLogger(__name__)
+        self._cancel_event = threading.Event()
+
+    def batch_iter(self, items: List[Any]) -> Iterator[List[Any]]:
+        """Yield items in batches."""
+        for i in range(0, len(items), self.batch_size):
+            if self._cancel_event.is_set():
+                break
+            yield items[i:i+self.batch_size]
+
+    def process_batches(
+        self,
+        items: List[Any],
+        process_fn: Callable[[List[Any]], Any],
+        progress_callback: Optional[Callable[[int, int], None]] = None
+    ) -> List[Any]:
+        """Process items in batches, with optional progress callback."""
+        results = []
+        total = len(items)
+        processed = 0
+        for batch in self.batch_iter(items):
+            if self._cancel_event.is_set():
+                self.logger.info("Batch processing cancelled.")
+                break
+            res = process_fn(batch)
+            results.extend(res if isinstance(res, list) else [res])
+            processed += len(batch)
+            if progress_callback:
+                progress_callback(processed, total)
+        return results
+
+    def cancel(self):
+        """Cancel ongoing batch processing."""
+        self._cancel_event.set()
+
+    def reset(self):
+        """Reset cancellation state."""
+        self._cancel_event.clear()
+
+BatchProcessor = BatchProcessor
