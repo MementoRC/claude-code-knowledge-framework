@@ -43,6 +43,15 @@ dev = [
     "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-benchmark>=4.0.0",
+    "pytest-html>=4.0.0",
+    "pytest-json-report>=1.5.0",
+    "pytest-xdist>=3.3.1",
+    "pytest-metadata>=3.0.0",
+    "pytest-github-actions-annotate-failures>=0.2.0",
+    "diff-cover>=7.5.0",
+    "coverage>=7.4.0",
+    "coverage-badge>=1.1.0",
+    "pytest-md>=0.2.0",
     "memory-profiler>=0.61.0",
     "ruff>=0.1.0",
     "black>=23.0.0",
@@ -143,6 +152,11 @@ benchmark-compare = "pytest tests/benchmarks/ --benchmark-only --benchmark-compa
 load-test = "cd tests/load_tests && locust -f locustfile.py --host=http://localhost:8000"
 load-test-ui = "cd tests/load_tests && locust -f locustfile.py --host=http://localhost:8000 --web-host=0.0.0.0"
 load-test-headless = "cd tests/load_tests && locust -f locustfile.py --host=http://localhost:8000 --headless --users=100 --spawn-rate=10 --run-time=2m"
+test-coverage = "pytest tests/ --cov=src/uckn --cov-branch --cov-report=html --cov-report=xml --cov-report=json --cov-report=term-missing"
+test-coverage-json = "pytest tests/ --cov=src/uckn --cov-branch --cov-report=json --json-report --json-report-file=pytest-report.json"
+quality-metrics = "python tests/quality_metrics/quality_dashboard.py --summary"
+quality-gate = "python tests/quality_metrics/quality_dashboard.py --check-gate --fail-under=90"
+coverage-trend = "python tests/quality_metrics/coverage_analysis.py"
 lint = "ruff check src/ tests/"
 format = "ruff format src/ tests/"
 typecheck = "mypy src/uckn"
@@ -224,10 +238,14 @@ save_data = true
 
 [tool.coverage.run]
 source = ["src/uckn"]
+branch = true
+parallel = true
+# context = ${CONTEXT}
 omit = [
     "tests/*",
     "src/uckn/__main__.py",
 ]
+# dynamic_context = test_function
 
 [tool.coverage.report]
 exclude_lines = [
@@ -235,4 +253,32 @@ exclude_lines = [
     "def __repr__",
     "raise AssertionError",
     "raise NotImplementedError",
+    "if __name__ == .__main__.:",
 ]
+show_missing = true
+skip_covered = false
+precision = 2
+fail_under = 90
+
+[tool.coverage.html]
+directory = "htmlcov"
+title = "UCKN Coverage Report"
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[tool.coverage.json]
+output = "coverage.json"
+
+[tool.coverage.markdown]
+output = "coverage.md"
+
+[tool.coverage.paths]
+source = [
+    "src/uckn",
+    "*/src/uckn"
+]
+
+[tool.coverage.differential]
+compare_branch = "main"
+fail_under = 90
