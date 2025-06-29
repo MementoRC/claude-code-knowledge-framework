@@ -9,14 +9,14 @@ from datetime import datetime
 import logging
 
 from ..atoms.semantic_search import SemanticSearch
-from ...storage import ChromaDBConnector
+from ...storage import UnifiedDatabase # Changed from ChromaDBConnector
 
 
 class ErrorSolutionManager:
-    """Manages error solutions with ChromaDB storage and semantic search"""
+    """Manages error solutions with UnifiedDatabase storage and semantic search"""
     
-    def __init__(self, chroma_connector: ChromaDBConnector, semantic_search: SemanticSearch):
-        self.chroma_connector = chroma_connector
+    def __init__(self, unified_db: UnifiedDatabase, semantic_search: SemanticSearch):
+        self.unified_db = unified_db # Changed from chroma_connector
         self.semantic_search = semantic_search
         self._logger = logging.getLogger(__name__)
     
@@ -28,12 +28,13 @@ class ErrorSolutionManager:
             solution_data: Dictionary containing solution details.
                            Must include 'document' (error message/description) and 'metadata'.
                            Metadata must conform to 'error_solutions' schema.
+                           Can optionally include 'project_id'.
 
         Returns:
             The solution_id if added successfully, None otherwise.
         """
-        if not self.chroma_connector.is_available():
-            self._logger.error("ChromaDB not available, cannot add error solution.")
+        if not self.unified_db.is_available():
+            self._logger.error("Unified Database not available, cannot add error solution.")
             return None
         if not self.semantic_search.is_available():
             self._logger.error("Semantic search not available, cannot generate embeddings for error solution.")
@@ -42,6 +43,7 @@ class ErrorSolutionManager:
         solution_id = solution_data.get("solution_id", str(uuid.uuid4()))
         document_text = solution_data.get("document")
         metadata = solution_data.get("metadata", {})
+        project_id = solution_data.get("project_id")
 
         if not document_text:
             self._logger.error("Solution data must include 'document' text for embedding.")
@@ -53,24 +55,25 @@ class ErrorSolutionManager:
             self._logger.error(f"Failed to generate embedding for solution {solution_id}.")
             return None
 
-        # Add/update timestamps in metadata
+        # Add/update timestamps in metadata (these will be stored in PG metadata_json and specific columns)
         now_iso = datetime.now().isoformat()
-        metadata["solution_id"] = solution_id
+        metadata["solution_id"] = solution_id # Ensure ID is in metadata for ChromaDB
         metadata["created_at"] = metadata.get("created_at", now_iso)
         metadata["updated_at"] = now_iso
 
-        success = self.chroma_connector.add_document(
-            collection_name="error_solutions",
-            doc_id=solution_id,
-            document=document_text,
+        # UnifiedDatabase handles splitting data to PG and Chroma
+        success = self.unified_db.add_error_solution(
+            document_text=document_text,
             embedding=embedding,
-            metadata=metadata
+            metadata=metadata,
+            solution_id=solution_id,
+            project_id=project_id
         )
         return solution_id if success else None
 
     def get_error_solution(self, solution_id: str) -> Optional[Dict[str, Any]]:
         """
-        Retrieve a specific error solution from the 'error_solutions' collection.
+        Retrieve a specific error solution from the Unified Database.
 
         Args:
             solution_id: The ID of the solution to retrieve.
@@ -78,10 +81,10 @@ class ErrorSolutionManager:
         Returns:
             A dictionary containing the solution details, or None if not found.
         """
-        if not self.chroma_connector.is_available():
-            self._logger.warning("ChromaDB not available, cannot retrieve error solution.")
+        if not self.unified_db.is_available():
+            self._logger.warning("Unified Database not available, cannot retrieve error solution.")
             return None
-        return self.chroma_connector.get_document(collection_name="error_solutions", doc_id=solution_id)
+        return self.unified_db.get_error_solution(solution_id)
 
     def search_error_solutions(
         self,
@@ -102,8 +105,8 @@ class ErrorSolutionManager:
         Returns:
             List of relevant solution records with similarity scores.
         """
-        if not self.chroma_connector.is_available():
-            self._logger.warning("ChromaDB not available, cannot search error solutions.")
+        if not self.unified_db.is_available():
+            self._logger.warning("Unified Database not available, cannot search error solutions.")
             return []
         if not self.semantic_search.is_available():
             self._logger.warning("Semantic search not available, cannot generate query embedding.")
@@ -114,32 +117,33 @@ class ErrorSolutionManager:
             self._logger.error("Failed to generate query embedding for error search.")
             return []
 
-        results = self.chroma_connector.search_documents(
-            collection_name="error_solutions",
+        # UnifiedDatabase handles searching ChromaDB and fetching metadata from PG
+        results = self.unified_db.search_error_solutions(
             query_embedding=query_embedding,
             n_results=limit,
             min_similarity=min_similarity,
-            where_clause=metadata_filter
+            metadata_filter=metadata_filter
         )
         return results
 
     def update_error_solution(self, solution_id: str, updates: Dict[str, Any]) -> bool:
         """
-        Update an existing error solution in the 'error_solutions' collection.
+        Update an existing error solution in the Unified Database.
 
         Args:
             solution_id: The ID of the solution to update.
-            updates: Dictionary of fields to update. Can include 'document' or 'metadata'.
+            updates: Dictionary of fields to update. Can include 'document' or 'metadata' or 'project_id'.
 
         Returns:
             True if updated successfully, False otherwise.
         """
-        if not self.chroma_connector.is_available():
-            self._logger.warning("ChromaDB not available, cannot update error solution.")
+        if not self.unified_db.is_available():
+            self._logger.warning("Unified Database not available, cannot update error solution.")
             return False
 
         document_text = updates.get("document")
         metadata = updates.get("metadata")
+        project_id = updates.get("project_id")
         embedding = None
 
         if document_text and self.semantic_search.is_available():
@@ -154,17 +158,18 @@ class ErrorSolutionManager:
         if metadata is not None:
             metadata["updated_at"] = datetime.now().isoformat()
 
-        return self.chroma_connector.update_document(
-            collection_name="error_solutions",
-            doc_id=solution_id,
-            document=document_text,
+        # UnifiedDatabase handles updating both PG and Chroma
+        return self.unified_db.update_error_solution(
+            solution_id=solution_id,
+            document_text=document_text,
             embedding=embedding,
-            metadata=metadata
+            metadata=metadata,
+            project_id=project_id
         )
 
     def delete_error_solution(self, solution_id: str) -> bool:
         """
-        Delete an error solution from the 'error_solutions' collection.
+        Delete an error solution from the Unified Database.
 
         Args:
             solution_id: The ID of the solution to delete.
@@ -172,7 +177,8 @@ class ErrorSolutionManager:
         Returns:
             True if deleted successfully, False otherwise.
         """
-        if not self.chroma_connector.is_available():
-            self._logger.warning("ChromaDB not available, cannot delete error solution.")
+        if not self.unified_db.is_available():
+            self._logger.warning("Unified Database not available, cannot delete error solution.")
             return False
-        return self.chroma_connector.delete_document(collection_name="error_solutions", doc_id=solution_id)
+        # UnifiedDatabase handles deleting from both PG and Chroma
+        return self.unified_db.delete_error_solution(solution_id)

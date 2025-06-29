@@ -9,7 +9,7 @@ UCKN Performance Analytics
 
 import logging
 import time
-from typing import Callable, Any, Dict, List, Optional
+from typing import Callable, Any, Dict, List
 
 class PerformanceProfiler:
     """

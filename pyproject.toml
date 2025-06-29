@@ -37,6 +37,8 @@ dependencies = [
     "jinja2>=3.0.0",
     "redis>=4.0.0",
     "psutil>=5.9.0",
+    "SQLAlchemy>=2.0.0", # Added for PostgreSQL ORM
+    "psycopg[binary]>=3.1.0", # Added for PostgreSQL driver
 ]
 
 [project.optional-dependencies]
@@ -60,6 +62,7 @@ dev = [
     "mypy>=1.0.0",
     "pre-commit>=3.0.0",
     "aider-chat>=0.30.0",
+    "alembic>=1.12.0", # Added for database migrations
 ]
 loadtest = [
     "locust>=2.22.0",
@@ -127,6 +130,7 @@ ruff = "*"
 black = "*"
 mypy = "*"
 pre-commit = "*"
+alembic = "*" # Added for database migrations
 
 [tool.pixi.feature.mcp.dependencies]
 nodejs = ">=18"
@@ -136,6 +140,8 @@ npm = "*"
 pytorch = "*"
 sentence-transformers = "*"
 chromadb = "*"
+SQLAlchemy = "*" # Added for PostgreSQL ORM
+psycopg = "*" # Added for PostgreSQL driver
 
 [tool.pixi.environments]
 default = {features = ["ml"], solve-group = "default"}
@@ -170,6 +176,7 @@ start-server = "python -m uckn.server"
 analyze-project = "uckn analyze ."
 migrate-patterns = "uckn migrate --source .claude/knowledge"
 init-project = "uckn init"
+db-migrate = "alembic -c src/uckn/storage/migrations/alembic.ini upgrade head" # Added for DB migrations
 
 # Documentation
 docs-serve = "mkdocs serve"

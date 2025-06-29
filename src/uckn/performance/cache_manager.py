@@ -10,7 +10,6 @@ import logging
 import time
 import threading
 from typing import Any, Optional, Callable
-from functools import lru_cache
 
 try:
     import redis

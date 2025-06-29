@@ -9,31 +9,32 @@ from datetime import datetime
 import logging
 
 from ..atoms.semantic_search import SemanticSearch
-from ...storage import ChromaDBConnector
+from ...storage import UnifiedDatabase # Changed from ChromaDBConnector
 
 
 class PatternManager:
-    """Manages knowledge patterns with ChromaDB storage and semantic search"""
+    """Manages knowledge patterns with UnifiedDatabase storage and semantic search"""
     
-    def __init__(self, chroma_connector: ChromaDBConnector, semantic_search: SemanticSearch):
-        self.chroma_connector = chroma_connector
+    def __init__(self, unified_db: UnifiedDatabase, semantic_search: SemanticSearch):
+        self.unified_db = unified_db # Changed from chroma_connector
         self.semantic_search = semantic_search
         self._logger = logging.getLogger(__name__)
     
     def add_pattern(self, pattern_data: Dict[str, Any]) -> Optional[str]:
         """
-        Add a new knowledge pattern to the 'code_patterns' collection.
+        Add a new knowledge pattern to the Unified Database.
 
         Args:
             pattern_data: Dictionary containing pattern details.
                           Must include 'document' (text content) and 'metadata'.
                           Metadata must conform to 'code_patterns' schema.
+                          Can optionally include 'project_id'.
 
         Returns:
             The pattern_id if added successfully, None otherwise.
         """
-        if not self.chroma_connector.is_available():
-            self._logger.error("ChromaDB not available, cannot add pattern.")
+        if not self.unified_db.is_available():
+            self._logger.error("Unified Database not available, cannot add pattern.")
             return None
         if not self.semantic_search.is_available():
             self._logger.error("Semantic search not available, cannot generate embeddings for pattern.")
@@ -42,6 +43,7 @@ class PatternManager:
         pattern_id = pattern_data.get("pattern_id", str(uuid.uuid4()))
         document_text = pattern_data.get("document")
         metadata = pattern_data.get("metadata", {})
+        project_id = pattern_data.get("project_id")
 
         if not document_text:
             self._logger.error("Pattern data must include 'document' text for embedding.")
@@ -53,24 +55,25 @@ class PatternManager:
             self._logger.error(f"Failed to generate embedding for pattern {pattern_id}.")
             return None
 
-        # Add/update timestamps in metadata
+        # Add/update timestamps in metadata (these will be stored in PG metadata_json and specific columns)
         now_iso = datetime.now().isoformat()
-        metadata["pattern_id"] = pattern_id
+        metadata["pattern_id"] = pattern_id # Ensure ID is in metadata for ChromaDB
         metadata["created_at"] = metadata.get("created_at", now_iso)
         metadata["updated_at"] = now_iso
 
-        success = self.chroma_connector.add_document(
-            collection_name="code_patterns",
-            doc_id=pattern_id,
-            document=document_text,
+        # UnifiedDatabase handles splitting data to PG and Chroma
+        success = self.unified_db.add_pattern(
+            document_text=document_text,
             embedding=embedding,
-            metadata=metadata
+            metadata=metadata,
+            pattern_id=pattern_id,
+            project_id=project_id
         )
         return pattern_id if success else None
 
     def get_pattern(self, pattern_id: str) -> Optional[Dict[str, Any]]:
         """
-        Retrieve a specific pattern from the 'code_patterns' collection.
+        Retrieve a specific pattern from the Unified Database.
 
         Args:
             pattern_id: The ID of the pattern to retrieve.
@@ -78,28 +81,29 @@ class PatternManager:
         Returns:
             A dictionary containing the pattern details, or None if not found.
         """
-        if not self.chroma_connector.is_available():
-            self._logger.warning("ChromaDB not available, cannot retrieve pattern.")
+        if not self.unified_db.is_available():
+            self._logger.warning("Unified Database not available, cannot retrieve pattern.")
             return None
-        return self.chroma_connector.get_document(collection_name="code_patterns", doc_id=pattern_id)
+        return self.unified_db.get_pattern(pattern_id)
 
     def update_pattern(self, pattern_id: str, updates: Dict[str, Any]) -> bool:
         """
-        Update an existing pattern in the 'code_patterns' collection.
+        Update an existing pattern in the Unified Database.
 
         Args:
             pattern_id: The ID of the pattern to update.
-            updates: Dictionary of fields to update. Can include 'document' or 'metadata'.
+            updates: Dictionary of fields to update. Can include 'document', 'metadata', or 'project_id'.
 
         Returns:
             True if updated successfully, False otherwise.
         """
-        if not self.chroma_connector.is_available():
-            self._logger.warning("ChromaDB not available, cannot update pattern.")
+        if not self.unified_db.is_available():
+            self._logger.warning("Unified Database not available, cannot update pattern.")
             return False
 
         document_text = updates.get("document")
         metadata = updates.get("metadata")
+        project_id = updates.get("project_id")
         embedding = None
 
         if document_text and self.semantic_search.is_available():
@@ -114,17 +118,18 @@ class PatternManager:
         if metadata is not None:
             metadata["updated_at"] = datetime.now().isoformat()
 
-        return self.chroma_connector.update_document(
-            collection_name="code_patterns",
-            doc_id=pattern_id,
-            document=document_text,
+        # UnifiedDatabase handles updating both PG and Chroma
+        return self.unified_db.update_pattern(
+            pattern_id=pattern_id,
+            document_text=document_text,
             embedding=embedding,
-            metadata=metadata
+            metadata=metadata,
+            project_id=project_id
         )
 
     def delete_pattern(self, pattern_id: str) -> bool:
         """
-        Delete a pattern from the 'code_patterns' collection.
+        Delete a pattern from the Unified Database.
 
         Args:
             pattern_id: The ID of the pattern to delete.
@@ -132,10 +137,11 @@ class PatternManager:
         Returns:
             True if deleted successfully, False otherwise.
         """
-        if not self.chroma_connector.is_available():
-            self._logger.warning("ChromaDB not available, cannot delete pattern.")
+        if not self.unified_db.is_available():
+            self._logger.warning("Unified Database not available, cannot delete pattern.")
             return False
-        return self.chroma_connector.delete_document(collection_name="code_patterns", doc_id=pattern_id)
+        # UnifiedDatabase handles deleting from both PG and Chroma
+        return self.unified_db.delete_pattern(pattern_id)
 
     def search_patterns(
         self,
@@ -156,8 +162,8 @@ class PatternManager:
         Returns:
             List of relevant pattern records with similarity scores.
         """
-        if not self.chroma_connector.is_available():
-            self._logger.warning("ChromaDB not available, cannot search patterns.")
+        if not self.unified_db.is_available():
+            self._logger.warning("Unified Database not available, cannot search patterns.")
             return []
         if not self.semantic_search.is_available():
             self._logger.warning("Semantic search not available, cannot generate query embedding.")
@@ -168,11 +174,11 @@ class PatternManager:
             self._logger.error("Failed to generate query embedding.")
             return []
 
-        results = self.chroma_connector.search_documents(
-            collection_name="code_patterns",
+        # UnifiedDatabase handles searching ChromaDB and fetching metadata from PG
+        results = self.unified_db.search_patterns(
             query_embedding=query_embedding,
             n_results=limit,
             min_similarity=min_similarity,
-            where_clause=metadata_filter
+            metadata_filter=metadata_filter
         )
         return results
