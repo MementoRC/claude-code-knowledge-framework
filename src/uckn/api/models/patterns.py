@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field, validator
 
 from .common import BaseResponse, TechnologyStackDNA, ValidationResult, SharingScope
-
+from .workflow import PatternVersion, ReviewFeedback # New import
 
 class PatternType(str, Enum):
     """Pattern type enumeration"""
@@ -34,8 +34,11 @@ class PatternPriority(str, Enum):
 class PatternStatus(str, Enum):
     """Pattern status enumeration"""
     DRAFT = "draft"
-    PENDING = "pending"
-    APPROVED = "approved"
+    IN_REVIEW = "in_review" # New workflow state
+    IN_TESTING = "in_testing" # New workflow state
+    APPROVED_FOR_PUBLISH = "approved_for_publish" # New workflow state, replaces 'APPROVED'
+    PUBLISHED = "published" # New workflow state
+    MAINTENANCE = "maintenance" # New workflow state
     REJECTED = "rejected"
     DEPRECATED = "deprecated"
 
@@ -93,6 +96,11 @@ class Pattern(BaseModel):
     updated_by: Optional[str] = Field(default=None, description="Last updater user ID")
     embedding: Optional[List[float]] = Field(default=None, description="Semantic embedding vector")
     validation_results: List[ValidationResult] = Field(default_factory=list, description="Validation results")
+    
+    # New fields for workflow management
+    current_version: str = Field(default="1.0.0", description="Current active version of the pattern")
+    versions: List[PatternVersion] = Field(default_factory=list, description="History of pattern versions")
+    reviews: List[ReviewFeedback] = Field(default_factory=list, description="List of review feedback entries")
     
     class Config:
         json_encoders = {

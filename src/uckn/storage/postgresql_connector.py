@@ -252,6 +252,28 @@ class PostgreSQLConnector:
             _logger.error(f"Failed to filter {model.__name__} records: {e}")
             return []
 
+    def search_records_by_metadata(self, model: Base, metadata_filter: Dict[str, Any], limit: Optional[int] = None) -> List[Dict[str, Any]]:
+        """Search records by JSONB metadata fields."""
+        try:
+            with self.get_db_session() as session:
+                query = session.query(model)
+                
+                # Apply metadata filters using JSONB operators
+                for key, value in metadata_filter.items():
+                    # Use JSONB contains operator for nested key-value searches
+                    filter_condition = model.metadata_json.op('@>')({key: value})
+                    query = query.filter(filter_condition)
+                
+                if limit:
+                    query = query.limit(limit)
+                    
+                results = query.all()
+                return [{c.name: getattr(instance, c.name) for c in instance.__table__.columns} for instance in results]
+                
+        except SQLAlchemyError as e:
+            _logger.error(f"Failed to search {model.__name__} records by metadata: {e}")
+            return []
+
     # Specific methods for relationships
     def add_pattern_to_category(self, pattern_id: str, category_id: str) -> bool:
         """Links a pattern to a category."""

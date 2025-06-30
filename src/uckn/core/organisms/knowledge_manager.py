@@ -281,6 +281,15 @@ class KnowledgeManager:
         """Analyze project technology stack."""
         return self.tech_detector.analyze_project(project_path)
 
+    def get_all_patterns_by_status(self, status: str) -> List[Dict[str, Any]]:
+        """Get all patterns filtered by status. Used by workflow manager."""
+        try:
+            # Use the unified database to search patterns by status
+            return self.unified_db.search_patterns_by_metadata({"status": status})
+        except Exception as e:
+            self._logger.error(f"Error searching patterns by status {status}: {e}")
+            return []
+
     # Health and utility methods
     def get_health_status(self) -> Dict[str, Any]:
         """Get the health status of all components."""

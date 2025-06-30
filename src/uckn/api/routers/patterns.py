@@ -3,6 +3,8 @@ Pattern management endpoints for UCKN API.
 """
 
 import logging
+import datetime # Added for timestamp
+import hashlib # Added for document hash
 from typing import Dict, Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -10,6 +12,8 @@ from pydantic import BaseModel, Field
 
 from ...core.organisms.knowledge_manager import KnowledgeManager
 from ..dependencies import get_knowledge_manager
+from ..models.patterns import PatternSubmission, PatternStatus
+from ..models.common import BaseResponse # For PatternContributionResponse inheritance
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -37,17 +41,19 @@ class PatternSearchResponse(BaseModel):
     query_time_ms: int
 
 
-class PatternSubmission(BaseModel):
-    """Model for pattern contribution."""
-    document: str = Field(..., description="Pattern documentation text")
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    project_id: Optional[str] = None
+# Updated PatternSubmission model is imported from models/patterns.py
+# class PatternSubmission(BaseModel):
+#     """Model for pattern contribution."""
+#     document: str = Field(..., description="Pattern documentation text")
+#     metadata: Dict[str, Any] = Field(default_factory=dict)
+#     project_id: Optional[str] = None
 
 
-class PatternContributionResponse(BaseModel):
+# Update PatternContributionResponse to inherit from BaseResponse
+class PatternContributionResponse(BaseResponse): 
     """Response model for pattern contribution."""
     pattern_id: str
-    status: str
+    status: str # This will be the PatternStatus value
     message: str
 
 
@@ -114,19 +120,39 @@ async def contribute_pattern(
 ):
     """Contribute a new knowledge pattern."""
     try:
+        # Add initial status and versioning info
+        # Convert Pydantic models within PatternSubmission to dict/value for storage
         pattern_data = {
             "document": pattern.document,
-            "metadata": pattern.metadata,
-            "project_id": pattern.project_id
+            "metadata": pattern.metadata.dict(), # Convert metadata Pydantic model to dict
+            "project_id": pattern.project_id,
+            "sharing_scope": pattern.sharing_scope.value, # Convert enum to value
+            "status": PatternStatus.DRAFT.value, # Set initial status to DRAFT
+            "current_version": "0.1.0", # Initial version for a new draft
+            "versions": [], # Initialize versions list
+            "reviews": [] # Initialize reviews list
         }
         
+        # Generate initial version entry
+        initial_doc_hash = hashlib.sha256(pattern.document.encode('utf-8')).hexdigest()
+        initial_version_entry = {
+            "version_number": "0.1.0",
+            "changes": "Initial draft submission",
+            "timestamp": datetime.datetime.now().isoformat(), # Use isoformat for JSON serialization
+            "author_id": "system_or_contributor_id", # Placeholder, should come from auth system
+            "document_hash": initial_doc_hash,
+            "status_at_creation": PatternStatus.DRAFT.value
+        }
+        pattern_data["versions"].append(initial_version_entry)
+
         pattern_id = knowledge_manager.add_pattern(pattern_data)
         
         if pattern_id:
             return PatternContributionResponse(
+                success=True, # From BaseResponse
                 pattern_id=pattern_id,
-                status="success",
-                message="Pattern contributed successfully"
+                status=PatternStatus.DRAFT.value,
+                message="Pattern contributed successfully as DRAFT"
             )
         else:
             raise HTTPException(status_code=400, detail="Failed to contribute pattern")

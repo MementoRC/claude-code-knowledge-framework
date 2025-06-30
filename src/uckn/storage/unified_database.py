@@ -240,6 +240,38 @@ class UnifiedDatabase:
                 final_results.append(combined_res)
         return final_results
 
+    def search_patterns_by_metadata(self, metadata_filter: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """
+        Search patterns by metadata only (no embedding search).
+        Used by workflow manager to find patterns by status.
+        """
+        # Get all patterns from PostgreSQL that match the metadata filter
+        patterns = self.pg_connector.search_records_by_metadata(Pattern, metadata_filter)
+        
+        final_results = []
+        for pg_pattern in patterns:
+            # Get the document from ChromaDB if available
+            chroma_doc = self.chroma_connector.get_document("code_patterns", pg_pattern["id"])
+            
+            combined_result = {
+                "id": pg_pattern["id"],
+                "document": chroma_doc.get("document", "") if chroma_doc else "",
+                "metadata": pg_pattern["metadata_json"],
+                "project_id": pg_pattern.get("project_id"),
+                "created_at": pg_pattern["created_at"],
+                "updated_at": pg_pattern["updated_at"],
+            }
+            
+            # Add any additional fields from metadata for easier access
+            if isinstance(pg_pattern["metadata_json"], dict):
+                for key in ["status", "current_version", "versions", "reviews"]:
+                    if key in pg_pattern["metadata_json"]:
+                        combined_result[key] = pg_pattern["metadata_json"][key]
+                        
+            final_results.append(combined_result)
+            
+        return final_results
+
     # --- Error Solution Management (PostgreSQL + ChromaDB) ---
     def add_error_solution(
         self,
