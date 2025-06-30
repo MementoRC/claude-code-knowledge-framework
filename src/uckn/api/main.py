@@ -12,7 +12,7 @@ from fastapi.responses import JSONResponse
 
 from ..core.organisms.knowledge_manager import KnowledgeManager
 from .dependencies import set_knowledge_manager
-from .routers import patterns, projects, collaboration, health, teams, auth
+from .routers import patterns, projects, collaboration, health, teams, auth, predictions
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -73,6 +73,7 @@ async def global_exception_handler(request, exc):
 app.include_router(health.router, tags=["Health"])
 app.include_router(auth.router, prefix="/api/v1", tags=["Authentication"])
 app.include_router(teams.router, prefix="/api/v1", tags=["Teams"])
+app.include_router(predictions.router, prefix="/api/v1", tags=["Predictions"])
 app.include_router(patterns.router, prefix="/api/v1", tags=["Patterns"])
 app.include_router(projects.router, prefix="/api/v1", tags=["Projects"])
 app.include_router(collaboration.router, prefix="/api/v1", tags=["Collaboration"])
