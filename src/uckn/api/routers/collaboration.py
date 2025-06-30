@@ -2,14 +2,33 @@
 Collaboration endpoints for UCKN API.
 """
 
+import json
 import logging
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
 from pydantic import BaseModel, Field
 
+from ...core.molecules.collaboration_manager import (
+    CollaborationManager, 
+    Comment as CollabComment,
+    NotificationPreference,
+    WebhookConfig
+)
 from ...core.organisms.knowledge_manager import KnowledgeManager
 from ..dependencies import get_knowledge_manager
+from ..models.collaboration import (
+    CommentRequest,
+    CommentResponse, 
+    ActivityEventResponse,
+    NotificationPreferenceRequest,
+    NotificationPreferenceResponse,
+    WebhookConfigRequest,
+    WebhookConfigResponse,
+    PatternLibraryRequest,
+    PatternLibraryResponse
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -98,6 +117,17 @@ class ConnectionManager:
 
 # Global connection manager
 manager = ConnectionManager()
+
+# Global collaboration manager instance
+collaboration_manager = None
+
+
+def get_collaboration_manager(knowledge_manager: KnowledgeManager = Depends(get_knowledge_manager)) -> CollaborationManager:
+    """Get collaboration manager instance."""
+    global collaboration_manager
+    if collaboration_manager is None:
+        collaboration_manager = CollaborationManager(knowledge_manager)
+    return collaboration_manager
 
 
 @router.post("/patterns/{pattern_id}/share", response_model=PatternShareResponse)
@@ -220,3 +250,299 @@ async def subscribe_to_updates(
     
     finally:
         manager.disconnect(websocket)
+
+
+# Enhanced Collaboration Endpoints
+
+@router.post("/patterns/{pattern_id}/comments", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)
+async def add_comment(
+    pattern_id: str,
+    request: CommentRequest,
+    collab_manager: CollaborationManager = Depends(get_collaboration_manager)
+):
+    """Add a comment to a pattern."""
+    try:
+        # Mock user ID - in real implementation, get from auth
+        user_id = "mock_user_id"
+        
+        comment = CollabComment(
+            pattern_id=pattern_id,
+            user_id=user_id,
+            parent_id=request.parent_id,
+            content=request.content,
+            metadata=request.metadata
+        )
+        
+        added_comment = await collab_manager.add_comment(comment)
+        
+        # Broadcast comment to WebSocket connections
+        broadcast_message = {
+            "type": "comment_added",
+            "pattern_id": pattern_id,
+            "comment_id": added_comment.id,
+            "user_id": user_id,
+            "timestamp": added_comment.created_at.isoformat()
+        }
+        await manager.broadcast(json.dumps(broadcast_message))
+        
+        return CommentResponse(
+            id=added_comment.id,
+            pattern_id=added_comment.pattern_id,
+            user_id=added_comment.user_id,
+            parent_id=added_comment.parent_id,
+            content=added_comment.content,
+            metadata=added_comment.metadata,
+            created_at=added_comment.created_at,
+            updated_at=added_comment.updated_at
+        )
+        
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error adding comment: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to add comment")
+
+
+@router.get("/patterns/{pattern_id}/comments", response_model=List[CommentResponse])
+async def get_comments(
+    pattern_id: str,
+    parent_id: Optional[str] = None,
+    collab_manager: CollaborationManager = Depends(get_collaboration_manager)
+):
+    """Get comments for a pattern."""
+    try:
+        comments = await collab_manager.get_comments(pattern_id, parent_id)
+        
+        return [
+            CommentResponse(
+                id=comment.id,
+                pattern_id=comment.pattern_id,
+                user_id=comment.user_id,
+                parent_id=comment.parent_id,
+                content=comment.content,
+                metadata=comment.metadata,
+                created_at=comment.created_at,
+                updated_at=comment.updated_at
+            )
+            for comment in comments
+        ]
+        
+    except Exception as e:
+        logger.error(f"Error getting comments: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get comments")
+
+
+@router.get("/activity/feed", response_model=List[ActivityEventResponse])
+async def get_activity_feed(
+    team_id: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+    collab_manager: CollaborationManager = Depends(get_collaboration_manager)
+):
+    """Get activity feed for a team or user."""
+    try:
+        activities = await collab_manager.get_activity_feed(team_id=team_id, limit=limit)
+        
+        # Apply offset
+        activities = activities[offset:offset + limit]
+        
+        return [
+            ActivityEventResponse(
+                id=activity.id,
+                type=activity.type,
+                user_id=activity.user_id,
+                team_id=activity.team_id,
+                resource_id=activity.resource_id,
+                resource_type=activity.resource_type,
+                action=activity.action,
+                metadata=activity.metadata,
+                timestamp=activity.timestamp
+            )
+            for activity in activities
+        ]
+        
+    except Exception as e:
+        logger.error(f"Error getting activity feed: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to get activity feed")
+
+
+@router.post("/notifications/preferences", response_model=NotificationPreferenceResponse, status_code=status.HTTP_201_CREATED)
+async def set_notification_preference(
+    request: NotificationPreferenceRequest,
+    collab_manager: CollaborationManager = Depends(get_collaboration_manager)
+):
+    """Set notification preferences for the current user."""
+    try:
+        # Mock user ID - in real implementation, get from auth
+        user_id = "mock_user_id"
+        
+        preference = NotificationPreference(
+            user_id=user_id,
+            notification_type=request.notification_type,
+            event_types=request.event_types,
+            settings=request.settings,
+            enabled=request.enabled
+        )
+        
+        await collab_manager.set_notification_preference(preference)
+        
+        return NotificationPreferenceResponse(
+            user_id=preference.user_id,
+            notification_type=preference.notification_type,
+            event_types=preference.event_types,
+            settings=preference.settings,
+            enabled=preference.enabled
+        )
+        
+    except Exception as e:
+        logger.error(f"Error setting notification preference: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to set notification preference")
+
+
+@router.post("/teams/{team_id}/webhooks", response_model=WebhookConfigResponse, status_code=status.HTTP_201_CREATED)
+async def add_webhook(
+    team_id: str,
+    request: WebhookConfigRequest,
+    collab_manager: CollaborationManager = Depends(get_collaboration_manager)
+):
+    """Add webhook configuration for a team."""
+    try:
+        webhook = WebhookConfig(
+            team_id=team_id,
+            name=request.name,
+            url=request.url,
+            secret=request.secret,
+            event_types=request.event_types,
+            enabled=request.enabled,
+            settings=request.settings
+        )
+        
+        await collab_manager.add_webhook(webhook)
+        
+        return WebhookConfigResponse(
+            id=webhook.id,
+            team_id=webhook.team_id,
+            name=webhook.name,
+            url=webhook.url,
+            event_types=webhook.event_types,
+            enabled=webhook.enabled,
+            settings=webhook.settings,
+            created_at=datetime.now(timezone.utc)
+        )
+        
+    except Exception as e:
+        logger.error(f"Error adding webhook: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to add webhook")
+
+
+@router.post("/teams/{team_id}/libraries", response_model=PatternLibraryResponse, status_code=status.HTTP_201_CREATED)
+async def create_pattern_library(
+    team_id: str,
+    request: PatternLibraryRequest
+):
+    """Create a team-scoped pattern library."""
+    try:
+        from uuid import uuid4
+        
+        library_id = str(uuid4())
+        
+        # Mock implementation - in real version, store in database
+        return PatternLibraryResponse(
+            id=library_id,
+            team_id=team_id,
+            name=request.name,
+            description=request.description,
+            pattern_ids=request.pattern_ids,
+            settings=request.settings,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc)
+        )
+        
+    except Exception as e:
+        logger.error(f"Error creating pattern library: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create pattern library")
+
+
+@router.get("/teams/{team_id}/libraries", response_model=List[PatternLibraryResponse])
+async def list_pattern_libraries(team_id: str):
+    """List pattern libraries for a team."""
+    try:
+        # Mock implementation
+        return [
+            PatternLibraryResponse(
+                id="lib-1",
+                team_id=team_id,
+                name="CI/CD Patterns",
+                description="Common CI/CD automation patterns",
+                pattern_ids=["pattern-1", "pattern-2"],
+                settings={"auto_sync": True},
+                created_at=datetime.now(timezone.utc),
+                updated_at=datetime.now(timezone.utc)
+            )
+        ]
+        
+    except Exception as e:
+        logger.error(f"Error listing pattern libraries: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to list pattern libraries")
+
+
+@router.websocket("/patterns/{pattern_id}/collaborate")
+async def collaborative_editing(
+    websocket: WebSocket,
+    pattern_id: str
+):
+    """WebSocket endpoint for real-time collaborative editing."""
+    await websocket.accept()
+    
+    try:
+        # Send welcome message
+        welcome = {
+            "type": "edit_session_established",
+            "pattern_id": pattern_id,
+            "message": "Connected to collaborative editing session"
+        }
+        await websocket.send_text(json.dumps(welcome))
+        
+        while True:
+            try:
+                data = await websocket.receive_text()
+                message = json.loads(data)
+                
+                message_type = message.get("type")
+                
+                if message_type == "edit_operation":
+                    # Handle collaborative edit operation
+                    operation = {
+                        "type": "edit_operation_applied",
+                        "pattern_id": pattern_id,
+                        "operation": message.get("operation"),
+                        "user_id": "mock_user_id",  # Get from auth
+                        "timestamp": datetime.now(timezone.utc).isoformat()
+                    }
+                    
+                    # Broadcast to other collaborators in the same pattern
+                    # In real implementation, this would use a room-based broadcasting system
+                    await websocket.send_text(json.dumps(operation))
+                    
+                elif message_type == "cursor_position":
+                    # Handle cursor position updates
+                    cursor_update = {
+                        "type": "cursor_position_update",
+                        "pattern_id": pattern_id,
+                        "user_id": "mock_user_id",
+                        "position": message.get("position"),
+                        "timestamp": datetime.now(timezone.utc).isoformat()
+                    }
+                    await websocket.send_text(json.dumps(cursor_update))
+                
+            except WebSocketDisconnect:
+                break
+            except json.JSONDecodeError:
+                logger.warning(f"Invalid JSON received in collaborative editing: {data}")
+            except Exception as e:
+                logger.error(f"Error in collaborative editing: {e}")
+                break
+    
+    finally:
+        # Clean up collaborative editing session
+        logger.info(f"Collaborative editing session ended for pattern {pattern_id}")
