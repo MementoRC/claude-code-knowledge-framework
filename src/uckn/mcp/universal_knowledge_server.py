@@ -611,30 +611,36 @@ class UniversalKnowledgeServer:
 
 async def main():
     """Run the Universal Knowledge MCP server."""
-    # Get project root from command line or environment
-    project_root = None
-    if len(sys.argv) > 1:
-        project_root = sys.argv[1]
-    elif "PROJECT_ROOT" in os.environ:
-        project_root = os.environ["PROJECT_ROOT"]
-    
-    # Initialize server
-    server_instance = UniversalKnowledgeServer(project_root=project_root)
-    
-    # Run server
-    async with stdio_server() as (read_stream, write_stream):
-        await server_instance.server.run(
-            read_stream,
-            write_stream,
-            InitializationOptions(
-                server_name="universal-knowledge",
-                server_version="1.0.0",
-                capabilities=server_instance.server.get_capabilities(
-                    notification_options=None,
-                    experimental_capabilities=None,
+    try:
+        # Get project root from command line or environment
+        project_root = None
+        if len(sys.argv) > 1:
+            project_root = sys.argv[1]
+        elif "PROJECT_ROOT" in os.environ:
+            project_root = os.environ["PROJECT_ROOT"]
+        
+        # Initialize server
+        server_instance = UniversalKnowledgeServer(project_root=project_root)
+        
+        # Run server
+        async with stdio_server() as (read_stream, write_stream):
+            await server_instance.server.run(
+                read_stream,
+                write_stream,
+                InitializationOptions(
+                    server_name="universal-knowledge",
+                    server_version="1.0.0",
+                    capabilities=server_instance.server.get_capabilities(
+                        notification_options=types.ServerNotificationOptions(),
+                        experimental_capabilities={},
+                    ),
                 ),
-            ),
-        )
+            )
+    except Exception as e:
+        import traceback
+        print(f"Error in main: {e}", file=sys.stderr)
+        print(f"Traceback: {traceback.format_exc()}", file=sys.stderr)
+        raise
 
 
 if __name__ == "__main__":
