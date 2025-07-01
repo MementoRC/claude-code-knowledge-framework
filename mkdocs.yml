@@ -1,0 +1,121 @@
+site_name: UCKN Documentation
+site_description: "Universal Claude Code Knowledge Network (UCKN) - AI-powered development knowledge management framework"
+site_url: https://mementorc.github.io/claude-code-knowledge-framework/
+repo_url: https://github.com/MementoRC/claude-code-knowledge-framework
+repo_name: MementoRC/claude-code-knowledge-framework
+copyright: "Copyright &copy; 2024 Claude Code Community"
+docs_dir: docs
+
+theme:
+  name: material
+  logo: assets/logo.png
+  favicon: assets/favicon.ico
+  palette:
+    - scheme: default
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.instant
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - content.code.annotate
+    - content.tabs.link
+    - content.action.edit
+    - content.action.view
+    - content.tooltips
+    - header.autohide
+    - announce.dismiss
+  language: en
+  font:
+    text: Roboto
+    code: Roboto Mono
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: installation.md
+      - Quick Start: INTERACTIVE_EXAMPLES.md
+      - FAQ: FAQ.md
+  - Documentation:
+      - API Reference: api-reference.md
+      - System Design: SYSTEM_DESIGN.md
+      - Performance Optimizations: performance_optimizations.md
+  - Migration:
+      - Troubleshooting: MIGRATION_TROUBLESHOOTING.md
+  - Multimedia:
+      - Video Tutorials: multimedia/video-tutorials.md
+      - Interactive Demos: multimedia/demos.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            docstring_style: google
+            merge_init_into_class: true
+            show_root_heading: true
+            show_signature_annotations: true
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - toc:
+      permalink: true
+  - footnotes
+  - tables
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/version-selector.js
+
+extra:
+  version:
+    provider: mike
+    default: latest
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/MementoRC/claude-code-knowledge-framework
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/uckn-framework/
+  analytics:
+    provider: google
+    property: UA-XXXXXXXXX-X
+
+# For GitHub Pages deployment
+# See .github/workflows/docs.yml for CI/CD
