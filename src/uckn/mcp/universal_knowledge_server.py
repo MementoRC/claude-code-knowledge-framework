@@ -48,6 +48,7 @@ try:
     from uckn.core.molecules.pattern_analytics import PatternAnalytics
     from uckn.core.molecules.pattern_manager import PatternManager
     from uckn.storage.chromadb_connector import ChromaDBConnector
+    from uckn.storage.unified_database import UnifiedDatabase
 except ImportError as e:
     print(f"UCKN components not available: {e}", file=sys.stderr)
     sys.exit(1)
@@ -75,6 +76,14 @@ class UniversalKnowledgeServer:
             db_path = os.path.join(self.project_root, ".uckn", "storage")
             self.chroma_connector = ChromaDBConnector(db_path=db_path)
             
+            # Get PostgreSQL URL from environment
+            pg_url = os.environ.get("UCKN_DATABASE_URL")
+            if not pg_url:
+                raise ValueError("UCKN_DATABASE_URL environment variable is required")
+            
+            chroma_path = os.path.join(self.project_root, ".uckn", "knowledge", "chroma_db")
+            self.unified_db = UnifiedDatabase(pg_db_url=pg_url, chroma_db_path=chroma_path)
+            
             # Initialize atoms
             self.dna_fingerprinter = ProjectDNAFingerprinter()
             self.embeddings = MultiModalEmbeddings()
@@ -85,7 +94,7 @@ class UniversalKnowledgeServer:
             
             # Initialize molecules
             self.pattern_manager = PatternManager(
-                chroma_connector=self.chroma_connector,
+                unified_db=self.unified_db,
                 semantic_search=self.semantic_search
             )
             self.compatibility_matrix = TechStackCompatibilityMatrix(
@@ -105,7 +114,8 @@ class UniversalKnowledgeServer:
             )
             
             self.knowledge_manager = KnowledgeManager(
-                project_root=self.project_root
+                knowledge_dir=os.path.join(self.project_root, ".uckn", "knowledge"),
+                pg_db_url=pg_url
             )
             
             self.logger.info("UCKN components initialized successfully")

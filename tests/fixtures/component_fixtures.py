@@ -25,7 +25,10 @@ def atomic_component_suite():
     chroma = ChromaDBConnector(db_path=":memory:")
     semantic = SemanticSearch(knowledge_dir=":memory:")
     tech = TechStackDetector()
-    pattern_mgr = PatternManager(chroma, semantic)
+    # Create unified_db for PatternManager
+    from tests.fixtures.database_fixtures import DummyUnifiedDatabase
+    unified_db = DummyUnifiedDatabase()
+    pattern_mgr = PatternManager(unified_db, semantic)
     error_mgr = ErrorSolutionManager(chroma, semantic)
     pattern_class = PatternClassification(chroma)
 

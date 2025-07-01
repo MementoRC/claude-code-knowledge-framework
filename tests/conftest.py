@@ -82,7 +82,11 @@ def uckn_component_factory():
         chroma_connector = chroma_connector or ChromaDBConnector(db_path=str(Path(knowledge_dir) / "chroma_db"))
         semantic_search = semantic_search or SemanticSearch(knowledge_dir=str(knowledge_dir))
         tech_detector = tech_detector or TechStackDetector()
-        pattern_manager = pattern_manager or PatternManager(chroma_connector, semantic_search)
+        # Create unified_db for PatternManager
+        from uckn.storage.unified_database import UnifiedDatabase
+        from tests.fixtures.database_fixtures import DummyUnifiedDatabase
+        unified_db = DummyUnifiedDatabase()
+        pattern_manager = pattern_manager or PatternManager(unified_db, semantic_search)
         error_solution_manager = error_solution_manager or ErrorSolutionManager(chroma_connector, semantic_search)
         pattern_classification = pattern_classification or PatternClassification(chroma_connector)
         # Compose KnowledgeManager with injected dependencies

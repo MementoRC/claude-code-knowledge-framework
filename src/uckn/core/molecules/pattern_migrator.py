@@ -15,6 +15,7 @@ from ..atoms.semantic_search import SemanticSearch
 from .pattern_manager import PatternManager
 from .error_solution_manager import ErrorSolutionManager
 from ...storage.chromadb_connector import ChromaDBConnector
+from ...storage.unified_database import UnifiedDatabase
 
 class MigrationReport:
     """
@@ -114,8 +115,9 @@ class PatternMigrator:
         self.logger = logger or logging.getLogger(__name__)
         self.console = console
 
-        # Setup ChromaDB and semantic search only if not report_only
+        # Setup database and semantic search only if not report_only
         self.chroma_connector = None
+        self.unified_db = None
         self.semantic_search = None
         self.pattern_manager = None
         self.error_solution_manager = None
@@ -124,9 +126,10 @@ class PatternMigrator:
             self.chroma_connector = ChromaDBConnector(
                 db_path=str(self.target_dir or ".uckn/knowledge/chroma_db")
             )
+            self.unified_db = UnifiedDatabase()
             self.semantic_search = SemanticSearch()
             self.pattern_manager = PatternManager(
-                chroma_connector=self.chroma_connector,
+                unified_db=self.unified_db,
                 semantic_search=self.semantic_search,
             )
             self.error_solution_manager = ErrorSolutionManager(
