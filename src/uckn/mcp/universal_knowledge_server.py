@@ -79,7 +79,7 @@ class UniversalKnowledgeServer:
             self.dna_fingerprinter = ProjectDNAFingerprinter()
             self.embeddings = MultiModalEmbeddings()
             self.semantic_search = SemanticSearchEngine(
-                embeddings=self.embeddings,
+                embedding_atom=self.embeddings,
                 chroma_connector=self.chroma_connector
             )
             
