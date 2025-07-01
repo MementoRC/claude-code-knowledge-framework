@@ -2,7 +2,7 @@ import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 
-from sqlalchemy import create_engine, Column, String, Text, DateTime, Float, ForeignKey
+from sqlalchemy import create_engine, Column, String, Text, DateTime, Float, ForeignKey, text
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.pool import QueuePool
@@ -122,8 +122,13 @@ class PostgreSQLConnector:
     def _connect_to_db(self) -> None:
         """Initializes the SQLAlchemy engine and session factory."""
         try:
+            # Ensure we use psycopg (version 3) driver instead of psycopg2
+            db_url = self.db_url
+            if db_url.startswith("postgresql://"):
+                db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+            
             self.engine = create_engine(
-                self.db_url,
+                db_url,
                 poolclass=QueuePool,
                 pool_size=self.pool_size,
                 max_overflow=self.max_overflow,
@@ -159,7 +164,7 @@ class PostgreSQLConnector:
             return False
         try:
             with self.get_db_session() as session:
-                session.execute(Text("SELECT 1"))
+                session.execute(text("SELECT 1"))
             return True
         except SQLAlchemyError as e:
             self._logger.error(f"PostgreSQL connection check failed: {e}")
