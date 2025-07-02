@@ -24,9 +24,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 try:
     from mcp.server import Server
-    from mcp.server.models import InitializationOptions
     from mcp.server.stdio import stdio_server
-    from mcp.server.lowlevel.server import NotificationOptions
     from mcp.types import (
         CallToolResult,
         TextContent,
@@ -623,19 +621,14 @@ async def main():
         # Initialize server
         server_instance = UniversalKnowledgeServer(project_root=project_root)
         
-        # Run server
+        # Run server using the same pattern as working MCP servers
+        options = server_instance.server.create_initialization_options()
         async with stdio_server() as (read_stream, write_stream):
             await server_instance.server.run(
                 read_stream,
                 write_stream,
-                InitializationOptions(
-                    server_name="universal-knowledge",
-                    server_version="1.0.0",
-                    capabilities=server_instance.server.get_capabilities(
-                        notification_options=NotificationOptions(),
-                        experimental_capabilities={},
-                    ),
-                ),
+                options,
+                raise_exceptions=True
             )
     except Exception as e:
         import traceback
