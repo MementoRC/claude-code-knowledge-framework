@@ -26,6 +26,7 @@ try:
     from mcp.server import Server
     from mcp.server.models import InitializationOptions
     from mcp.server.stdio import stdio_server
+    from mcp.server.lowlevel.server import NotificationOptions
     from mcp.types import (
         CallToolResult,
         TextContent,
@@ -631,7 +632,7 @@ async def main():
                     server_name="universal-knowledge",
                     server_version="1.0.0",
                     capabilities=server_instance.server.get_capabilities(
-                        notification_options=types.ServerNotificationOptions(),
+                        notification_options=NotificationOptions(),
                         experimental_capabilities={},
                     ),
                 ),
