@@ -70,40 +70,60 @@ class UniversalKnowledgeServer:
     
     def _initialize_components(self):
         """Initialize UCKN knowledge management components."""
+        print(f"DEBUG: Initializing UCKN components for project: {self.project_root}", file=sys.stderr)
         try:
             # Initialize storage layer
             db_path = os.path.join(self.project_root, ".uckn", "storage")
+            print(f"DEBUG: Creating ChromaDBConnector with db_path: {db_path}", file=sys.stderr)
             self.chroma_connector = ChromaDBConnector(db_path=db_path)
+            print("DEBUG: ChromaDBConnector created successfully", file=sys.stderr)
             
             # Get PostgreSQL URL from environment
             pg_url = os.environ.get("UCKN_DATABASE_URL")
             if not pg_url:
+                print("ERROR: UCKN_DATABASE_URL environment variable is required", file=sys.stderr)
                 raise ValueError("UCKN_DATABASE_URL environment variable is required")
+            print(f"DEBUG: Using PostgreSQL URL: {pg_url[:30]}...", file=sys.stderr)
             
             chroma_path = os.path.join(self.project_root, ".uckn", "knowledge", "chroma_db")
+            print(f"DEBUG: Creating UnifiedDatabase with chroma_path: {chroma_path}", file=sys.stderr)
             self.unified_db = UnifiedDatabase(pg_db_url=pg_url, chroma_db_path=chroma_path)
+            print("DEBUG: UnifiedDatabase created successfully", file=sys.stderr)
             
             # Initialize atoms
+            print("DEBUG: Initializing atoms...", file=sys.stderr)
             self.dna_fingerprinter = ProjectDNAFingerprinter()
+            print("DEBUG: ProjectDNAFingerprinter created", file=sys.stderr)
+            
             self.embeddings = MultiModalEmbeddings()
+            print("DEBUG: MultiModalEmbeddings created", file=sys.stderr)
+            
             self.semantic_search = SemanticSearchEngine(
                 embedding_atom=self.embeddings,
                 chroma_connector=self.chroma_connector
             )
+            print("DEBUG: SemanticSearchEngine created", file=sys.stderr)
             
             # Initialize molecules
+            print("DEBUG: Initializing molecules...", file=sys.stderr)
             self.pattern_manager = PatternManager(
                 unified_db=self.unified_db,
                 semantic_search=self.semantic_search
             )
+            print("DEBUG: PatternManager created", file=sys.stderr)
+            
             self.compatibility_matrix = TechStackCompatibilityMatrix(
                 chroma_connector=self.chroma_connector
             )
+            print("DEBUG: TechStackCompatibilityMatrix created", file=sys.stderr)
+            
             self.pattern_analytics = PatternAnalytics(
                 chroma_connector=self.chroma_connector
             )
+            print("DEBUG: PatternAnalytics created", file=sys.stderr)
             
             # Initialize organisms
+            print("DEBUG: Initializing organisms...", file=sys.stderr)
             self.recommendation_engine = PatternRecommendationEngine(
                 dna_fingerprinter=self.dna_fingerprinter,
                 semantic_search=self.semantic_search,
@@ -111,11 +131,15 @@ class UniversalKnowledgeServer:
                 pattern_analytics=self.pattern_analytics,
                 pattern_manager=self.pattern_manager
             )
+            print("DEBUG: PatternRecommendationEngine created", file=sys.stderr)
             
+            knowledge_dir = os.path.join(self.project_root, ".uckn", "knowledge")
+            print(f"DEBUG: Creating KnowledgeManager with knowledge_dir: {knowledge_dir}", file=sys.stderr)
             self.knowledge_manager = KnowledgeManager(
-                knowledge_dir=os.path.join(self.project_root, ".uckn", "knowledge"),
+                knowledge_dir=knowledge_dir,
                 pg_db_url=pg_url
             )
+            print("DEBUG: KnowledgeManager created", file=sys.stderr)
             
             self.logger.info("UCKN components initialized successfully")
             
@@ -610,31 +634,93 @@ class UniversalKnowledgeServer:
 
 async def main():
     """Run the Universal Knowledge MCP server."""
+    
+    # Enable debug logging
+    import logging
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        stream=sys.stderr
+    )
+    logger = logging.getLogger(__name__)
+    
     try:
+        logger.info("🚀 UCKN MCP Server starting up...")
+        logger.debug(f"Python version: {sys.version}")
+        logger.debug(f"Command line args: {sys.argv}")
+        logger.debug(f"Environment variables: {dict(os.environ)}")
+        
         # Get project root from command line or environment
         project_root = None
         if len(sys.argv) > 1:
             project_root = sys.argv[1]
+            logger.info(f"📂 Project root from command line: {project_root}")
         elif "PROJECT_ROOT" in os.environ:
             project_root = os.environ["PROJECT_ROOT"]
+            logger.info(f"📂 Project root from environment: {project_root}")
+        else:
+            logger.warning("⚠️  No project root specified")
         
+        # Check database URL
+        db_url = os.environ.get("UCKN_DATABASE_URL")
+        if db_url:
+            logger.info(f"🗄️  Database URL configured: {db_url[:20]}...")
+        else:
+            logger.error("❌ UCKN_DATABASE_URL not set!")
+            
+        # Check knowledge directory
+        knowledge_dir = os.environ.get("UCKN_KNOWLEDGE_DIR", ".uckn/knowledge")
+        logger.info(f"📚 Knowledge directory: {knowledge_dir}")
+        
+        logger.info("🔧 Initializing UCKN server...")
         # Initialize server
         server_instance = UniversalKnowledgeServer(project_root=project_root)
+        logger.info("✅ UCKN server initialized successfully")
         
+        # Debug server state
+        logger.debug(f"Server instance type: {type(server_instance.server)}")
+        logger.debug(f"Server name: {server_instance.server.name}")
+        
+        logger.info("🔧 Creating initialization options...")
         # Run server using the same pattern as working MCP servers
         options = server_instance.server.create_initialization_options()
+        logger.info(f"✅ Initialization options created: {type(options)}")
+        logger.debug(f"Options: {options}")
+        
+        logger.info("🔌 Starting stdio server...")
         async with stdio_server() as (read_stream, write_stream):
+            logger.info("✅ stdio server context established")
+            logger.debug(f"Read stream: {type(read_stream)}")
+            logger.debug(f"Write stream: {type(write_stream)}")
+            
+            logger.info("🏃 Starting server.run()...")
             await server_instance.server.run(
                 read_stream,
                 write_stream,
                 options,
                 raise_exceptions=True
             )
+            logger.info("✅ Server run completed")
+            
+    except KeyboardInterrupt:
+        logger.info("⏹️  Server stopped by user interrupt")
     except Exception as e:
         import traceback
-        print(f"Error in main: {e}", file=sys.stderr)
-        print(f"Traceback: {traceback.format_exc()}", file=sys.stderr)
+        logger.error(f"💥 CRITICAL ERROR in main: {e}")
+        logger.error(f"Exception type: {type(e)}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        
+        # Additional debugging info
+        logger.debug("=== DEBUGGING INFO ===")
+        logger.debug(f"Working directory: {os.getcwd()}")
+        logger.debug(f"Python path: {sys.path}")
+        logger.debug(f"MCP library path: {__import__('mcp').__file__}")
+        
+        print(f"STDERR: Error in main: {e}", file=sys.stderr)
+        print(f"STDERR: Traceback: {traceback.format_exc()}", file=sys.stderr)
         raise
+    finally:
+        logger.info("🛑 UCKN MCP Server shutdown")
 
 
 if __name__ == "__main__":
