@@ -611,35 +611,82 @@ class UniversalKnowledgeServer:
 
 async def main():
     """Run the Universal Knowledge MCP server."""
+    
+    # Set up session-specific logging in working directory
+    import logging
+    from datetime import datetime
+    
+    # Create log file in current working directory with timestamp
+    log_filename = f"uckn-mcp-server-{datetime.now().strftime('%Y%m%d-%H%M%S')}.log"
+    log_path = os.path.join(os.getcwd(), log_filename)
+    
+    # Configure logging to file only (avoid stderr)
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[logging.FileHandler(log_path, mode='w')],
+        force=True  # Override any existing logging config
+    )
+    logger = logging.getLogger(__name__)
+    
     try:
+        logger.info("="*60)
+        logger.info("UCKN MCP Server Starting")
+        logger.info(f"Working directory: {os.getcwd()}")
+        logger.info(f"Log file: {log_path}")
+        logger.info(f"Python version: {sys.version}")
+        logger.info(f"Command line: {' '.join(sys.argv)}")
+        
+        # Log environment variables
+        for key, value in os.environ.items():
+            if 'UCKN' in key:
+                logger.info(f"Environment: {key}={value}")
+        
         # Get project root from command line or environment
         project_root = None
         if len(sys.argv) > 1:
             project_root = sys.argv[1]
+            logger.info(f"Project root from command line: {project_root}")
         elif "PROJECT_ROOT" in os.environ:
             project_root = os.environ["PROJECT_ROOT"]
+            logger.info(f"Project root from environment: {project_root}")
+        else:
+            logger.info("No project root specified, using current directory")
         
+        logger.info("Initializing UCKN server...")
         # Initialize server
         server_instance = UniversalKnowledgeServer(project_root=project_root)
+        logger.info("UCKN server initialized successfully")
         
+        logger.info("Creating MCP server options...")
         # Run server using the same pattern as working MCP servers
         options = server_instance.server.create_initialization_options()
+        logger.info(f"Server options: {options}")
+        
+        logger.info("Starting stdio server...")
         async with stdio_server() as (read_stream, write_stream):
+            logger.info("Stdio context established, starting server.run()")
             await server_instance.server.run(
                 read_stream,
                 write_stream,
                 options,
                 raise_exceptions=True
             )
+            logger.info("Server run completed normally")
+            
     except Exception as e:
-        # Log to file if possible, avoid stderr
-        try:
-            import logging
-            logging.basicConfig(filename='/tmp/uckn-mcp-error.log', level=logging.ERROR)
-            logging.error(f"UCKN MCP Server error: {e}")
-        except:
-            pass
+        logger.error(f"CRITICAL ERROR: {e}")
+        logger.error(f"Exception type: {type(e)}")
+        import traceback
+        logger.error(f"Full traceback:\n{traceback.format_exc()}")
+        
+        # Also log current working directory and environment for debugging
+        logger.error(f"Working directory at error: {os.getcwd()}")
+        logger.error(f"Python path: {sys.path}")
         raise
+    finally:
+        logger.info("UCKN MCP Server shutdown")
+        logger.info("="*60)
 
 
 if __name__ == "__main__":
