@@ -514,7 +514,7 @@ class UniversalKnowledgeServer:
             
             return CallToolResult(
                 content=[TextContent(type="text", text=json.dumps(validation_result, indent=2))]
-            )
+            ).model_dump()
             
         except Exception as e:
             return CallToolResult(
