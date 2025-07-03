@@ -41,7 +41,7 @@ try:
         PatternRecommendationEngine
     )
     from uckn.core.atoms.project_dna_fingerprinter import ProjectDNAFingerprinter
-    from uckn.core.atoms.semantic_search_engine import SemanticSearchEngine
+    from uckn.core.semantic_search_enhanced import EnhancedSemanticSearchEngine as SemanticSearchEngine
     from uckn.core.atoms.multi_modal_embeddings import MultiModalEmbeddings
     from uckn.core.molecules.tech_stack_compatibility_matrix import TechStackCompatibilityMatrix
     from uckn.core.molecules.pattern_analytics import PatternAnalytics
@@ -333,7 +333,7 @@ class UniversalKnowledgeServer:
             # Perform semantic search
             if hasattr(self.semantic_search, 'search_by_text'):
                 results = self.semantic_search.search_by_text(
-                    query=query,
+                    query_text=query,
                     limit=limit
                 )
             else:
@@ -470,7 +470,7 @@ class UniversalKnowledgeServer:
             # Search for similar solutions
             if hasattr(self.semantic_search, 'search_by_text'):
                 similar_solutions = self.semantic_search.search_by_text(
-                    query=f"{problem_context} {solution_description}",
+                    query_text=f"{problem_context} {solution_description}",
                     limit=5
                 )
                 
