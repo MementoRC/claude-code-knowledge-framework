@@ -5398,7 +5398,7 @@ requires-dist = [
     { name = "jinja2", specifier = ">=3.0.0" },
     { name = "locust", marker = "extra == 'loadtest'", specifier = ">=2.22.0" },
     { name = "matplotlib", marker = "extra == 'ml'", specifier = ">=3.5.0" },
-    { name = "mcp", marker = "extra == 'mcp'", specifier = ">=0.1.0" },
+    { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.9.0" },
     { name = "memory-profiler", marker = "extra == 'dev'", specifier = ">=0.61.0" },
     { name = "mkdocs", marker = "extra == 'docs'", specifier = ">=1.5.0" },
     { name = "mkdocs-material", marker = "extra == 'docs'", specifier = ">=9.0.0" },

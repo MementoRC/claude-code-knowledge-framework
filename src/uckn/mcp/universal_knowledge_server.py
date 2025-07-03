@@ -312,12 +312,12 @@ class UniversalKnowledgeServer:
                 else:
                     return CallToolResult(
                         content=[TextContent(type="text", text=f"Unknown tool: {name}")]
-                    )
+                    ).model_dump()
             except Exception as e:
                 self.logger.error(f"Error in tool {name}: {e}")
                 return CallToolResult(
                     content=[TextContent(type="text", text=f"Error: {str(e)}")]
-                )
+                ).model_dump()
     
     async def _search_patterns(
         self,
@@ -361,12 +361,12 @@ class UniversalKnowledgeServer:
             
             return CallToolResult(
                 content=[TextContent(type="text", text=json.dumps(response, indent=2))]
-            )
+            ).model_dump()
             
         except Exception as e:
             return CallToolResult(
                 content=[TextContent(type="text", text=f"Search failed: {str(e)}")]
-            )
+            ).model_dump()
     
     async def _recommend_setup(
         self,
@@ -406,12 +406,12 @@ class UniversalKnowledgeServer:
             
             return CallToolResult(
                 content=[TextContent(type="text", text=json.dumps(response, indent=2))]
-            )
+            ).model_dump()
             
         except Exception as e:
             return CallToolResult(
                 content=[TextContent(type="text", text=f"Setup recommendations failed: {str(e)}")]
-            )
+            ).model_dump()
     
     async def _predict_issues(
         self,
@@ -450,12 +450,12 @@ class UniversalKnowledgeServer:
             
             return CallToolResult(
                 content=[TextContent(type="text", text=json.dumps(response, indent=2))]
-            )
+            ).model_dump()
             
         except Exception as e:
             return CallToolResult(
                 content=[TextContent(type="text", text=f"Issue prediction failed: {str(e)}")]
-            )
+            ).model_dump()
     
     async def _validate_solution(
         self,
@@ -519,7 +519,7 @@ class UniversalKnowledgeServer:
         except Exception as e:
             return CallToolResult(
                 content=[TextContent(type="text", text=f"Solution validation failed: {str(e)}")]
-            )
+            ).model_dump()
     
     async def _contribute_pattern(
         self,
@@ -570,12 +570,12 @@ class UniversalKnowledgeServer:
             
             return CallToolResult(
                 content=[TextContent(type="text", text=json.dumps(response, indent=2))]
-            )
+            ).model_dump()
             
         except Exception as e:
             return CallToolResult(
                 content=[TextContent(type="text", text=f"Pattern contribution failed: {str(e)}")]
-            )
+            ).model_dump()
     
     async def _get_project_dna(
         self,
@@ -601,12 +601,12 @@ class UniversalKnowledgeServer:
             
             return CallToolResult(
                 content=[TextContent(type="text", text=json.dumps(response, indent=2))]
-            )
+            ).model_dump()
             
         except Exception as e:
             return CallToolResult(
                 content=[TextContent(type="text", text=f"DNA analysis failed: {str(e)}")]
-            )
+            ).model_dump()
 
 
 async def main():
