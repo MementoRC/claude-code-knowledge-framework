@@ -96,13 +96,23 @@ class UnifiedDatabase:
             self._logger.error(f"Failed to add pattern metadata to PostgreSQL for ID: {pattern_id}")
             return None
 
+        # Prepare ChromaDB-compatible metadata (no list types, required fields only)
+        chroma_metadata = {
+            "pattern_id": pattern_id,
+            "technology_stack": metadata.get("technology_stack", ""),
+            "pattern_type": metadata.get("pattern_type", ""),
+            "success_rate": float(metadata.get("success_rate", 0.0)),
+            "created_at": metadata.get("created_at", now_iso),
+            "updated_at": now_iso
+        }
+        
         # Add to ChromaDB
         chroma_success = self.chroma_connector.add_document(
             collection_name="code_patterns",
             doc_id=pattern_id,
             document=document_text,
             embedding=embedding,
-            metadata=metadata # ChromaDB stores the original metadata
+            metadata=chroma_metadata # ChromaDB stores only compatible metadata
         )
         if not chroma_success:
             # Attempt to rollback PostgreSQL record if ChromaDB fails

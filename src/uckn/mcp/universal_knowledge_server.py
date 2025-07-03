@@ -535,14 +535,16 @@ class UniversalKnowledgeServer:
             project_path = project_path or self.project_root
             technologies = technologies or []
             
-            # Create pattern data
+            # Create pattern data with proper metadata matching ChromaDB schema
             pattern_data = {
                 "document": f"{pattern_title}\n\n{pattern_description}\n\n{pattern_code}",
                 "metadata": {
                     "title": pattern_title,
                     "description": pattern_description,
                     "pattern_type": pattern_type,
-                    "technologies": technologies,
+                    "technology_stack": ",".join(technologies) if technologies else "",  # Required: comma-separated string
+                    "success_rate": 0.8,  # Required: default success rate for contributed patterns
+                    "technologies": technologies,  # Keep for backward compatibility 
                     "code": pattern_code,
                     "contributed_at": "manual_contribution"
                 }

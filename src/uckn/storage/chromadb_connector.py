@@ -21,8 +21,9 @@ class ChromaDBConnector:
     """
     Manages connection and operations with ChromaDB for UCKN knowledge.
 
-    Handles collection creation, CRUD operations for 'code_patterns' and
-    'error_solutions', and schema validation.
+    Handles collection creation, CRUD operations for 'code_patterns', 
+    'error_solutions', 'tech_stack_compatibility', and 'pattern_applications',
+    and schema validation.
     """
 
     _COLLECTION_SCHEMAS = {
@@ -52,6 +53,35 @@ class ChromaDBConnector:
                 "solution_id": str,
                 "created_at": str,
                 "updated_at": str
+            }
+        },
+        "tech_stack_compatibility": {
+            "required_metadata": [
+                "tech_stack_a", "tech_stack_b", "score", "description", 
+                "created_at", "updated_at", "combo_id"
+            ],
+            "metadata_types": {
+                "tech_stack_a": str,  # Comma-separated string, e.g. "python,pytest"
+                "tech_stack_b": str,  # Comma-separated string, e.g. "react,typescript"
+                "score": float,
+                "description": str,
+                "created_at": str,
+                "updated_at": str,
+                "combo_id": str
+            }
+        },
+        "pattern_applications": {
+            "required_metadata": [
+                "pattern_id", "application_status", "success_score",
+                "application_time", "user_feedback", "created_at"
+            ],
+            "metadata_types": {
+                "pattern_id": str,
+                "application_status": str,
+                "success_score": float,
+                "application_time": str,
+                "user_feedback": str,
+                "created_at": str
             }
         }
     }
