@@ -1,18 +1,30 @@
 import logging
+import os
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 from functools import lru_cache
 
-try:
-    from sentence_transformers import SentenceTransformer
-    SENTENCE_TRANSFORMER_AVAILABLE = True
-except ImportError:
+# Defensive import to handle PyTorch docstring conflicts
+_DISABLE_TORCH = os.environ.get("UCKN_DISABLE_TORCH", "0") == "1"
+
+if _DISABLE_TORCH:
     logging.getLogger(__name__).warning(
-        "SentenceTransformer not found. "
+        "Torch disabled by environment variable. "
         "Semantic encoding capabilities will be limited."
     )
     SentenceTransformer = None
     SENTENCE_TRANSFORMER_AVAILABLE = False
+else:
+    try:
+        from sentence_transformers import SentenceTransformer
+        SENTENCE_TRANSFORMER_AVAILABLE = True
+    except (ImportError, RuntimeError) as e:
+        logging.getLogger(__name__).warning(
+            f"SentenceTransformer not available ({e}). "
+            "Semantic encoding capabilities will be limited."
+        )
+        SentenceTransformer = None
+        SENTENCE_TRANSFORMER_AVAILABLE = False
 
 try:
     from uckn.storage.chromadb_connector import ChromaDBConnector

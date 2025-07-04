@@ -446,3 +446,342 @@ def test_performance_large_project(monkeypatch, fingerprinter):
 > Tags cache error: no such column: "size" - should this be a string literal in single-quotes?  
 > Unable to use tags cache at /home/memento/ClaudeCode/claude-code-knowledge-framework/.aider.tags.cache.v4, falling back to memory cache  
 > Cache recreation error: Cannot call rmtree on a symbolic link  
+
+# aider chat started at 2025-07-03 21:12:07
+
+
+#### Fix the PyTorch docstring conflict error that's causing CI test failures. The error "RuntimeError: function '_has_torch_function' already has a docstring" is a known PyTorch issue.  
+####   
+#### UCKN Context:  
+#### - Error: PyTorch docstring conflict in torch/overrides.py  
+#### - Impact: 14 MCP server tests failing due to import issues  
+#### - Root Cause: PyTorch dependency loading conflict with sentence-transformers  
+#### - Solution Priority: HIGH (blocking all CI)  
+####   
+#### Apply defensive programming solution:  
+#### 1. Add try/catch around torch imports in multi_modal_embeddings.py  
+#### 2. Make torch/sentence-transformers imports optional with graceful fallback  
+#### 3. Add environment variable to control torch usage in tests  
+#### 4. Ensure tests can run without PyTorch dependencies  
+####   
+#### The fix should allow tests to run even if PyTorch has issues, while maintaining functionality when PyTorch works correctly.  
+####   
+#### Requirements:  
+#### - Maintain backward compatibility  
+#### - Allow tests to pass without PyTorch  
+#### - Keep full functionality when PyTorch is available  
+#### - Add defensive imports with fallbacks  
+> Tags cache error: no such column: "size" - should this be a string literal in single-quotes?  
+> Unable to use tags cache at /home/memento/ClaudeCode/claude-code-knowledge-framework/.aider.tags.cache.v4, falling back to memory cache  
+> Cache recreation error: Cannot call rmtree on a symbolic link  
+
+src/uckn/core/atoms/multi_modal_embeddings.py
+```python
+<<<<<<< SEARCH
+from typing import List, Dict, Optional, Any, Union
+import logging
+import hashlib
+import threading
+import numpy as np
+
+try:
+    from sentence_transformers import SentenceTransformer
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SentenceTransformer = None
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+
+try:
+    from transformers import AutoTokenizer, AutoModel
+    import torch
+    TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    AutoTokenizer = None
+    AutoModel = None
+    torch = None
+    TRANSFORMERS_AVAILABLE = False
+=======
+from typing import List, Dict, Optional, Any, Union
+import logging
+import hashlib
+import threading
+import numpy as np
+import os
+
+# Defensive import logic for torch and sentence-transformers
+SENTENCE_TRANSFORMERS_AVAILABLE = False
+TRANSFORMERS_AVAILABLE = False
+SentenceTransformer = None
+AutoTokenizer = None
+AutoModel = None
+torch = None
+
+_DISABLE_TORCH = os.environ.get("UCKN_DISABLE_TORCH", "0") == "1"
+
+if not _DISABLE_TORCH:
+    # Try importing torch and transformers defensively
+    try:
+        try:
+            import torch
+        except Exception as torch_exc:
+            torch = None
+            # Log or print for debugging, but do not raise
+        else:
+            try:
+                from transformers import AutoTokenizer, AutoModel
+                TRANSFORMERS_AVAILABLE = True
+            except Exception as tf_exc:
+                AutoTokenizer = None
+                AutoModel = None
+                TRANSFORMERS_AVAILABLE = False
+    except Exception:
+        torch = None
+        AutoTokenizer = None
+        AutoModel = None
+        TRANSFORMERS_AVAILABLE = False
+
+    # Try importing sentence-transformers defensively
+    try:
+        from sentence_transformers import SentenceTransformer
+        SENTENCE_TRANSFORMERS_AVAILABLE = True
+    except Exception as st_exc:
+        SentenceTransformer = None
+        SENTENCE_TRANSFORMERS_AVAILABLE = False
+else:
+    # Torch is disabled by environment variable
+    torch = None
+    AutoTokenizer = None
+    AutoModel = None
+    SentenceTransformer = None
+    TRANSFORMERS_AVAILABLE = False
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+>>>>>>> REPLACE
+```
+
+src/uckn/core/atoms/multi_modal_embeddings.py
+```python
+<<<<<<< SEARCH
+    def __init__(self, device: Optional[str] = None):
+        self._logger = logging.getLogger(__name__)
+        self.device = device or ("cuda" if torch and torch.cuda.is_available() else "cpu")
+        self._lock = threading.Lock()
+
+        # Model loading
+        self.code_tokenizer = None
+        self.code_model = None
+        self.text_model = None
+
+        self._init_code_model()
+        self._init_text_model()
+
+        # In-memory cache for embeddings
+        self._embedding_cache = {}
+=======
+    def __init__(self, device: Optional[str] = None):
+        self._logger = logging.getLogger(__name__)
+        # Defensive: If torch is unavailable, always use cpu
+        if torch is not None and hasattr(torch, "cuda") and callable(getattr(torch.cuda, "is_available", None)):
+            self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        else:
+            self.device = "cpu"
+        self._lock = threading.Lock()
+
+        # Model loading
+        self.code_tokenizer = None
+        self.code_model = None
+        self.text_model = None
+
+        # Only initialize models if not disabled
+        if not _DISABLE_TORCH:
+            self._init_code_model()
+            self._init_text_model()
+        else:
+            self._logger.warning("Torch and transformers are disabled by environment variable.")
+
+        # In-memory cache for embeddings
+        self._embedding_cache = {}
+>>>>>>> REPLACE
+```
+
+src/uckn/core/atoms/multi_modal_embeddings.py
+```python
+<<<<<<< SEARCH
+    def _init_code_model(self):
+        if not TRANSFORMERS_AVAILABLE:
+            self._logger.warning("Transformers not available. Code embedding will fallback to text model.")
+            return
+        try:
+            self.code_tokenizer = AutoTokenizer.from_pretrained(self._CODE_MODEL_NAME)
+            self.code_model = AutoModel.from_pretrained(self._CODE_MODEL_NAME).to(self.device)
+            self._logger.info(f"Loaded code model: {self._CODE_MODEL_NAME}")
+        except Exception as e:
+            self._logger.warning(f"Failed to load code model '{self._CODE_MODEL_NAME}': {e}. Falling back to text model.")
+            self.code_tokenizer = None
+            self.code_model = None
+
+    def _init_text_model(self):
+        if not SENTENCE_TRANSFORMERS_AVAILABLE:
+            self._logger.warning("SentenceTransformers not available. Text embedding will be disabled.")
+            return
+        try:
+            self.text_model = SentenceTransformer(self._TEXT_MODEL_NAME, device=self.device)
+            self._logger.info(f"Loaded text model: {self._TEXT_MODEL_NAME}")
+        except Exception as e:
+            self._logger.error(f"Failed to load text model '{self._TEXT_MODEL_NAME}': {e}")
+            self.text_model = None
+=======
+    def _init_code_model(self):
+        if not TRANSFORMERS_AVAILABLE or AutoTokenizer is None or AutoModel is None or torch is None:
+            self._logger.warning("Transformers not available. Code embedding will fallback to text model.")
+            return
+        try:
+            self.code_tokenizer = AutoTokenizer.from_pretrained(self._CODE_MODEL_NAME)
+            self.code_model = AutoModel.from_pretrained(self._CODE_MODEL_NAME).to(self.device)
+            self._logger.info(f"Loaded code model: {self._CODE_MODEL_NAME}")
+        except Exception as e:
+            self._logger.warning(f"Failed to load code model '{self._CODE_MODEL_NAME}': {e}. Falling back to text model.")
+            self.code_tokenizer = None
+            self.code_model = None
+
+    def _init_text_model(self):
+        if not SENTENCE_TRANSFORMERS_AVAILABLE or SentenceTransformer is None:
+            self._logger.warning("SentenceTransformers not available. Text embedding will be disabled.")
+            return
+        try:
+            self.text_model = SentenceTransformer(self._TEXT_MODEL_NAME, device=self.device)
+            self._logger.info(f"Loaded text model: {self._TEXT_MODEL_NAME}")
+        except Exception as e:
+            self._logger.error(f"Failed to load text model '{self._TEXT_MODEL_NAME}': {e}")
+            self.text_model = None
+>>>>>>> REPLACE
+```
+
+src/uckn/core/atoms/multi_modal_embeddings.py
+```python
+<<<<<<< SEARCH
+    def _embed_code(self, code: str) -> Optional[List[float]]:
+        key = f"code:{self._hash_input(code)}"
+        cached = self._get_cached_embedding(key)
+        if cached:
+            return cached
+        if self.code_model and self.code_tokenizer:
+            try:
+                inputs = self.code_tokenizer(code, return_tensors="pt", truncation=True, max_length=256)
+                inputs = {k: v.to(self.device) for k, v in inputs.items()}
+                with torch.no_grad():
+                    outputs = self.code_model(**inputs)
+                    # Use [CLS] token representation
+                    embedding = outputs.last_hidden_state[:, 0, :].squeeze().cpu().numpy()
+                    embedding = embedding / np.linalg.norm(embedding)
+                    embedding = embedding.tolist()
+                self._set_cached_embedding(key, embedding)
+                return embedding
+            except Exception as e:
+                self._logger.error(f"Code embedding failed: {e}")
+        # Fallback to text embedding
+        return self._embed_text(code)
+=======
+    def _embed_code(self, code: str) -> Optional[List[float]]:
+        key = f"code:{self._hash_input(code)}"
+        cached = self._get_cached_embedding(key)
+        if cached:
+            return cached
+        if self.code_model and self.code_tokenizer and torch is not None:
+            try:
+                inputs = self.code_tokenizer(code, return_tensors="pt", truncation=True, max_length=256)
+                inputs = {k: v.to(self.device) for k, v in inputs.items()}
+                with torch.no_grad():
+                    outputs = self.code_model(**inputs)
+                    # Use [CLS] token representation
+                    embedding = outputs.last_hidden_state[:, 0, :].squeeze().cpu().numpy()
+                    embedding = embedding / np.linalg.norm(embedding)
+                    embedding = embedding.tolist()
+                self._set_cached_embedding(key, embedding)
+                return embedding
+            except Exception as e:
+                self._logger.error(f"Code embedding failed: {e}")
+        # Fallback to text embedding
+        return self._embed_text(code)
+>>>>>>> REPLACE
+```
+
+src/uckn/core/atoms/multi_modal_embeddings.py
+```python
+<<<<<<< SEARCH
+    def _embed_text(self, text: str) -> Optional[List[float]]:
+        key = f"text:{self._hash_input(text)}"
+        cached = self._get_cached_embedding(key)
+        if cached:
+            return cached
+        if self.text_model:
+            try:
+                embedding = self.text_model.encode(text, convert_to_numpy=True, normalize_embeddings=True)
+                embedding = embedding.tolist()
+                self._set_cached_embedding(key, embedding)
+                return embedding
+            except Exception as e:
+                self._logger.error(f"Text embedding failed: {e}")
+        return None
+=======
+    def _embed_text(self, text: str) -> Optional[List[float]]:
+        key = f"text:{self._hash_input(text)}"
+        cached = self._get_cached_embedding(key)
+        if cached:
+            return cached
+        if self.text_model:
+            try:
+                embedding = self.text_model.encode(text, convert_to_numpy=True, normalize_embeddings=True)
+                embedding = embedding.tolist()
+                self._set_cached_embedding(key, embedding)
+                return embedding
+            except Exception as e:
+                self._logger.error(f"Text embedding failed: {e}")
+        return None
+>>>>>>> REPLACE
+```
+
+src/uckn/core/atoms/multi_modal_embeddings.py
+```python
+<<<<<<< SEARCH
+        query_embedding = self.multi_modal_embed(
+            code=query.get("code"),
+            text=query.get("text"),
+            config=query.get("config"),
+            error=query.get("error"),
+            combine_method=combine_method
+        )
+        if query_embedding is None:
+            self._logger.warning("Failed to generate query embedding for multi-modal search.")
+            return []
+        return chroma_connector.search_documents(
+            collection_name=collection_name,
+            query_embedding=query_embedding,
+            n_results=limit,
+            min_similarity=min_similarity,
+            where_clause=metadata_filter
+        )
+=======
+        query_embedding = self.multi_modal_embed(
+            code=query.get("code"),
+            text=query.get("text"),
+            config=query.get("config"),
+            error=query.get("error"),
+            combine_method=combine_method
+        )
+        if query_embedding is None:
+            self._logger.warning("Failed to generate query embedding for multi-modal search.")
+            return []
+        # Defensive: If chroma_connector is None, return empty
+        if chroma_connector is None:
+            self._logger.warning("No chroma_connector provided for search.")
+            return []
+        return chroma_connector.search_documents(
+            collection_name=collection_name,
+            query_embedding=query_embedding,
+            n_results=limit,
+            min_similarity=min_similarity,
+            where_clause=metadata_filter
+        )
+>>>>>>> REPLACE
+```
+

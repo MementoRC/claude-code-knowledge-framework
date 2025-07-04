@@ -10,23 +10,55 @@ import logging
 import hashlib
 import threading
 import numpy as np
+import os
 
-try:
-    from sentence_transformers import SentenceTransformer
-    SENTENCE_TRANSFORMERS_AVAILABLE = True
-except ImportError:
-    SentenceTransformer = None
-    SENTENCE_TRANSFORMERS_AVAILABLE = False
+# Defensive import logic for torch and sentence-transformers
+SENTENCE_TRANSFORMERS_AVAILABLE = False
+TRANSFORMERS_AVAILABLE = False
+SentenceTransformer = None
+AutoTokenizer = None
+AutoModel = None
+torch = None
 
-try:
-    from transformers import AutoTokenizer, AutoModel
-    import torch
-    TRANSFORMERS_AVAILABLE = True
-except ImportError:
+_DISABLE_TORCH = os.environ.get("UCKN_DISABLE_TORCH", "0") == "1"
+
+if not _DISABLE_TORCH:
+    # Try importing torch and transformers defensively
+    try:
+        try:
+            import torch
+        except Exception as torch_exc:
+            torch = None
+            # Log or print for debugging, but do not raise
+        else:
+            try:
+                from transformers import AutoTokenizer, AutoModel
+                TRANSFORMERS_AVAILABLE = True
+            except Exception as tf_exc:
+                AutoTokenizer = None
+                AutoModel = None
+                TRANSFORMERS_AVAILABLE = False
+    except Exception:
+        torch = None
+        AutoTokenizer = None
+        AutoModel = None
+        TRANSFORMERS_AVAILABLE = False
+
+    # Try importing sentence-transformers defensively
+    try:
+        from sentence_transformers import SentenceTransformer
+        SENTENCE_TRANSFORMERS_AVAILABLE = True
+    except Exception as st_exc:
+        SentenceTransformer = None
+        SENTENCE_TRANSFORMERS_AVAILABLE = False
+else:
+    # Torch is disabled by environment variable
+    torch = None
     AutoTokenizer = None
     AutoModel = None
-    torch = None
+    SentenceTransformer = None
     TRANSFORMERS_AVAILABLE = False
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
 
 class MultiModalEmbeddings:
     """
@@ -44,7 +76,11 @@ class MultiModalEmbeddings:
 
     def __init__(self, device: Optional[str] = None):
         self._logger = logging.getLogger(__name__)
-        self.device = device or ("cuda" if torch and torch.cuda.is_available() else "cpu")
+        # Defensive: If torch is unavailable, always use cpu
+        if torch is not None and hasattr(torch, "cuda") and callable(getattr(torch.cuda, "is_available", None)):
+            self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        else:
+            self.device = "cpu"
         self._lock = threading.Lock()
 
         # Model loading
@@ -52,14 +88,18 @@ class MultiModalEmbeddings:
         self.code_model = None
         self.text_model = None
 
-        self._init_code_model()
-        self._init_text_model()
+        # Only initialize models if not disabled
+        if not _DISABLE_TORCH:
+            self._init_code_model()
+            self._init_text_model()
+        else:
+            self._logger.warning("Torch and transformers are disabled by environment variable.")
 
         # In-memory cache for embeddings
         self._embedding_cache = {}
 
     def _init_code_model(self):
-        if not TRANSFORMERS_AVAILABLE:
+        if not TRANSFORMERS_AVAILABLE or AutoTokenizer is None or AutoModel is None or torch is None:
             self._logger.warning("Transformers not available. Code embedding will fallback to text model.")
             return
         try:
@@ -72,7 +112,7 @@ class MultiModalEmbeddings:
             self.code_model = None
 
     def _init_text_model(self):
-        if not SENTENCE_TRANSFORMERS_AVAILABLE:
+        if not SENTENCE_TRANSFORMERS_AVAILABLE or SentenceTransformer is None:
             self._logger.warning("SentenceTransformers not available. Text embedding will be disabled.")
             return
         try:
@@ -100,7 +140,7 @@ class MultiModalEmbeddings:
         cached = self._get_cached_embedding(key)
         if cached:
             return cached
-        if self.code_model and self.code_tokenizer:
+        if self.code_model and self.code_tokenizer and torch is not None:
             try:
                 inputs = self.code_tokenizer(code, return_tensors="pt", truncation=True, max_length=256)
                 inputs = {k: v.to(self.device) for k, v in inputs.items()}
@@ -311,6 +351,10 @@ class MultiModalEmbeddings:
         )
         if query_embedding is None:
             self._logger.warning("Failed to generate query embedding for multi-modal search.")
+            return []
+        # Defensive: If chroma_connector is None, return empty
+        if chroma_connector is None:
+            self._logger.warning("No chroma_connector provided for search.")
             return []
         return chroma_connector.search_documents(
             collection_name=collection_name,

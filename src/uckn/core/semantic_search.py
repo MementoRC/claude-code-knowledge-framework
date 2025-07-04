@@ -13,11 +13,21 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 
-try:
-    from sentence_transformers import SentenceTransformer
-    SENTENCE_TRANSFORMERS_AVAILABLE = True
-except ImportError:
+# Defensive import to handle PyTorch docstring conflicts
+import os
+_DISABLE_TORCH = os.environ.get("UCKN_DISABLE_TORCH", "0") == "1"
+
+if _DISABLE_TORCH:
     SENTENCE_TRANSFORMERS_AVAILABLE = False
+    SentenceTransformer = None
+else:
+    try:
+        from sentence_transformers import SentenceTransformer
+        SENTENCE_TRANSFORMERS_AVAILABLE = True
+    except (ImportError, RuntimeError) as e:
+        # Handle PyTorch docstring conflicts and import errors
+        SENTENCE_TRANSFORMERS_AVAILABLE = False
+        SentenceTransformer = None
 
 try:
     import chromadb
