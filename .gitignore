@@ -31,9 +31,15 @@ ENV/
 env.bak/
 venv.bak/
 
-# IDE
+# IDE and Editor Files
 .vscode/
 .idea/
+.windsurf/
+.cursor/
+.aider*
+.clinerules
+.roo*
+.trae/
 *.swp
 *.swo
 *~
@@ -71,6 +77,8 @@ coverage.xml
 *.cover
 *.py,cover
 .hypothesis/
+htmlcov/
+.ruff_cache/
 
 # Documentation builds
 docs/_build/
@@ -92,3 +100,16 @@ dmypy.json
 *.temp
 .tmp/
 .temp/
+
+# Development and Local Files
+.claude/
+CLAUDE.md
+.mcp.json
+.taskmaster/
+.uckn/
+test_repo_for_extractor/
+AGENTS.md
+CONTEXT_LIVE_TEST.md
+FINAL_PROJECT_SUMMARY.md
+TASK*.md
+mcp-*.log
