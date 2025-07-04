@@ -5,7 +5,7 @@ on:
   schedule:
     - cron: '0 3 * * 0' # Weekly on Sunday at 3am UTC
   push:
-    branches: [main, develop]
+    branches: [main, development]
     paths:
       - 'src/**'
       - 'tests/benchmarks/**'

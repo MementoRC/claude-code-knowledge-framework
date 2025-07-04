@@ -2,12 +2,12 @@ name: Comprehensive Testing
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, development]
     paths-ignore:
       - '**.md'
       - '**/docs/**'
   pull_request:
-    branches: [main, develop]
+    branches: [main, development]
     paths-ignore:
       - '**.md'
       - '**/docs/**'

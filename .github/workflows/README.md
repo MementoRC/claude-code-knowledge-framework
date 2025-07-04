@@ -5,7 +5,7 @@ This directory contains comprehensive GitHub Actions workflows for automated tes
 ## Workflow Overview
 
 ### Core CI/CD Pipeline (`ci.yml`)
-- **Triggers**: Push/PR to main/develop branches, releases
+- **Triggers**: Push/PR to main/development branches, releases
 - **Jobs**: 
   - Cross-platform testing (Ubuntu, macOS, Windows)
   - Multi-Python version support (3.10, 3.11, 3.12)
@@ -15,7 +15,7 @@ This directory contains comprehensive GitHub Actions workflows for automated tes
   - Package building and deployment
 
 ### Comprehensive Testing (`comprehensive-testing.yml`)
-- **Triggers**: Push/PR to main/develop (excluding docs), manual dispatch
+- **Triggers**: Push/PR to main/development (excluding docs), manual dispatch
 - **Features**:
   - Change detection with path filtering
   - Separate test execution by pytest markers (`unit`, `integration`, `e2e`)
@@ -25,7 +25,7 @@ This directory contains comprehensive GitHub Actions workflows for automated tes
   - Artifact collection and preservation
 
 ### Test Matrix (`test-matrix.yml`)
-- **Triggers**: Push/PR to main/develop, manual dispatch
+- **Triggers**: Push/PR to main/development, manual dispatch
 - **Features**:
   - Matrix testing across Python versions and test types
   - Marker-based test selection
@@ -44,7 +44,7 @@ This directory contains comprehensive GitHub Actions workflows for automated tes
   - Automated issue creation for performance regressions
 
 ### Quality Metrics & Coverage (`quality-metrics.yml`)
-- **Triggers**: Push/PR to main/develop
+- **Triggers**: Push/PR to main/development
 - **Features**:
   - Comprehensive coverage reporting (HTML, XML, JSON, Markdown)
   - Differential coverage analysis for PRs
