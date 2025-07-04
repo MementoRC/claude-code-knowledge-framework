@@ -65,7 +65,7 @@ def create_mock_pattern_dict(
             title=title,
             description="A test pattern.",
             pattern_type="code_snippet",
-            technology_stack=TechnologyStackDNA(),
+            technology_stack=TechnologyStackDNA(confidence_score=1.0), # Added confidence_score
             author="author1"
         ),
         sharing_scope=SharingScope.PRIVATE,
