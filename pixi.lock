@@ -196,6 +196,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/networkx-3.5-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/nlohmann_json-3.12.0-h3f2d84a_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nodeenv-1.9.1-pyhd8ed1ab_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/nodejs-22.13.0-hf235a45_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/numpy-2.3.1-py312h6cf2f7f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/oauthlib-3.3.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/onnxruntime-1.22.0-py312h2a9cbd2_0_cpu.conda
@@ -224,6 +225,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pkgutil-resolve-name-1.3.10-pyhd8ed1ab_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.3.8-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/pnpm-10.12.4-h6417eb3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/posthog-5.4.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.2.0-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/prometheus-cpp-1.3.0-ha5d0236_0.conda
@@ -345,6 +347,9 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/43/09/2aea36ff60d16dd8879bdb2f5b3ee0ba8d08cbbdcdfe870e695ce3784385/execnet-2.1.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a0/61/5c78b91c3143ed5c14207f463aecfc8f9dbb5092fb2869baf37c273b2705/gitdb-4.0.12-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1d/9a/4114a9057db2f1462d5c8f8390ab7383925fe1ac012eaa42402ad65c2963/GitPython-3.1.44-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/25/0a/6269e3473b09aed2dab8aa1a600c70f31f00ae1349bee30658f7e358a159/httpx_sse-0.4.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/d7/3f/435a5b3d10ae242a9d6c2b33175551173c3c61fe637dc893be05c4ed0aaf/mcp-1.10.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/58/f0/427018098906416f580e3cf1366d3b1abfb408a0652e9f31600c24a1903c/pydantic_settings-2.10.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/6d/73/7b0b15cb8605ee967b34aa1d949737ab664f94e6b0f1534e8339d9e64ab2/pytest_github_actions_annotate_failures-0.3.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c8/c7/c160021cbecd956cc1a6f79e5fe155f7868b2e5b848f1320dad0b3e3122f/pytest_html-4.1.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/81/35/d07400c715bf8a88aa0c1ee9c9eb6050ca7fe5b39981f0eea773feeb0681/pytest_json_report-1.5.0-py3-none-any.whl
@@ -353,6 +358,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/fa/b6/3127540ecdf1464a00e5a01ee60a1b09175f6913f0644ac748494d9c4b21/pytest_timeout-2.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ca/31/d4e37e9e550c2b92a9cbc2e4d0b7420a27224968580b5a447f420847c975/pytest_xdist-3.8.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/be/d09147ad1ec7934636ad912901c5fd7667e1c858e19d355237db0d0cd5e4/smmap-5.0.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/81/05/78850ac6e79af5b9508f8841b0f26aa9fd329a1ba00bf65453c2d312bcc8/sse_starlette-2.3.6-py3-none-any.whl
       - pypi: ./
       osx-64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/_python_abi3_support-1.0-hd8ed1ab_2.conda
@@ -536,6 +542,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/networkx-3.5-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/nlohmann_json-3.12.0-h92383a6_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nodeenv-1.9.1-pyhd8ed1ab_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-64/nodejs-22.13.0-hffbc63d_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/numpy-2.3.1-py313hc518a0f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/oauthlib-3.3.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/onnxruntime-1.22.0-py313h7bddbbd_0_cpu.conda
@@ -564,6 +571,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pkgutil-resolve-name-1.3.10-pyhd8ed1ab_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.3.8-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-64/pnpm-10.12.4-h1b4e6c9_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/posthog-5.4.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.2.0-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/prometheus-cpp-1.3.0-h7802330_0.conda
@@ -684,6 +692,9 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/43/09/2aea36ff60d16dd8879bdb2f5b3ee0ba8d08cbbdcdfe870e695ce3784385/execnet-2.1.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a0/61/5c78b91c3143ed5c14207f463aecfc8f9dbb5092fb2869baf37c273b2705/gitdb-4.0.12-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1d/9a/4114a9057db2f1462d5c8f8390ab7383925fe1ac012eaa42402ad65c2963/GitPython-3.1.44-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/25/0a/6269e3473b09aed2dab8aa1a600c70f31f00ae1349bee30658f7e358a159/httpx_sse-0.4.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/d7/3f/435a5b3d10ae242a9d6c2b33175551173c3c61fe637dc893be05c4ed0aaf/mcp-1.10.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/58/f0/427018098906416f580e3cf1366d3b1abfb408a0652e9f31600c24a1903c/pydantic_settings-2.10.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/6d/73/7b0b15cb8605ee967b34aa1d949737ab664f94e6b0f1534e8339d9e64ab2/pytest_github_actions_annotate_failures-0.3.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c8/c7/c160021cbecd956cc1a6f79e5fe155f7868b2e5b848f1320dad0b3e3122f/pytest_html-4.1.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/81/35/d07400c715bf8a88aa0c1ee9c9eb6050ca7fe5b39981f0eea773feeb0681/pytest_json_report-1.5.0-py3-none-any.whl
@@ -692,6 +703,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/fa/b6/3127540ecdf1464a00e5a01ee60a1b09175f6913f0644ac748494d9c4b21/pytest_timeout-2.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ca/31/d4e37e9e550c2b92a9cbc2e4d0b7420a27224968580b5a447f420847c975/pytest_xdist-3.8.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/be/d09147ad1ec7934636ad912901c5fd7667e1c858e19d355237db0d0cd5e4/smmap-5.0.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/81/05/78850ac6e79af5b9508f8841b0f26aa9fd329a1ba00bf65453c2d312bcc8/sse_starlette-2.3.6-py3-none-any.whl
       - pypi: ./
       osx-arm64:
       - conda: https://conda.anaconda.org/conda-forge/noarch/_python_abi3_support-1.0-hd8ed1ab_2.conda
@@ -874,6 +886,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/networkx-3.5-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/nlohmann_json-3.12.0-ha1acc90_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nodeenv-1.9.1-pyhd8ed1ab_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/nodejs-22.13.0-h02a13b7_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nomkl-1.0-h5ca1d4c_0.tar.bz2
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/numpy-2.3.1-py313h41a2e72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/oauthlib-3.3.1-pyhd8ed1ab_0.conda
@@ -903,6 +916,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pkgutil-resolve-name-1.3.10-pyhd8ed1ab_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.3.8-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/pnpm-10.12.4-h7c8fa8f_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/posthog-5.4.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.2.0-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/prometheus-cpp-1.3.0-h0967b3e_0.conda
@@ -1022,6 +1036,9 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/43/09/2aea36ff60d16dd8879bdb2f5b3ee0ba8d08cbbdcdfe870e695ce3784385/execnet-2.1.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a0/61/5c78b91c3143ed5c14207f463aecfc8f9dbb5092fb2869baf37c273b2705/gitdb-4.0.12-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1d/9a/4114a9057db2f1462d5c8f8390ab7383925fe1ac012eaa42402ad65c2963/GitPython-3.1.44-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/25/0a/6269e3473b09aed2dab8aa1a600c70f31f00ae1349bee30658f7e358a159/httpx_sse-0.4.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/d7/3f/435a5b3d10ae242a9d6c2b33175551173c3c61fe637dc893be05c4ed0aaf/mcp-1.10.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/58/f0/427018098906416f580e3cf1366d3b1abfb408a0652e9f31600c24a1903c/pydantic_settings-2.10.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/6d/73/7b0b15cb8605ee967b34aa1d949737ab664f94e6b0f1534e8339d9e64ab2/pytest_github_actions_annotate_failures-0.3.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c8/c7/c160021cbecd956cc1a6f79e5fe155f7868b2e5b848f1320dad0b3e3122f/pytest_html-4.1.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/81/35/d07400c715bf8a88aa0c1ee9c9eb6050ca7fe5b39981f0eea773feeb0681/pytest_json_report-1.5.0-py3-none-any.whl
@@ -1030,6 +1047,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/fa/b6/3127540ecdf1464a00e5a01ee60a1b09175f6913f0644ac748494d9c4b21/pytest_timeout-2.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ca/31/d4e37e9e550c2b92a9cbc2e4d0b7420a27224968580b5a447f420847c975/pytest_xdist-3.8.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/be/d09147ad1ec7934636ad912901c5fd7667e1c858e19d355237db0d0cd5e4/smmap-5.0.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/81/05/78850ac6e79af5b9508f8841b0f26aa9fd329a1ba00bf65453c2d312bcc8/sse_starlette-2.3.6-py3-none-any.whl
       - pypi: ./
       win-64:
       - conda: https://conda.anaconda.org/conda-forge/win-64/_openmp_mutex-4.5-2_gnu.conda
@@ -1195,6 +1213,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/mypy_extensions-1.1.0-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/networkx-3.5-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nodeenv-1.9.1-pyhd8ed1ab_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/nodejs-22.13.0-hfeaa22a_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/numpy-2.3.1-py313ha14762d_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/oauthlib-3.3.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/onnxruntime-1.22.0-py313h6b32aa8_0_cpu.conda
@@ -1222,6 +1241,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/pkgutil-resolve-name-1.3.10-pyhd8ed1ab_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/platformdirs-4.3.8-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pluggy-1.6.0-pyhd8ed1ab_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/pnpm-10.12.4-h5818b30_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/posthog-5.4.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/pre-commit-4.2.0-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/propcache-0.3.1-py313hb4c8b1a_0.conda
@@ -1345,6 +1365,9 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/43/09/2aea36ff60d16dd8879bdb2f5b3ee0ba8d08cbbdcdfe870e695ce3784385/execnet-2.1.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a0/61/5c78b91c3143ed5c14207f463aecfc8f9dbb5092fb2869baf37c273b2705/gitdb-4.0.12-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1d/9a/4114a9057db2f1462d5c8f8390ab7383925fe1ac012eaa42402ad65c2963/GitPython-3.1.44-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/25/0a/6269e3473b09aed2dab8aa1a600c70f31f00ae1349bee30658f7e358a159/httpx_sse-0.4.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/d7/3f/435a5b3d10ae242a9d6c2b33175551173c3c61fe637dc893be05c4ed0aaf/mcp-1.10.1-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/58/f0/427018098906416f580e3cf1366d3b1abfb408a0652e9f31600c24a1903c/pydantic_settings-2.10.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/6d/73/7b0b15cb8605ee967b34aa1d949737ab664f94e6b0f1534e8339d9e64ab2/pytest_github_actions_annotate_failures-0.3.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/c8/c7/c160021cbecd956cc1a6f79e5fe155f7868b2e5b848f1320dad0b3e3122f/pytest_html-4.1.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/81/35/d07400c715bf8a88aa0c1ee9c9eb6050ca7fe5b39981f0eea773feeb0681/pytest_json_report-1.5.0-py3-none-any.whl
@@ -1353,6 +1376,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/fa/b6/3127540ecdf1464a00e5a01ee60a1b09175f6913f0644ac748494d9c4b21/pytest_timeout-2.4.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/ca/31/d4e37e9e550c2b92a9cbc2e4d0b7420a27224968580b5a447f420847c975/pytest_xdist-3.8.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/04/be/d09147ad1ec7934636ad912901c5fd7667e1c858e19d355237db0d0cd5e4/smmap-5.0.2-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/81/05/78850ac6e79af5b9508f8841b0f26aa9fd329a1ba00bf65453c2d312bcc8/sse_starlette-2.3.6-py3-none-any.whl
       - pypi: ./
   default:
     channels:
@@ -17227,7 +17251,7 @@ packages:
 - pypi: ./
   name: uckn-framework
   version: 1.0.0
-  sha256: 7fb5803538d7149cd960e008d9cec7695dbb7d1dfd419ca70ee856c818f11f3e
+  sha256: c5bb95a4382ad82567b12bca83cabe0e5267a017075e9771528e1acd37697674
   requires_dist:
   - sentence-transformers>=2.2.0
   - chromadb>=0.4.0

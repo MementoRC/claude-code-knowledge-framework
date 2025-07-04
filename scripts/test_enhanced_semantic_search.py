@@ -40,7 +40,7 @@ def test_enhanced_semantic_search():
         print("⚠️  Engine not fully available, testing with limited functionality")
     
     # Test 1: Basic text search
-    print(f"\n📝 Test 1: Text Search")
+    print("\n📝 Test 1: Text Search")
     print("-" * 30)
     try:
         results = engine.search_by_text(
@@ -60,7 +60,7 @@ def test_enhanced_semantic_search():
         print(f"❌ Text search failed: {e}")
     
     # Test 2: Code search
-    print(f"\n💻 Test 2: Code Search")
+    print("\n💻 Test 2: Code Search")
     print("-" * 30)
     try:
         results = engine.search_by_code(
@@ -78,7 +78,7 @@ def test_enhanced_semantic_search():
         print(f"❌ Code search failed: {e}")
     
     # Test 3: Error search
-    print(f"\n🚨 Test 3: Error Search")
+    print("\n🚨 Test 3: Error Search")
     print("-" * 30)
     try:
         results = engine.search_by_error(
@@ -96,7 +96,7 @@ def test_enhanced_semantic_search():
         print(f"❌ Error search failed: {e}")
     
     # Test 4: Multi-modal search
-    print(f"\n🔀 Test 4: Multi-Modal Search")
+    print("\n🔀 Test 4: Multi-Modal Search")
     print("-" * 30)
     try:
         results = engine.search_multi_modal(
@@ -117,7 +117,7 @@ def test_enhanced_semantic_search():
         print(f"❌ Multi-modal search failed: {e}")
     
     # Test 5: Technology stack filtering
-    print(f"\n🔧 Test 5: Technology Stack Filtering")
+    print("\n🔧 Test 5: Technology Stack Filtering")
     print("-" * 30)
     try:
         # Test with specific tech stack
@@ -147,7 +147,7 @@ def test_enhanced_semantic_search():
         print(f"❌ Technology stack filtering failed: {e}")
     
     # Test 6: Embedding statistics
-    print(f"\n📊 Test 6: Embedding Statistics")
+    print("\n📊 Test 6: Embedding Statistics")
     print("-" * 30)
     try:
         stats = engine.get_embedding_stats()
@@ -161,7 +161,7 @@ def test_enhanced_semantic_search():
         print(f"❌ Embedding statistics failed: {e}")
     
     # Test 7: Batch encoding
-    print(f"\n📦 Test 7: Batch Encoding")
+    print("\n📦 Test 7: Batch Encoding")
     print("-" * 30)
     try:
         test_texts = [
@@ -181,7 +181,7 @@ def test_enhanced_semantic_search():
     except Exception as e:
         print(f"❌ Batch encoding failed: {e}")
     
-    print(f"\n🎯 Enhanced Semantic Search Test Summary")
+    print("\n🎯 Enhanced Semantic Search Test Summary")
     print("=" * 60)
     print("✅ All enhanced semantic search features tested")
     print("🔍 Multi-modal search capabilities verified")
@@ -193,7 +193,7 @@ def test_enhanced_semantic_search():
 
 def test_integration_with_uckn_server():
     """Test integration with UCKN MCP server"""
-    print(f"\n🔗 Testing UCKN MCP Server Integration")
+    print("\n🔗 Testing UCKN MCP Server Integration")
     print("-" * 40)
     
     # This will be tested after the MCP server is restarted with new code
@@ -216,10 +216,10 @@ def main():
         success = False
     
     if success:
-        print(f"\n🎉 All Enhanced Semantic Search Tests PASSED!")
+        print("\n🎉 All Enhanced Semantic Search Tests PASSED!")
         print("🚀 Task 3 - Enhanced Semantic Search implementation is complete!")
     else:
-        print(f"\n⚠️  Some Enhanced Semantic Search Tests failed")
+        print("\n⚠️  Some Enhanced Semantic Search Tests failed")
     
     return success
 

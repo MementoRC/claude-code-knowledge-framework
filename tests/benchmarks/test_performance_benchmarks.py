@@ -135,7 +135,7 @@ class TestSearchPerformance:
         result = benchmark(
             populated_search_engine.search_by_text,
             "test function",
-            max_results=10
+            limit=10
         )
         assert isinstance(result, list)
 
