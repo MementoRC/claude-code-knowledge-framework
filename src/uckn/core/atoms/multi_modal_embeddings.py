@@ -98,6 +98,28 @@ class MultiModalEmbeddings:
         # In-memory cache for embeddings
         self._embedding_cache = {}
 
+    def is_available(self) -> bool:
+        """
+        Checks if the MultiModalEmbeddings component is initialized and ready for use.
+        
+        Returns:
+            bool: True if at least one embedding model is available, False otherwise.
+        """
+        # Component is available if at least one model is initialized
+        # or if we have the basic dependencies available
+        has_text_model = (
+            SENTENCE_TRANSFORMERS_AVAILABLE and 
+            self.text_model is not None
+        )
+        has_code_model = (
+            TRANSFORMERS_AVAILABLE and 
+            self.code_model is not None and 
+            self.code_tokenizer is not None
+        )
+        
+        # Available if we have at least one working model or basic dependencies
+        return has_text_model or has_code_model or SENTENCE_TRANSFORMERS_AVAILABLE
+
     def _init_code_model(self):
         if not TRANSFORMERS_AVAILABLE or AutoTokenizer is None or AutoModel is None or torch is None:
             self._logger.warning("Transformers not available. Code embedding will fallback to text model.")

@@ -80,7 +80,7 @@ class TestEmbeddingPerformance:
             "config": "debug = True\nverbose = False"
         }
         
-        result = benchmark(embeddings.multi_modal_embed, data)
+        result = benchmark(embeddings.multi_modal_embed, code=data["code"], text=data["text"], config=data["config"])
         assert result is not None
 
     @pytest.mark.parametrize("cache_size", [10, 50, 100])
