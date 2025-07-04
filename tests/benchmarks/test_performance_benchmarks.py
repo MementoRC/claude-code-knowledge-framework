@@ -26,7 +26,7 @@ class TestEmbeddingPerformance:
     @pytest.fixture
     def embeddings(self, temp_knowledge_dir):
         """Create MultiModalEmbeddings instance for testing."""
-        return MultiModalEmbeddings(knowledge_dir=temp_knowledge_dir)
+        return MultiModalEmbeddings()
 
     @pytest.fixture
     def test_texts(self):
@@ -86,7 +86,7 @@ class TestEmbeddingPerformance:
     @pytest.mark.parametrize("cache_size", [10, 50, 100])
     def test_embedding_cache_performance(self, benchmark, temp_knowledge_dir, test_texts, cache_size):
         """Benchmark embedding cache performance with different cache sizes."""
-        embeddings = MultiModalEmbeddings(knowledge_dir=temp_knowledge_dir, cache_size=cache_size)
+        embeddings = MultiModalEmbeddings()
         if not embeddings.is_available():
             pytest.skip("Embeddings not available")
             
@@ -339,7 +339,7 @@ class TestMemoryPerformance:
 
     def test_embedding_memory_usage(self, temp_knowledge_dir, large_text_sample):
         """Test memory usage during embedding generation."""
-        embeddings = MultiModalEmbeddings(knowledge_dir=temp_knowledge_dir)
+        embeddings = MultiModalEmbeddings()
         if not embeddings.is_available():
             pytest.skip("Embeddings not available")
             
