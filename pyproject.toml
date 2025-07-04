@@ -184,6 +184,9 @@ db-migrate = "alembic -c src/uckn/storage/migrations/alembic.ini upgrade head" #
 docs-serve = "mkdocs serve"
 docs-build = "mkdocs build"
 
+# MCP Server tasks
+mcp-server = { cmd = "python -m uckn.mcp.universal_knowledge_server", env = { PYTHONPATH = "src" } }
+
 # CI/CD tasks
 ci-test = {cmd = "pytest tests/ --cov=src/uckn --cov-report=xml", env = {ENVIRONMENT = "ci"}}
 ci-lint = "ruff check src/ tests/ --output-format=github"
