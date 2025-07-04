@@ -27,14 +27,14 @@ if not _DISABLE_TORCH:
     try:
         try:
             import torch
-        except Exception as torch_exc:
+        except Exception:
             torch = None
             # Log or print for debugging, but do not raise
         else:
             try:
                 from transformers import AutoTokenizer, AutoModel
                 TRANSFORMERS_AVAILABLE = True
-            except Exception as tf_exc:
+            except Exception:
                 AutoTokenizer = None
                 AutoModel = None
                 TRANSFORMERS_AVAILABLE = False
@@ -48,7 +48,7 @@ if not _DISABLE_TORCH:
     try:
         from sentence_transformers import SentenceTransformer
         SENTENCE_TRANSFORMERS_AVAILABLE = True
-    except Exception as st_exc:
+    except Exception:
         SentenceTransformer = None
         SENTENCE_TRANSFORMERS_AVAILABLE = False
 else:

@@ -49,8 +49,7 @@ def init_database(db_url: str = None):
         with pg_connector.get_db_session() as session:
             # Import models to ensure they're registered
             from uckn.storage.postgresql_connector import (
-                Base, Project, Pattern, ErrorSolution, 
-                PatternCategory, PatternCategoryLink, TeamAccess, CompatibilityMatrix
+                Base
             )
             
             # Create all tables

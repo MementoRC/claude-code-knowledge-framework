@@ -24,7 +24,7 @@ else:
     try:
         from sentence_transformers import SentenceTransformer
         SENTENCE_TRANSFORMERS_AVAILABLE = True
-    except (ImportError, RuntimeError) as e:
+    except (ImportError, RuntimeError):
         # Handle PyTorch docstring conflicts and import errors
         SENTENCE_TRANSFORMERS_AVAILABLE = False
         SentenceTransformer = None
