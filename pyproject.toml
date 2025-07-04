@@ -211,7 +211,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*" = ["F401", "F811"]
+"tests/**/*" = ["F401", "F811", "F403"]
 
 [tool.mypy]
 python_version = "3.10"
