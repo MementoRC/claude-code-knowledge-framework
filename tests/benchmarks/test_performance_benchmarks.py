@@ -108,7 +108,7 @@ class TestSearchPerformance:
     @pytest.fixture
     def search_engine(self, temp_knowledge_dir):
         """Create SemanticSearchEngine instance for testing."""
-        return SemanticSearchEngine(knowledge_dir=temp_knowledge_dir)
+        return SemanticSearchEngine()
 
     @pytest.fixture
     def populated_search_engine(self, search_engine, sample_patterns):
@@ -121,7 +121,8 @@ class TestSearchPerformance:
             search_engine.chroma_connector.add_document(
                 collection_name="code_patterns",
                 doc_id=pattern["id"],
-                content=pattern["content"],
+                document=pattern["content"],
+                embedding=[0.0] * 768,  # Provide a dummy embedding
                 metadata=pattern.get("metadata", {})
             )
         return search_engine
@@ -202,10 +203,11 @@ class TestStoragePerformance:
             return storage.add_document(
                 collection_name="test_collection",
                 doc_id=doc_id,
-                content=pattern["content"],
+                document=pattern["content"],
+                embedding=[0.0] * 768,  # Provide a dummy embedding
                 metadata=pattern.get("metadata", {})
             )
-            
+
         result = benchmark(insert_document)
         assert result is True
 
@@ -219,10 +221,11 @@ class TestStoragePerformance:
                 storage.add_document(
                     collection_name="bulk_test",
                     doc_id=f"bulk_{i}_{time.time()}",
-                    content=pattern["content"],
+                    document=pattern["content"],
+                    embedding=[0.0] * 768,  # Provide a dummy embedding
                     metadata=pattern.get("metadata", {})
                 )
-                
+
         benchmark(bulk_insert)
 
     def test_search_performance_by_size(self, benchmark, storage, sample_patterns):
@@ -235,10 +238,11 @@ class TestStoragePerformance:
             storage.add_document(
                 collection_name="size_test",
                 doc_id=f"size_test_{i}",
-                content=pattern["content"],
+                document=pattern["content"],
+                embedding=[0.0] * 768,  # Provide a dummy embedding
                 metadata=pattern.get("metadata", {})
             )
-        
+
         def search_documents():
             return storage.search_documents(
                 collection_name="size_test",
@@ -261,10 +265,11 @@ class TestStoragePerformance:
             storage.add_document(
                 collection_name="filter_test",
                 doc_id=f"filter_test_{i}",
-                content=pattern["content"],
+                document=pattern["content"],
+                embedding=[0.0] * 768,  # Provide a dummy embedding
                 metadata=metadata
             )
-        
+
         def filtered_search():
             return storage.search_documents(
                 collection_name="filter_test",
@@ -367,10 +372,11 @@ class TestMemoryPerformance:
                 storage.add_document(
                     collection_name="memory_test",
                     doc_id=f"mem_test_{i}_{j}",
-                    content=pattern["content"],
+                    document=pattern["content"],
+                    embedding=[0.0] * 768,  # Provide a dummy embedding
                     metadata=pattern.get("metadata", {})
                 )
-        
+
         # Perform searches to test memory during operations
         results = storage.search_documents(
             collection_name="memory_test",

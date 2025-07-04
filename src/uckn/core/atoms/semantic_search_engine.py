@@ -72,6 +72,21 @@ class SemanticSearchEngine:
         if not self.embedding_atom:
             self.logger.warning("MultiModalEmbeddings atom not available. Embedding will be disabled.")
 
+    def is_available(self) -> bool:
+        """
+        Checks if the component is initialized and ready for use.
+        
+        Returns:
+            bool: True if component is ready, False otherwise.
+        """
+        # Check if dependencies and models are available
+        return (
+            self.chroma_connector is not None and
+            self.chroma_connector.is_available() and
+            self.embedding_atom is not None and
+            self.embedding_atom.is_available()
+        )
+
     def _get_collection(self, collection_type: str) -> str:
         if collection_type not in ("code_patterns", "error_solutions"):
             raise ValueError(f"Unknown collection type: {collection_type}")
