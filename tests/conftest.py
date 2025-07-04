@@ -21,10 +21,27 @@ def temp_knowledge_dir() -> Generator[str, None, None]:
     """
     Create a temporary directory for knowledge storage.
     Ensures cleanup after test.
+    Also attempts to close any ChromaDB connections in the directory.
     """
     temp_dir = tempfile.mkdtemp()
-    yield temp_dir
-    shutil.rmtree(temp_dir, ignore_errors=True)
+    try:
+        yield temp_dir
+    finally:
+        # Defensive: attempt to close ChromaDB connections if present
+        try:
+            from src.uckn.storage.chromadb_connector import ChromaDBConnector
+            chroma_db_path = str(Path(temp_dir) / "chroma_db")
+            chroma_connector = ChromaDBConnector(db_path=chroma_db_path)
+            if hasattr(chroma_connector, "client") and chroma_connector.client:
+                # ChromaDB PersistentClient does not have a close(), but we can try to reset
+                try:
+                    chroma_connector.client.reset()
+                except Exception:
+                    pass
+                chroma_connector.client = None
+        except Exception:
+            pass
+        shutil.rmtree(temp_dir, ignore_errors=True)
 
 # --- Performance/large text sample ---
 
@@ -59,6 +76,7 @@ def uckn_component_factory():
     """
     Factory for creating UCKN components with dependency injection.
     Supports custom configuration for integration and E2E tests.
+    Ensures ChromaDBConnector and other DB resources are cleaned up after use.
     """
     from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
     from src.uckn.core.atoms.semantic_search import SemanticSearch
@@ -67,6 +85,8 @@ def uckn_component_factory():
     from src.uckn.core.molecules.error_solution_manager import ErrorSolutionManager
     from src.uckn.core.molecules.pattern_classification import PatternClassification
     from src.uckn.storage.chromadb_connector import ChromaDBConnector
+
+    created_chroma_connectors = []
 
     def factory(
         knowledge_dir=None,
@@ -79,7 +99,9 @@ def uckn_component_factory():
     ):
         # Use provided or default
         knowledge_dir = knowledge_dir or tempfile.mkdtemp()
-        chroma_connector = chroma_connector or ChromaDBConnector(db_path=str(Path(knowledge_dir) / "chroma_db"))
+        chroma_connector_local = chroma_connector or ChromaDBConnector(db_path=str(Path(knowledge_dir) / "chroma_db"))
+        if chroma_connector is None:
+            created_chroma_connectors.append(chroma_connector_local)
         semantic_search = semantic_search or SemanticSearch(knowledge_dir=str(knowledge_dir))
         tech_detector = tech_detector or TechStackDetector()
         # Create unified_db for PatternManager
@@ -87,11 +109,11 @@ def uckn_component_factory():
         from tests.fixtures.database_fixtures import DummyUnifiedDatabase
         unified_db = DummyUnifiedDatabase()
         pattern_manager = pattern_manager or PatternManager(unified_db, semantic_search)
-        error_solution_manager = error_solution_manager or ErrorSolutionManager(chroma_connector, semantic_search)
-        pattern_classification = pattern_classification or PatternClassification(chroma_connector)
+        error_solution_manager = error_solution_manager or ErrorSolutionManager(chroma_connector_local, semantic_search)
+        pattern_classification = pattern_classification or PatternClassification(chroma_connector_local)
         # Compose KnowledgeManager with injected dependencies
         km = KnowledgeManager(knowledge_dir=knowledge_dir)
-        km.chroma_connector = chroma_connector
+        km.chroma_connector = chroma_connector_local
         km.semantic_search = semantic_search
         km.tech_detector = tech_detector
         km.pattern_manager = pattern_manager
@@ -99,7 +121,19 @@ def uckn_component_factory():
         km.pattern_classification = pattern_classification
         return km
 
-    return factory
+    yield factory
+
+    # Cleanup: close ChromaDB connections after test
+    for chroma_connector in created_chroma_connectors:
+        try:
+            if hasattr(chroma_connector, "client") and chroma_connector.client:
+                try:
+                    chroma_connector.client.reset()
+                except Exception:
+                    pass
+                chroma_connector.client = None
+        except Exception:
+            pass
 
 # --- Async error simulation utility ---
 

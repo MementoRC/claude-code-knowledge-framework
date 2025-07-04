@@ -21,6 +21,7 @@ import logging
 class DummyChromaDBConnector:
     """
     A mock ChromaDBConnector for testing.
+    Includes a close() method for resource cleanup.
     """
     def __init__(self):
         self.collections = {
@@ -31,6 +32,11 @@ class DummyChromaDBConnector:
 
     def is_available(self):
         return True
+
+    def close(self):
+        # Dummy close for interface compatibility
+        self.collections = {}
+        self.added_docs = []
 
     def add_document(self, collection_name, doc_id, document, embedding, metadata):
         doc = {
@@ -467,8 +473,14 @@ class DummyUnifiedDatabase:
 def dummy_chromadb_connector():
     """
     Returns a dummy ChromaDBConnector for isolated storage testing.
+    Ensures cleanup after test.
     """
-    return DummyChromaDBConnector()
+    connector = DummyChromaDBConnector()
+    yield connector
+    try:
+        connector.close()
+    except Exception:
+        pass
 
 @pytest.fixture
 def dummy_postgresql_connector():
@@ -481,8 +493,14 @@ def dummy_postgresql_connector():
 def dummy_unified_database():
     """
     Returns a dummy UnifiedDatabase for isolated testing of the unified layer.
+    Ensures cleanup after test.
     """
-    return DummyUnifiedDatabase()
+    db = DummyUnifiedDatabase()
+    yield db
+    try:
+        db.chroma_connector.close()
+    except Exception:
+        pass
 
 @pytest.fixture
 def performance_dataset():

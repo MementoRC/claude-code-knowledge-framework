@@ -53,6 +53,7 @@ dev = [
     "pytest-xdist>=3.3.1",
     "pytest-metadata>=3.0.0",
     "pytest-github-actions-annotate-failures>=0.2.0",
+    "pytest-timeout>=2.1.0",  # Added for test timeout management
     "diff-cover>=7.5.0",
     "coverage>=7.4.0",
     "coverage-badge>=1.1.0",
@@ -227,7 +228,11 @@ addopts = [
     "--strict-markers",
     "--strict-config",
     "--disable-warnings",
+    "--timeout=300",  # 5 minutes per test (for CI)
+    "--timeout-method=thread",  # More robust for async/code with subprocesses
 ]
+timeout = 300  # 5 minutes default timeout for all tests (pytest-timeout)
+timeout_method = "thread"
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",
