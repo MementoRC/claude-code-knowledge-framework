@@ -63,7 +63,6 @@ dev = [
     "black>=23.0.0",
     "mypy>=1.0.0",
     "pre-commit>=3.0.0",
-    "aider-chat>=0.30.0",
     "alembic>=1.12.0", # Added for database migrations
 ]
 loadtest = [
@@ -124,10 +123,10 @@ pytest = "*"
 pytest-cov = "*"
 pytest-asyncio = "*"
 pytest-benchmark = "*"
-memory-profiler = "*"
+memory_profiler = "*"
 locust = "*"
 psutil = "*"
-redis = "*"
+redis-py = "*"
 ruff = "*"
 black = "*"
 mypy = "*"
@@ -136,7 +135,7 @@ alembic = "*" # Added for database migrations
 
 [tool.pixi.feature.mcp.dependencies]
 nodejs = ">=18"
-npm = "*"
+pnpm = "*"
 
 [tool.pixi.feature.ml.dependencies]
 pytorch = "*"
@@ -146,7 +145,7 @@ SQLAlchemy = "*" # Added for PostgreSQL ORM
 psycopg = "*" # Added for PostgreSQL driver
 
 [tool.pixi.environments]
-default = {features = ["ml"], solve-group = "default"}
+default = {features = ["ml", "mcp"], solve-group = "default"}
 dev = {features = ["dev", "ml", "mcp"], solve-group = "default"}
 ci = {features = ["dev"], solve-group = "default"}
 docs = {features = ["docs"], solve-group = "default"}
