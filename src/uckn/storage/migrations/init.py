@@ -140,7 +140,7 @@ def init_database(db_url: str = None):
         print("\n📝 Next steps:")
         print("1. Test the connection:")
         print(f"   export UCKN_DATABASE_URL='{db_url}'")
-        print("   uv run --project /path/to/uckn python -c \"from uckn.core.organisms.knowledge_manager import KnowledgeManager; km = KnowledgeManager(); print('✅ UCKN ready!')\"")
+        print("   pixi run --project /path/to/uckn python -c \"from uckn.core.organisms.knowledge_manager import KnowledgeManager; km = KnowledgeManager(); print('✅ UCKN ready!')\"")
         print("\n2. Start using UCKN with Claude Code!")
         
         return True

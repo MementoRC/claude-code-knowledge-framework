@@ -1,6 +1,6 @@
-# 📦 UV Integration Guide for UCKN
+# 📦 Pixi Integration Guide for UCKN
 
-This guide shows how to integrate UCKN with Claude Code using UV for dependency management.
+This guide shows how to integrate UCKN with Claude Code using Pixi for dependency management.
 
 ## 🚀 Quick Setup
 
@@ -14,11 +14,11 @@ git clone https://github.com/MementoRC/claude-code-knowledge-framework.git
 cd your-project
 
 # Run the setup script
-uv run --project /path/to/claude-code-knowledge-framework scripts/setup-uv-integration.py
+pixi run --project /path/to/claude-code-knowledge-framework setup-pixi-integration
 ```
 
 This creates:
-- `.mcp.json` with UV configuration
+- `.mcp.json` with Pixi configuration
 - `.uckn/` directory structure
 - Basic configuration files
 - Usage examples
@@ -31,12 +31,12 @@ This creates:
 {
   "mcpServers": {
     "uckn-knowledge": {
-      "command": "uv",
+      "command": "pixi",
       "args": [
         "run",
         "--project",
         "/path/to/claude-code-knowledge-framework",
-        "scripts/mcp-server-uv.py"
+        "mcp-server"
       ],
       "env": {
         "UCKN_KNOWLEDGE_DIR": "./.uckn/knowledge",
@@ -64,26 +64,25 @@ mkdir -p .uckn/knowledge .uckn/config
 | `UCKN_PROJECT_ROOT` | Project root directory | Current directory |
 | `UCKN_DATABASE_URL` | Database connection URL | SQLite in knowledge dir |
 
-### Advanced UV Configuration
+### Advanced Pixi Configuration
 
-For projects with specific UV requirements:
+For projects with specific Pixi requirements:
 
 ```json
 {
   "mcpServers": {
     "uckn-knowledge": {
-      "command": "uv",
+      "command": "pixi",
       "args": [
         "run",
         "--project", "/path/to/claude-code-knowledge-framework",
-        "--extra", "mcp,ml",
-        "--python", "3.11",
-        "python", "-m", "uckn.mcp.universal_knowledge_server"
+        "--environment", "default",
+        "mcp-server"
       ],
       "env": {
         "UCKN_KNOWLEDGE_DIR": "./.uckn/knowledge",
         "UCKN_LOG_LEVEL": "DEBUG",
-        "UV_CACHE_DIR": "./.uv-cache"
+        "PIXI_CACHE_DIR": "./.pixi-cache"
       }
     }
   }
@@ -129,23 +128,23 @@ Once configured, you can use these commands in Claude Code:
 
 ### Common Issues
 
-**UV not found:**
+**Pixi not found:**
 ```bash
-# Install UV
-curl -LsSf https://astral.sh/uv/install.sh | sh
+# Install Pixi
+curl -fsSL https://pixi.sh/install.sh | bash
 ```
 
 **MCP server fails to start:**
 ```bash
 # Test manually
-uv run --project /path/to/claude-code-knowledge-framework scripts/mcp-server-uv.py
+pixi run --project /path/to/claude-code-knowledge-framework mcp-server
 ```
 
 **Dependencies not found:**
 ```bash
 # Ensure UCKN project has proper dependencies
 cd /path/to/claude-code-knowledge-framework
-uv sync --extra mcp
+pixi install
 ```
 
 **Knowledge directory not found:**
@@ -188,13 +187,13 @@ your-project/
 
 ## 🚀 Performance Benefits
 
-UV integration provides:
+Pixi integration provides:
 
-- **Fast startup**: UV's dependency resolution is faster than pip
+- **Fast startup**: Pixi's conda-forge based resolution is fast and reliable
 - **Isolated environment**: No global package conflicts
-- **Reproducible**: Exact dependency versions
-- **Minimal overhead**: Only downloads needed packages
-- **Cache efficiency**: UV's intelligent caching
+- **Reproducible**: Exact dependency versions with lock files
+- **Cross-platform**: Consistent behavior across Linux, macOS, and Windows
+- **Cache efficiency**: Pixi's intelligent caching system
 
 ## 📈 Advanced Features
 
@@ -215,13 +214,18 @@ public = "https://public-patterns.uckn.io"
 Use in GitHub Actions:
 
 ```yaml
+- name: Setup Pixi
+  uses: prefix-dev/setup-pixi@v0.4.1
+  with:
+    pixi-version: latest
+
 - name: Setup UCKN
   run: |
-    uv run --project ./uckn-framework scripts/setup-uv-integration.py .
+    pixi run --project ./uckn-framework setup-pixi-integration .
     
 - name: Analyze with UCKN
   run: |
-    uv run --project ./uckn-framework python -c "
+    pixi run --project ./uckn-framework python -c "
     from uckn.core.organisms.knowledge_manager import KnowledgeManager
     km = KnowledgeManager('.')
     issues = km.predict_issues()
@@ -229,4 +233,19 @@ Use in GitHub Actions:
     "
 ```
 
-This UV integration makes UCKN incredibly easy to use across different projects without installation hassles!
+### Multi-Environment Support
+
+Pixi supports multiple environments for different use cases:
+
+```yaml
+# For development
+pixi run --environment dev mcp-server
+
+# For production
+pixi run --environment default mcp-server
+
+# For CI/CD
+pixi run --environment ci mcp-server
+```
+
+This Pixi integration makes UCKN incredibly easy to use across different projects with reliable dependency management!

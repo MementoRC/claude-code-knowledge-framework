@@ -90,10 +90,10 @@ CREATE EXTENSION IF NOT EXISTS "btree_gin";
 export UCKN_DATABASE_URL="postgresql://uckn:uckn_secure_password@localhost:5432/shared_uckn"
 
 # Initialize UCKN database schema
-uv run --project /path/to/claude-code-knowledge-framework python -m uckn.storage.migrations.init
+pixi run --project /path/to/claude-code-knowledge-framework db-migrate
 
 # Verify setup
-uv run --project /path/to/claude-code-knowledge-framework python -c "
+pixi run --project /path/to/claude-code-knowledge-framework python -c "
 from uckn.storage.postgresql_connector import PostgreSQLConnector
 import os
 db_url = os.environ['UCKN_DATABASE_URL']
@@ -127,11 +127,11 @@ Update your `.mcp.json`:
 {
   "mcpServers": {
     "uckn-knowledge": {
-      "command": "uv",
+      "command": "pixi",
       "args": [
         "run",
         "--project", "/path/to/claude-code-knowledge-framework",
-        "scripts/mcp-server-uv.py"
+        "mcp-server"
       ],
       "env": {
         "UCKN_DATABASE_URL": "postgresql://uckn:uckn_secure_password@localhost:5432/shared_uckn",
