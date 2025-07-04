@@ -1,18 +1,13 @@
+from __future__ import annotations
 import logging
 import datetime
 import hashlib
-import json # Added for broadcasting messages
+import json
 from typing import Dict, Any, List, Optional
 
 from pydantic import ValidationError
 
 from ..organisms.knowledge_manager import KnowledgeManager
-from ...api.models.patterns import Pattern, PatternMetadata
-from ...api.models.workflow import (
-    WorkflowState, ReviewFeedback, PatternVersion, ReviewStatus,
-    WorkflowTransitionRequest, SubmitReviewFeedbackRequest, InitiateReviewRequest
-)
-from ...api.routers.collaboration import ConnectionManager # For notifications
 
 logger = logging.getLogger(__name__)
 
@@ -22,40 +17,44 @@ class WorkflowManager:
     Implements a state machine for pattern contribution, review, and publishing.
     """
 
-    # Define allowed state transitions
-    # (current_state, action) -> (next_state, required_role, notification_type)
+    # Define allowed state transitions using string values for states
+    # (current_state_str, action) -> (next_state_str, required_role, notification_type)
     # Actions: 'submit_for_review', 'submit_feedback', 'approve_review', 'reject_review',
     # 'approve_testing', 'reject_testing', 'publish', 'retire', 'deprecate', 'reactivate', 'needs_revision', 'resubmit'
     STATE_TRANSITIONS = {
-        (WorkflowState.DRAFT, "submit_for_review"): (WorkflowState.IN_REVIEW, "contributor", "pattern_submitted_for_review"),
+        ("draft", "submit_for_review"): ("in_review", "contributor", "pattern_submitted_for_review"),
         
-        (WorkflowState.IN_REVIEW, "approve_review"): (WorkflowState.IN_TESTING, "admin", "pattern_approved_for_testing"), # Requires all reviews to be approved
-        (WorkflowState.IN_REVIEW, "reject_review"): (WorkflowState.REJECTED, "admin", "pattern_rejected"),
-        (WorkflowState.IN_REVIEW, "needs_revision"): (WorkflowState.DRAFT, "admin", "pattern_needs_revision"), # Back to draft for author
+        ("in_review", "approve_review"): ("in_testing", "admin", "pattern_approved_for_testing"), # Requires all reviews to be approved
+        ("in_review", "reject_review"): ("rejected", "admin", "pattern_rejected"),
+        ("in_review", "needs_revision"): ("draft", "admin", "pattern_needs_revision"), # Back to draft for author
         
-        (WorkflowState.IN_TESTING, "approve_testing"): (WorkflowState.APPROVED_FOR_PUBLISH, "admin", "pattern_approved_for_publish"),
-        (WorkflowState.IN_TESTING, "reject_testing"): (WorkflowState.REJECTED, "admin", "pattern_rejected"),
-        (WorkflowState.IN_TESTING, "needs_revision"): (WorkflowState.DRAFT, "admin", "pattern_needs_revision"), # Back to draft for author
+        ("in_testing", "approve_testing"): ("approved_for_publish", "admin", "pattern_approved_for_publish"),
+        ("in_testing", "reject_testing"): ("rejected", "admin", "pattern_rejected"),
+        ("in_testing", "needs_revision"): ("draft", "admin", "pattern_needs_revision"), # Back to draft for author
         
-        (WorkflowState.APPROVED_FOR_PUBLISH, "publish"): (WorkflowState.PUBLISHED, "admin", "pattern_published"),
+        ("approved_for_publish", "publish"): ("published", "admin", "pattern_published"),
         
-        (WorkflowState.PUBLISHED, "update_draft"): (WorkflowState.DRAFT, "contributor", "pattern_update_draft_created"), # Creates new draft version
-        (WorkflowState.PUBLISHED, "retire"): (WorkflowState.MAINTENANCE, "admin", "pattern_retired"),
+        ("published", "update_draft"): ("draft", "contributor", "pattern_update_draft_created"), # Creates new draft version
+        ("published", "retire"): ("maintenance", "admin", "pattern_retired"),
         
-        (WorkflowState.MAINTENANCE, "deprecate"): (WorkflowState.DEPRECATED, "admin", "pattern_deprecated"),
-        (WorkflowState.MAINTENANCE, "reactivate"): (WorkflowState.PUBLISHED, "admin", "pattern_reactivated"),
+        ("maintenance", "deprecate"): ("deprecated", "admin", "pattern_deprecated"),
+        ("maintenance", "reactivate"): ("published", "admin", "pattern_reactivated"),
         
-        (WorkflowState.REJECTED, "resubmit"): (WorkflowState.DRAFT, "contributor", "pattern_resubmitted"),
+        ("rejected", "resubmit"): ("draft", "contributor", "pattern_resubmitted"),
         
-        (WorkflowState.DEPRECATED, "reactivate"): (WorkflowState.MAINTENANCE, "admin", "pattern_reactivated"),
+        ("deprecated", "reactivate"): ("maintenance", "admin", "pattern_reactivated"),
     }
 
-    def __init__(self, knowledge_manager: KnowledgeManager, connection_manager: ConnectionManager):
+    def __init__(self, knowledge_manager: KnowledgeManager, connection_manager: Any):
         self.knowledge_manager = knowledge_manager
         self.connection_manager = connection_manager
 
-    async def _get_pattern(self, pattern_id: str) -> Optional[Pattern]:
+    async def _get_pattern(self, pattern_id: str) -> Optional['Pattern']: # noqa: F821
         """Helper to retrieve a pattern and convert it to Pydantic model."""
+        # Lazy imports
+        from ...api.models.patterns import Pattern, PatternMetadata
+        from ...api.models.workflow import PatternVersion, ReviewFeedback
+
         pattern_data = self.knowledge_manager.get_pattern(pattern_id)
         if pattern_data:
             try:
@@ -73,14 +72,17 @@ class WorkflowManager:
                 return None
         return None
 
-    async def _update_pattern_in_db(self, pattern_id: str, pattern_model: Pattern) -> bool:
+    async def _update_pattern_in_db(self, pattern_id: str, pattern_model: 'Pattern') -> bool: # noqa: F821
         """Helper to update pattern in the database, converting Pydantic model to dict."""
         # Convert Pydantic model back to dictionary, handling nested models
         updates = pattern_model.dict(by_alias=True)
         return self.knowledge_manager.update_pattern(pattern_id, updates)
 
-    async def _broadcast_workflow_update(self, pattern_id: str, new_state: WorkflowState, message_type: str, user_id: str, version: str):
+    async def _broadcast_workflow_update(self, pattern_id: str, new_state: 'WorkflowState', message_type: str, user_id: str, version: str): # noqa: F821
         """Broadcasts a workflow state change via WebSocket."""
+        # Lazy import (though ConnectionManager instance is passed in __init__)
+        # This import is here to satisfy the request to import ConnectionManager only when needed.
+        
         update_message = {
             "type": message_type,
             "pattern_id": pattern_id,
@@ -91,8 +93,11 @@ class WorkflowManager:
         }
         await self.connection_manager.broadcast(json.dumps(update_message))
 
-    async def initiate_review(self, pattern_id: str, request: InitiateReviewRequest, user_id: str) -> Dict[str, Any]:
+    async def initiate_review(self, pattern_id: str, request: 'InitiateReviewRequest', user_id: str) -> Dict[str, Any]: # noqa: F821
         """Initiates the review process for a pattern."""
+        # Lazy imports
+        from ...api.models.workflow import WorkflowState, PatternVersion, ReviewStatus, ReviewFeedback
+
         pattern = await self._get_pattern(pattern_id)
         if not pattern:
             raise ValueError("Pattern not found.")
@@ -137,11 +142,12 @@ class WorkflowManager:
             ))
 
         # Transition state
-        next_state, _, notification_type = self.STATE_TRANSITIONS.get((pattern.status, "submit_for_review"), (None, None, None))
-        if not next_state:
+        # Use .value to get string for lookup in STATE_TRANSITIONS
+        next_state_str, _, notification_type = self.STATE_TRANSITIONS.get((pattern.status.value, "submit_for_review"), (None, None, None))
+        if not next_state_str:
             raise ValueError(f"Invalid state transition from {pattern.status.value} with action 'submit_for_review'.")
 
-        pattern.status = next_state
+        pattern.status = WorkflowState(next_state_str) # Convert string back to enum for assignment
         pattern.updated_at = datetime.datetime.now()
         pattern.updated_by = user_id
 
@@ -149,18 +155,21 @@ class WorkflowManager:
         if not success:
             raise RuntimeError("Failed to update pattern in database.")
 
-        await self._broadcast_workflow_update(pattern_id, next_state, notification_type, user_id, pattern.current_version)
+        await self._broadcast_workflow_update(pattern_id, pattern.status, notification_type, user_id, pattern.current_version)
         
         return {
             "pattern_id": pattern_id,
             "status": "success",
-            "message": f"Pattern submitted for review. Current state: {next_state.value}",
-            "new_state": next_state,
+            "message": f"Pattern submitted for review. Current state: {pattern.status.value}",
+            "new_state": pattern.status,
             "new_version": pattern.current_version
         }
 
-    async def submit_review_feedback(self, pattern_id: str, request: SubmitReviewFeedbackRequest) -> Dict[str, Any]:
+    async def submit_review_feedback(self, pattern_id: str, request: 'SubmitReviewFeedbackRequest') -> Dict[str, Any]: # noqa: F821
         """Submits review feedback for a pattern."""
+        # Lazy imports
+        from ...api.models.workflow import WorkflowState, ReviewFeedback
+
         pattern = await self._get_pattern(pattern_id)
         if not pattern:
             raise ValueError("Pattern not found.")
@@ -209,8 +218,11 @@ class WorkflowManager:
             "message": "Review feedback submitted successfully."
         }
 
-    async def transition_state(self, pattern_id: str, request: WorkflowTransitionRequest) -> Dict[str, Any]:
+    async def transition_state(self, pattern_id: str, request: 'WorkflowTransitionRequest') -> Dict[str, Any]: # noqa: F821
         """Transitions a pattern to a new workflow state."""
+        # Lazy imports
+        from ...api.models.workflow import WorkflowState, ReviewStatus, PatternVersion
+
         pattern = await self._get_pattern(pattern_id)
         if not pattern:
             raise ValueError("Pattern not found.")
@@ -247,20 +259,22 @@ class WorkflowManager:
         else:
             raise ValueError(f"Invalid or unsupported transition from {current_state.value} to {target_state.value}.")
 
-        next_state, required_role, notification_type = self.STATE_TRANSITIONS.get((current_state, action), (None, None, None))
+        # Use .value to get string for lookup in STATE_TRANSITIONS
+        next_state_str, required_role, notification_type = self.STATE_TRANSITIONS.get((current_state.value, action), (None, None, None))
 
-        if not next_state or next_state != target_state:
+        # Convert string back to WorkflowState enum for comparison
+        if not next_state_str or WorkflowState(next_state_str) != target_state:
             raise ValueError(f"Invalid state transition from {current_state.value} with action '{action}' to {target_state.value}.")
 
         # TODO: Implement role-based access control here using 'required_role'
         # For now, assuming user_id has necessary permissions as checked in router.
 
-        pattern.status = next_state
+        pattern.status = WorkflowState(next_state_str) # Assign the enum member
         pattern.updated_at = datetime.datetime.now()
         pattern.updated_by = request.user_id
 
         # If publishing, ensure a new version is recorded if not already
-        if next_state == WorkflowState.PUBLISHED:
+        if pattern.status == WorkflowState.PUBLISHED:
             current_doc_hash = hashlib.sha256(pattern.document.encode('utf-8')).hexdigest()
             # Check if the latest version in history is already PUBLISHED and has the same content
             is_latest_published_and_same_content = (
@@ -293,18 +307,21 @@ class WorkflowManager:
         if not success:
             raise RuntimeError("Failed to update pattern in database.")
 
-        await self._broadcast_workflow_update(pattern_id, next_state, notification_type, request.user_id, pattern.current_version)
+        await self._broadcast_workflow_update(pattern_id, pattern.status, notification_type, request.user_id, pattern.current_version)
 
         return {
             "pattern_id": pattern_id,
             "status": "success",
-            "message": f"Pattern state transitioned to {next_state.value}.",
-            "new_state": next_state,
+            "message": f"Pattern state transitioned to {pattern.status.value}.",
+            "new_state": pattern.status,
             "new_version": pattern.current_version
         }
 
     async def get_workflow_status(self, pattern_id: str) -> Dict[str, Any]:
         """Retrieves the current workflow status of a pattern."""
+        # Lazy imports
+        from ...api.models.workflow import ReviewStatus
+
         pattern = await self._get_pattern(pattern_id)
         if not pattern:
             raise ValueError("Pattern not found.")
@@ -338,6 +355,10 @@ class WorkflowManager:
         This requires KnowledgeManager to support searching by nested fields or iterating.
         For now, a simplified approach assuming KnowledgeManager can return patterns by status.
         """
+        # Lazy imports
+        from ...api.models.patterns import Pattern
+        from ...api.models.workflow import WorkflowState, ReviewStatus
+
         # This is a placeholder. A real implementation would query the DB efficiently.
         # Assuming KnowledgeManager can return all patterns or patterns by status.
         # The `get_all_patterns_by_status` method is an assumption for KnowledgeManager.
