@@ -187,7 +187,7 @@ docs-build = "mkdocs build"
 mcp-server = { cmd = "python -m uckn.mcp.universal_knowledge_server", env = { PYTHONPATH = "src" } }
 
 # CI/CD tasks
-ci-test = {cmd = "pytest tests/ --cov=src/uckn --cov-report=xml", env = {ENVIRONMENT = "ci"}}
+ci-test = {cmd = "pytest tests/ --cov=src/uckn --cov-report=xml --timeout=90", env = {ENVIRONMENT = "ci"}}
 ci-lint = "ruff check src/ tests/ --output-format=github"
 ci-format-check = "ruff format --check src/ tests/"
 
@@ -232,17 +232,21 @@ addopts = [
     "--strict-markers",
     "--strict-config",
     "--disable-warnings",
-    "--timeout=300",  # 5 minutes per test (for CI)
+    "--timeout=120",  # 2 minutes per test (optimized for CI)
     "--timeout-method=thread",  # More robust for async/code with subprocesses
 ]
-timeout = 300  # 5 minutes default timeout for all tests (pytest-timeout)
+timeout = 120  # 2 minutes default timeout for all tests (pytest-timeout)
 timeout_method = "thread"
 markers = [
-    "unit: Unit tests",
-    "integration: Integration tests",
-    "e2e: End-to-end tests",
-    "slow: Slow tests",
-    "benchmark: Performance benchmark tests",
+    "unit: Unit tests (fast, <30s timeout)",
+    "integration: Integration tests (medium, <120s timeout)",
+    "e2e: End-to-end tests (slow, <300s timeout)",
+    "slow: Slow tests (extended timeout)",
+    "benchmark: Performance benchmark tests (no timeout)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
 ]
 
 [tool.pytest.benchmark]
