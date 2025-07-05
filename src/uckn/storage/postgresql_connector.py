@@ -6,11 +6,47 @@ from sqlalchemy import create_engine, Column, String, Text, DateTime, Float, For
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.pool import QueuePool
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.types import TypeDecorator, JSON
+from sqlalchemy.ext.mutable import MutableDict
 from contextlib import contextmanager
+
+# Import JSONB specifically for PostgreSQL dialect
+try:
+    from sqlalchemy.dialects.postgresql import JSONB
+except ImportError:
+    # Fallback for environments where psycopg2/psycopg is not installed
+    # or when running against non-PostgreSQL databases like SQLite
+    JSONB = None
 
 Base = declarative_base()
 _logger = logging.getLogger(__name__)
+
+class JSONBOrJSON(TypeDecorator):
+    """
+    A TypeDecorator that uses JSONB for PostgreSQL and JSON for other databases.
+    This provides cross-database compatibility for JSON column types.
+    """
+    impl = JSON # Default implementation for non-PostgreSQL dialects
+
+    cache_ok = True # Indicate that this type is safe to cache
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql' and JSONB is not None:
+            return dialect.type_descriptor(JSONB())
+        else:
+            return dialect.type_descriptor(JSON())
+
+    def process_bind_param(self, value, dialect):
+        # No special processing needed for binding, SQLAlchemy handles JSON serialization
+        return value
+
+    def process_result_value(self, value, dialect):
+        # No special processing needed for results, SQLAlchemy handles JSON deserialization
+        return value
+
+# To make the JSON column mutable (i.e., changes to the dictionary are detected)
+MutableJSONBOrJSON = MutableDict.as_mutable(JSONBOrJSON)
+
 
 class Project(Base):
     __tablename__ = 'projects'
@@ -29,7 +65,8 @@ class Pattern(Base):
     id = Column(String, primary_key=True, index=True)
     project_id = Column(String, ForeignKey('projects.id'), nullable=True) # Optional link to project
     document_text = Column(Text, nullable=False)
-    metadata_json = Column(JSONB, nullable=False, default={})
+    # Use MutableJSONBOrJSON for cross-database compatibility and mutability
+    metadata_json = Column(MutableJSONBOrJSON, nullable=False, default={})
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -46,7 +83,8 @@ class ErrorSolution(Base):
     id = Column(String, primary_key=True, index=True)
     project_id = Column(String, ForeignKey('projects.id'), nullable=True) # Optional link to project
     document_text = Column(Text, nullable=False)
-    metadata_json = Column(JSONB, nullable=False, default={})
+    # Use MutableJSONBOrJSON for cross-database compatibility and mutability
+    metadata_json = Column(MutableJSONBOrJSON, nullable=False, default={})
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -258,15 +296,15 @@ class PostgreSQLConnector:
             return []
 
     def search_records_by_metadata(self, model: Base, metadata_filter: Dict[str, Any], limit: Optional[int] = None) -> List[Dict[str, Any]]:
-        """Search records by JSONB metadata fields."""
+        """Search records by JSONB/JSON metadata fields using cross-database compatible operators."""
         try:
             with self.get_db_session() as session:
                 query = session.query(model)
                 
-                # Apply metadata filters using JSONB operators
+                # Apply metadata filters using the cross-database compatible .contains() operator
                 for key, value in metadata_filter.items():
-                    # Use JSONB contains operator for nested key-value searches
-                    filter_condition = model.metadata_json.op('@>')({key: value})
+                    # .contains() works for both PostgreSQL JSONB and SQLite JSON
+                    filter_condition = model.metadata_json.contains({key: value})
                     query = query.filter(filter_condition)
                 
                 if limit:
@@ -354,4 +392,3 @@ class PostgreSQLConnector:
                 self._logger.error(f"Failed to reset PostgreSQL database: {e}")
                 return False
         return False
-
