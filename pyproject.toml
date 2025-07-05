@@ -38,7 +38,7 @@ dependencies = [
     "redis>=4.0.0",
     "psutil>=5.9.0",
     "SQLAlchemy>=2.0.0", # Added for PostgreSQL ORM
-    "psycopg[binary]>=3.1.0", # Added for PostgreSQL driver
+    "psycopg2-binary>=2.9.0", # PostgreSQL driver with binary support
     "alembic>=1.12.0", # Added for database migrations
 ]
 
@@ -142,7 +142,7 @@ pytorch = "*"
 sentence-transformers = "*"
 chromadb = "*"
 SQLAlchemy = "*" # Added for PostgreSQL ORM
-psycopg = "*" # Added for PostgreSQL driver
+psycopg2-binary = "*" # PostgreSQL driver with binary support
 
 [tool.pixi.environments]
 default = {features = ["ml", "mcp"], solve-group = "default"}
