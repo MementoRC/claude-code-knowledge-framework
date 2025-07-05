@@ -3,12 +3,13 @@ from fastapi.testclient import TestClient
 from unittest.mock import Mock, patch
 from datetime import datetime
 
-from src.uckn.api.routers.predictions import router
+# Import the main FastAPI app
+from src.uckn.api.main import app
 from src.uckn.core.organisms.predictive_issue_detector import PredictiveIssueDetector
 from src.uckn.api.dependencies import get_predictive_issue_detector
 
-# Create a TestClient for the router
-client = TestClient(router)
+# Create a TestClient for the main app
+client = TestClient(app)
 
 @pytest.fixture
 def mock_predictive_issue_detector():
@@ -28,11 +29,11 @@ def mock_predictive_issue_detector():
 @pytest.fixture(autouse=True)
 def override_dependency(mock_predictive_issue_detector):
     """
-    Overrides the get_predictive_issue_detector dependency for testing.
+    Overrides the get_predictive_issue_detector dependency for testing on the main app.
     """
-    router.dependency_overrides[get_predictive_issue_detector] = lambda: mock_predictive_issue_detector
+    app.dependency_overrides[get_predictive_issue_detector] = lambda: mock_predictive_issue_detector
     yield
-    router.dependency_overrides = {} # Clean up after test
+    app.dependency_overrides = {} # Clean up after test
 
 def test_detect_issues_endpoint_success(mock_predictive_issue_detector):
     request_payload = {
@@ -41,7 +42,7 @@ def test_detect_issues_endpoint_success(mock_predictive_issue_detector):
         "context_description": "Testing a new feature",
         "project_id": "proj123"
     }
-    response = client.post("/predictions/detect", json=request_payload)
+    response = client.post("/api/v1/predictions/detect", json=request_payload)
 
     assert response.status_code == 200
     response_data = response.json()
@@ -62,7 +63,7 @@ def test_detect_issues_endpoint_minimal_payload(mock_predictive_issue_detector):
     request_payload = {
         "project_path": "/app/minimal_project"
     }
-    response = client.post("/predictions/detect", json=request_payload)
+    response = client.post("/api/v1/predictions/detect", json=request_payload)
 
     assert response.status_code == 200
     response_data = response.json()
@@ -79,7 +80,7 @@ def test_detect_issues_endpoint_internal_error(mock_predictive_issue_detector):
     request_payload = {
         "project_path": "/app/error_project"
     }
-    response = client.post("/predictions/detect", json=request_payload)
+    response = client.post("/api/v1/predictions/detect", json=request_payload)
 
     assert response.status_code == 500
     assert "detail" in response.json()
@@ -94,7 +95,7 @@ def test_submit_feedback_endpoint_success(mock_predictive_issue_detector):
         "time_to_resolve_minutes": 60.5,
         "feedback_data": {"user": "test_user"}
     }
-    response = client.post("/predictions/feedback", json=request_payload)
+    response = client.post("/api/v1/predictions/feedback", json=request_payload)
 
     assert response.status_code == 200
     response_data = response.json()
@@ -115,7 +116,7 @@ def test_submit_feedback_endpoint_minimal_payload(mock_predictive_issue_detector
         "issue_id": "issue_minimal",
         "outcome": "false_positive"
     }
-    response = client.post("/predictions/feedback", json=request_payload)
+    response = client.post("/api/v1/predictions/feedback", json=request_payload)
 
     assert response.status_code == 200
     response_data = response.json()
@@ -135,7 +136,7 @@ def test_submit_feedback_endpoint_internal_error(mock_predictive_issue_detector)
         "issue_id": "issue_error",
         "outcome": "resolved"
     }
-    response = client.post("/predictions/feedback", json=request_payload)
+    response = client.post("/api/v1/predictions/feedback", json=request_payload)
 
     assert response.status_code == 500
     assert "detail" in response.json()
