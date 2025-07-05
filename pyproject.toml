@@ -153,7 +153,7 @@ docs = {features = ["docs"], solve-group = "default"}
 [tool.pixi.tasks]
 # Development tasks
 install = "pip install -e ."
-dev = "pip install -e .[dev,mcp,ml]"
+dev = "pip install -e '.[dev,mcp,ml]'"
 test = "pytest tests/ -v"
 test-cov = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term"
 benchmark = "pytest tests/benchmarks/ --benchmark-only --benchmark-sort=mean"
