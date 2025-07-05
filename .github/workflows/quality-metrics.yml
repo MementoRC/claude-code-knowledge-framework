@@ -41,8 +41,9 @@ jobs:
           done
       - name: Run tests with coverage (HTML, XML, JSON, Markdown)
         run: |
-          pixi run pytest tests/ --cov=src/uckn --cov-report=html --cov-report=xml --cov-report=json --cov-report=term --cov-report=term-missing --json-report --json-report-file=pytest-report.json --html=pytest-report.html --self-contained-html
-          pixi run coverage markdown
+          eval "$(pixi shell --env-hook bash)"
+          pytest tests/ --cov=src/uckn --cov-report=html --cov-report=xml --cov-report=json --cov-report=term --cov-report=term-missing --json-report --json-report-file=pytest-report.json --html=pytest-report.html --self-contained-html
+          coverage markdown
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -58,8 +59,9 @@ jobs:
       - name: diff-cover (PR only)
         if: github.event_name == 'pull_request'
         run: |
+          eval "$(pixi shell --env-hook bash)"
           git fetch origin main:refs/remotes/origin/main
-          pixi run diff-cover coverage.xml --compare-branch=origin/main --fail-under=90 --html-report diffcover.html --markdown-report diffcover.md --json-report diffcover.json
+          diff-cover coverage.xml --compare-branch=origin/main --fail-under=90 --html-report diffcover.html --markdown-report diffcover.md --json-report diffcover.json
       - name: Upload diff-cover artifacts
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4

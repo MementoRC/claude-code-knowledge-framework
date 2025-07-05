@@ -47,23 +47,48 @@ class KnowledgeManager:
     # Project management methods (new)
     def add_project(self, name: str, description: Optional[str] = None) -> Optional[str]:
         """Add a new project."""
-        return self.unified_db.add_project(name, description)
+        try:
+            project_id = self.unified_db.add_project(name, description)
+            if not project_id:
+                # Fallback: try to create the project directly if not implemented
+                if hasattr(self.unified_db, "pg_connector") and hasattr(self.unified_db.pg_connector, "add_project"):
+                    project_id = self.unified_db.pg_connector.add_project(name, description)
+            return project_id
+        except Exception as e:
+            self._logger.error(f"Failed to add project: {e}")
+            return None
 
     def get_project(self, project_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve a specific project."""
-        return self.unified_db.get_project(project_id)
+        try:
+            return self.unified_db.get_project(project_id)
+        except Exception as e:
+            self._logger.error(f"Failed to get project {project_id}: {e}")
+            return None
 
     def update_project(self, project_id: str, updates: Dict[str, Any]) -> bool:
         """Update an existing project."""
-        return self.unified_db.update_project(project_id, updates)
+        try:
+            return self.unified_db.update_project(project_id, updates)
+        except Exception as e:
+            self._logger.error(f"Failed to update project {project_id}: {e}")
+            return False
 
     def delete_project(self, project_id: str) -> bool:
         """Delete a project."""
-        return self.unified_db.delete_project(project_id)
+        try:
+            return self.unified_db.delete_project(project_id)
+        except Exception as e:
+            self._logger.error(f"Failed to delete project {project_id}: {e}")
+            return False
 
     def get_all_projects(self) -> List[Dict[str, Any]]:
         """Get all projects."""
-        return self.unified_db.get_all_projects()
+        try:
+            return self.unified_db.get_all_projects()
+        except Exception as e:
+            self._logger.error(f"Failed to get all projects: {e}")
+            return []
 
     # Pattern management methods
     def add_pattern(self, pattern_data: Dict[str, Any]) -> Optional[str]:
@@ -181,33 +206,52 @@ class KnowledgeManager:
     # Error solution management methods
     def add_error_solution(self, solution_data: Dict[str, Any]) -> Optional[str]:
         """Add a new error solution."""
-        document_text = solution_data.get("document")
-        metadata = solution_data.get("metadata", {})
-        project_id = solution_data.get("project_id")
+        try:
+            document_text = solution_data.get("document")
+            metadata = solution_data.get("metadata", {})
+            project_id = solution_data.get("project_id")
 
-        if not document_text:
-            self._logger.error("Solution data must include 'document' text for embedding.")
-            return None
-        if not self.semantic_search.is_available():
-            self._logger.error("Semantic search not available, cannot generate embeddings for error solution.")
-            return None
+            if not document_text:
+                self._logger.error("Solution data must include 'document' text for embedding.")
+                return None
+            if not self.semantic_search.is_available():
+                self._logger.error("Semantic search not available, cannot generate embeddings for error solution.")
+                return None
 
-        embedding = self.semantic_search.encode(document_text)
-        if embedding is None:
-            self._logger.error("Failed to generate embedding for error solution.")
-            return None
+            embedding = self.semantic_search.encode(document_text)
+            if embedding is None:
+                self._logger.error("Failed to generate embedding for error solution.")
+                return None
 
-        return self.unified_db.add_error_solution(
-            document_text=document_text,
-            embedding=embedding,
-            metadata=metadata,
-            solution_id=solution_data.get("solution_id"),
-            project_id=project_id
-        )
+            solution_id = self.unified_db.add_error_solution(
+                document_text=document_text,
+                embedding=embedding,
+                metadata=metadata,
+                solution_id=solution_data.get("solution_id"),
+                project_id=project_id
+            )
+            if not solution_id:
+                # Fallback: try to create the solution directly if not implemented
+                if hasattr(self.unified_db, "pg_connector") and hasattr(self.unified_db.pg_connector, "add_error_solution"):
+                    solution_id = self.unified_db.pg_connector.add_error_solution(
+                        document_text=document_text,
+                        embedding=embedding,
+                        metadata=metadata,
+                        solution_id=solution_data.get("solution_id"),
+                        project_id=project_id
+                    )
+            return solution_id
+        except Exception as e:
+            self._logger.error(f"Failed to add error solution: {e}")
+            return None
 
     def get_error_solution(self, solution_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve a specific error solution."""
-        return self.unified_db.get_error_solution(solution_id)
+        try:
+            return self.unified_db.get_error_solution(solution_id)
+        except Exception as e:
+            self._logger.error(f"Failed to get error solution {solution_id}: {e}")
+            return None
 
     def search_error_solutions(
         self,
@@ -252,19 +296,40 @@ class KnowledgeManager:
         self, source_tech: str, target_tech: str, compatibility_score: float, notes: Optional[str] = None
     ) -> Optional[str]:
         """Add a new compatibility matrix entry."""
-        return self.unified_db.add_compatibility_entry(source_tech, target_tech, compatibility_score, notes)
+        try:
+            entry_id = self.unified_db.add_compatibility_entry(source_tech, target_tech, compatibility_score, notes)
+            if not entry_id:
+                # Fallback: try to create the entry directly if not implemented
+                if hasattr(self.unified_db, "pg_connector") and hasattr(self.unified_db.pg_connector, "add_compatibility_entry"):
+                    entry_id = self.unified_db.pg_connector.add_compatibility_entry(source_tech, target_tech, compatibility_score, notes)
+            return entry_id
+        except Exception as e:
+            self._logger.error(f"Failed to add compatibility entry: {e}")
+            return None
 
     def get_compatibility_entry(self, entry_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve a specific compatibility matrix entry."""
-        return self.unified_db.get_compatibility_entry(entry_id)
+        try:
+            return self.unified_db.get_compatibility_entry(entry_id)
+        except Exception as e:
+            self._logger.error(f"Failed to get compatibility entry {entry_id}: {e}")
+            return None
 
     def update_compatibility_entry(self, entry_id: str, updates: Dict[str, Any]) -> bool:
         """Update an existing compatibility matrix entry."""
-        return self.unified_db.update_compatibility_entry(entry_id, updates)
+        try:
+            return self.unified_db.update_compatibility_entry(entry_id, updates)
+        except Exception as e:
+            self._logger.error(f"Failed to update compatibility entry {entry_id}: {e}")
+            return False
 
     def delete_compatibility_entry(self, entry_id: str) -> bool:
         """Delete a compatibility matrix entry."""
-        return self.unified_db.delete_compatibility_entry(entry_id)
+        try:
+            return self.unified_db.delete_compatibility_entry(entry_id)
+        except Exception as e:
+            self._logger.error(f"Failed to delete compatibility entry {entry_id}: {e}")
+            return False
 
     def search_compatibility_entries(
         self,
@@ -274,7 +339,11 @@ class KnowledgeManager:
         max_score: Optional[float] = None
     ) -> List[Dict[str, Any]]:
         """Search compatibility entries."""
-        return self.unified_db.search_compatibility_entries(source_tech, target_tech, min_score, max_score)
+        try:
+            return self.unified_db.search_compatibility_entries(source_tech, target_tech, min_score, max_score)
+        except Exception as e:
+            self._logger.error(f"Failed to search compatibility entries: {e}")
+            return []
 
     # Tech stack analysis
     def analyze_project_stack(self, project_path: str) -> Dict[str, Any]:

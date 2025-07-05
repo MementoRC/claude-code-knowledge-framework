@@ -53,16 +53,25 @@ jobs:
             sleep 5
           done
 
-      - name: Install dev dependencies (robust)
+      - name: Activate pixi environment and install dev dependencies (robust)
         run: |
+          eval "$(pixi shell --env-hook bash)"
           n=0
           until [ "$n" -ge 3 ]
           do
-            pixi run pip install -e .[dev,mcp,ml] && break
+            pip install -e .[dev,mcp,ml] && break
             n=$((n+1))
-            echo "pixi run pip install -e .[dev,mcp,ml] failed, retrying ($n/3)..."
+            echo "pip install -e .[dev,mcp,ml] failed, retrying ($n/3)..."
             sleep 5
           done
+
+      - name: Verify pixi environment
+        run: |
+          eval "$(pixi shell --env-hook bash)"
+          which python
+          which pip
+          python --version
+          pip --version
 
       - name: Select tests by marker
         id: select-tests
@@ -75,9 +84,10 @@ jobs:
             echo "PYTEST_MARK=e2e" >> $GITHUB_ENV
           fi
 
-      - name: Run selected tests
+      - name: Run selected tests (with pixi shell activation)
         run: |
-          pixi run test -m $PYTEST_MARK --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+          eval "$(pixi shell --env-hook bash)"
+          pytest tests/ -m $PYTEST_MARK --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
