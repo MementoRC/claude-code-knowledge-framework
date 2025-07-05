@@ -14,25 +14,20 @@ jobs:
       PYTHON_VERSION: "3.10"
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Setup pixi
+        uses: prefix-dev/setup-pixi@v0.8.1
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          pixi-version: v0.34.0
+          cache: true
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y git
-      - name: Install Poetry (if needed)
-        run: pip install poetry
       - name: Install dependencies
         run: |
-          pip install -e .[dev,ml]
+          pixi install --locked
       - name: Run tests with coverage (HTML, XML, JSON, Markdown)
         run: |
-          coverage run -m pytest --json-report --json-report-file=pytest-report.json --html=pytest-report.html --self-contained-html
-          coverage html
-          coverage xml
-          coverage json
-          coverage report
-          coverage markdown
+          pixi run pytest tests/ --cov=src/uckn --cov-report=html --cov-report=xml --cov-report=json --cov-report=term --cov-report=term-missing --json-report --json-report-file=pytest-report.json --html=pytest-report.html --self-contained-html
+          pixi run coverage markdown
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -49,7 +44,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           git fetch origin main:refs/remotes/origin/main
-          diff-cover coverage.xml --compare-branch=origin/main --fail-under=90 --html-report diffcover.html --markdown-report diffcover.md --json-report diffcover.json
+          pixi run diff-cover coverage.xml --compare-branch=origin/main --fail-under=90 --html-report diffcover.html --markdown-report diffcover.md --json-report diffcover.json
       - name: Upload diff-cover artifacts
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
@@ -66,4 +61,4 @@ jobs:
           path: coverage.md
       - name: Quality Gate
         run: |
-          python tests/quality_metrics/quality_dashboard.py --check-gate --fail-under=90
+          pixi run quality-gate
