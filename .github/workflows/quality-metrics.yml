@@ -17,7 +17,7 @@ jobs:
       - name: Setup pixi
         uses: prefix-dev/setup-pixi@v0.8.1
         with:
-          pixi-version: v0.34.0
+          pixi-version: v0.49.0
           cache: true
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y git

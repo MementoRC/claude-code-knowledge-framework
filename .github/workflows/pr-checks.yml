@@ -20,7 +20,7 @@ jobs:
     - name: Setup pixi
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
-        pixi-version: v0.34.0
+        pixi-version: v0.49.0
         cache: true
 
     - name: Install dependencies
@@ -150,7 +150,7 @@ jobs:
     - name: Setup pixi
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
-        pixi-version: v0.34.0
+        pixi-version: v0.49.0
         cache: true
 
     - name: Install dependencies
@@ -193,7 +193,7 @@ jobs:
         echo "📚 Checking documentation..."
         
         # Check if significant changes need doc updates
-        CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+        CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
         SRC_CHANGES=$(echo "$CHANGED_FILES" | grep -E '^src/' | wc -l)
         DOC_CHANGES=$(echo "$CHANGED_FILES" | grep -E '\.(md|rst)$' | wc -l)
         
