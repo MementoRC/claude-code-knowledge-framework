@@ -6,6 +6,8 @@ import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import Mock, patch
 
+import pytest
+
 from src.uckn.api.main import app
 
 
@@ -13,6 +15,8 @@ from src.uckn.api.main import app
 def client():
     """Test client fixture."""
     return TestClient(app)
+
+@pytest.mark.unit
 
 
 def test_health_check(client):
@@ -24,6 +28,7 @@ def test_health_check(client):
     assert "message" in data
 
 
+@pytest.mark.unit
 @patch("src.uckn.api.main.get_knowledge_manager")
 def test_system_status_healthy(mock_get_km, client):
     """Test system status endpoint when healthy."""
@@ -37,7 +42,7 @@ def test_system_status_healthy(mock_get_km, client):
         }
     }
     mock_get_km.return_value = mock_km
-    
+
     response = client.get("/api/v1/status")
     assert response.status_code == 200
     data = response.json()
@@ -46,6 +51,7 @@ def test_system_status_healthy(mock_get_km, client):
     assert data["version"] == "1.0.0"
 
 
+@pytest.mark.unit
 @patch("src.uckn.api.main.get_knowledge_manager")
 def test_system_status_degraded(mock_get_km, client):
     """Test system status endpoint when degraded."""
@@ -59,7 +65,7 @@ def test_system_status_degraded(mock_get_km, client):
         }
     }
     mock_get_km.return_value = mock_km
-    
+
     response = client.get("/api/v1/status")
     assert response.status_code == 200
     data = response.json()

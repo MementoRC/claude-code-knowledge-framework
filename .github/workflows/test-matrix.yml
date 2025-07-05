@@ -87,7 +87,13 @@ jobs:
       - name: Run selected tests (with pixi shell activation)
         run: |
           eval "$(pixi shell --env-hook bash)"
-          pytest tests/ -m $PYTEST_MARK --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+          which pytest || (echo "pytest not found!"; exit 127)
+          pytest --version
+          if [[ -n "$PYTEST_MARK" ]]; then
+            pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+          else
+            pytest tests/ --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+          fi
 
       - name: Upload test results
         uses: actions/upload-artifact@v4

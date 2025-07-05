@@ -14,6 +14,19 @@ from ..core.organisms.knowledge_manager import KnowledgeManager
 from .dependencies import set_knowledge_manager
 from .routers import patterns, projects, collaboration, health, teams, auth, predictions, workflow
 
+# --- GLOBAL KNOWLEDGE MANAGER SINGLETON FOR DEPENDENCY INJECTION ---
+_knowledge_manager = None
+
+def get_knowledge_manager():
+    """
+    Returns the global KnowledgeManager instance.
+    Used for dependency injection in API endpoints and tests.
+    """
+    global _knowledge_manager
+    if _knowledge_manager is None:
+        _knowledge_manager = KnowledgeManager()
+    return _knowledge_manager
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,15 +38,16 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting UCKN FastAPI server...")
     try:
-        knowledge_manager = KnowledgeManager()
-        set_knowledge_manager(knowledge_manager)
+        global _knowledge_manager
+        _knowledge_manager = KnowledgeManager()
+        set_knowledge_manager(_knowledge_manager)
         logger.info("Knowledge manager initialized successfully")
     except Exception as e:
         logger.error(f"Failed to initialize knowledge manager: {e}")
         raise
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down UCKN FastAPI server...")
 

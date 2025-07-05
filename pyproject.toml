@@ -234,6 +234,7 @@ addopts = [
     "--disable-warnings",
     "--timeout=120",  # 2 minutes per test (optimized for CI)
     "--timeout-method=thread",  # More robust for async/code with subprocesses
+    "-ra",
 ]
 timeout = 120  # 2 minutes default timeout for all tests (pytest-timeout)
 timeout_method = "thread"
