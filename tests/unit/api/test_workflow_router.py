@@ -151,7 +151,16 @@ async def test_transition_pattern_state_success(client, mock_workflow_manager):
     assert mock_workflow_manager.transition_state.call_args[0][1].user_id == "test_user"
 
 @pytest.mark.asyncio
-async def test_transition_pattern_state_forbidden(client, mock_workflow_manager):
+async def test_transition_pattern_state_forbidden(mock_workflow_manager):
+    # Create a separate client with contributor role only
+    app = FastAPI()
+    app.include_router(router)
+    app.dependency_overrides[get_workflow_manager] = lambda: mock_workflow_manager
+    app.dependency_overrides[get_current_user_id] = lambda: "test_user"
+    app.dependency_overrides[get_current_user_roles] = lambda: ["contributor"]  # No admin role
+    
+    client = TestClient(app)
+    
     pattern_id = "pat123"
     request_payload = {
         "target_state": "published",
@@ -159,9 +168,8 @@ async def test_transition_pattern_state_forbidden(client, mock_workflow_manager)
         "user_id": "test_user",
         "version": "1.0.0"
     }
-    # Temporarily override user roles to remove admin for this test
-    with patch('src.uckn.api.routers.workflow.get_current_user_roles', return_value=["contributor"]):
-        response = client.post(f"/patterns/{pattern_id}/workflow/transition", json=request_payload)
+    
+    response = client.post(f"/patterns/{pattern_id}/workflow/transition", json=request_payload)
 
     assert response.status_code == 403
     assert "Insufficient permissions" in response.json()["detail"]
@@ -218,13 +226,21 @@ async def test_get_patterns_awaiting_review_admin(client, mock_workflow_manager)
     mock_workflow_manager.get_patterns_awaiting_review.assert_called_once_with(None) # Admin sees all
 
 @pytest.mark.asyncio
-async def test_get_patterns_awaiting_review_contributor(client, mock_workflow_manager):
+async def test_get_patterns_awaiting_review_contributor(mock_workflow_manager):
+    # Create a separate client with contributor role only
+    app = FastAPI()
+    app.include_router(router)
+    app.dependency_overrides[get_workflow_manager] = lambda: mock_workflow_manager
+    app.dependency_overrides[get_current_user_id] = lambda: "test_user"
+    app.dependency_overrides[get_current_user_roles] = lambda: ["contributor"]  # No admin role
+    
+    client = TestClient(app)
+    
     mock_workflow_manager.get_patterns_awaiting_review.return_value = [
         {"pattern_id": "pat1", "title": "P1", "assigned_reviewer": "test_user"}
     ]
-    # Ensure contributor role is present for this test
-    with patch('src.uckn.api.routers.workflow.get_current_user_roles', return_value=["contributor"]):
-        response = client.get("/patterns/workflow/pending_reviews")
+    
+    response = client.get("/patterns/workflow/pending_reviews")
 
     assert response.status_code == 200
     assert len(response.json()) == 1
