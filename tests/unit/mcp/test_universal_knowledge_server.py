@@ -7,50 +7,97 @@ import json
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
 import tempfile
 import os
+import sys # Ensure sys is imported
 
-# Mock the MCP imports before importing the server
-sys_modules_backup = {}
+# Global variable to store original sys.modules entries
+_sys_modules_backup = {}
 
 def setup_mcp_mocks():
-    """Setup mocks for MCP components"""
-    global sys_modules_backup
+    """Setup mocks for MCP components before importing UniversalKnowledgeServer.
     
-    # Mock MCP modules
+    This function ensures that the MCP Server class and its related types
+    are mocked correctly to allow UniversalKnowledgeServer to initialize
+    and register its tools without errors.
+    """
+    global _sys_modules_backup
+    
     mock_mcp = MagicMock()
     mock_mcp.server = MagicMock()
-    mock_mcp.server.Server = MagicMock
-    mock_mcp.server.models = MagicMock()
-    mock_mcp.server.stdio = MagicMock()
+    
+    # Mock the Server class itself
+    mock_server_class = MagicMock()
+    
+    # Configure the instance that the Server class mock will return
+    mock_server_instance = MagicMock()
+    
+    # Make list_tools and call_tool act as decorators.
+    # They should return a function that takes the decorated function and returns it.
+    def mock_decorator(*args, **kwargs):
+        def decorator(func):
+            return func # Simply return the original function
+        return decorator
+    
+    mock_server_instance.list_tools.side_effect = mock_decorator
+    mock_server_instance.call_tool.side_effect = mock_decorator
+    
+    # Set the return value of the Server class mock to our configured instance mock
+    mock_server_class.return_value = mock_server_instance
+    
+    mock_mcp.server.Server = mock_server_class
+    
+    # Mock CallToolResult and TextContent types from mcp.types.
+    # These need to have a .model_dump() method as the server calls it.
+    class MockTextContent:
+        def __init__(self, type: str, text: str):
+            self.type = type
+            self.text = text
+
+        def model_dump(self) -> dict:
+            return {"type": self.type, "text": self.text}
+
+    class MockCallToolResult:
+        def __init__(self, content: list):
+            self.content = content
+
+        def model_dump(self) -> dict:
+            # Simulate the structure expected by the server's CallToolResult
+            return {"content": [item.model_dump() for item in self.content]}
+
     mock_mcp.types = MagicMock()
+    mock_mcp.types.CallToolResult = MockCallToolResult
+    mock_mcp.types.TextContent = MockTextContent
     
-    # Store original modules
-    import sys
-    sys_modules_backup = {name: sys.modules.get(name) for name in [
-        'mcp', 'mcp.server', 'mcp.server.models', 'mcp.server.stdio', 'mcp.types'
-    ]}
-    
-    # Replace with mocks
-    sys.modules['mcp'] = mock_mcp
-    sys.modules['mcp.server'] = mock_mcp.server
-    sys.modules['mcp.server.models'] = mock_mcp.server.models
-    sys.modules['mcp.server.stdio'] = mock_mcp.server.stdio
-    sys.modules['mcp.types'] = mock_mcp.types
-    
-    return mock_mcp
+    # Store original modules and replace with mocks
+    modules_to_mock = ['mcp', 'mcp.server', 'mcp.types']
+    for name in modules_to_mock:
+        _sys_modules_backup[name] = sys.modules.get(name)
+        if name == 'mcp':
+            sys.modules[name] = mock_mcp
+        elif name == 'mcp.server':
+            sys.modules[name] = mock_mcp.server
+        elif name == 'mcp.types':
+            sys.modules[name] = mock_mcp.types
 
-# Setup mocks before importing
-mock_mcp = setup_mcp_mocks()
+def teardown_mcp_mocks():
+    """Restore original modules after tests are done."""
+    global _sys_modules_backup
+    for name, module in _sys_modules_backup.items():
+        if module is not None:
+            sys.modules[name] = module
+        elif name in sys.modules:
+            del sys.modules[name]
+    _sys_modules_backup = {} # Clear backup after restoring
 
-# Now import the server
-with patch.dict('sys.modules', {
-    'mcp': mock_mcp,
-    'mcp.server': mock_mcp.server,
-    'mcp.server.models': mock_mcp.server.models,
-    'mcp.server.stdio': mock_mcp.server.stdio,
-    'mcp.types': mock_mcp.types
-}):
-    from src.uckn.mcp.universal_knowledge_server import UniversalKnowledgeServer
+# Call the setup function before importing the server
+setup_mcp_mocks()
 
+# Now import the server. It will use the mocked MCP components.
+from src.uckn.mcp.universal_knowledge_server import UniversalKnowledgeServer
+
+# The `teardown_module` function will be called by pytest after all tests in the module.
+def teardown_module():
+    """Clean up after all tests in the module."""
+    teardown_mcp_mocks()
 
 class TestUniversalKnowledgeServer:
     """Test Universal Knowledge MCP Server functionality"""
@@ -59,8 +106,13 @@ class TestUniversalKnowledgeServer:
         """Setup test fixtures for each test method."""
         self.temp_dir = tempfile.mkdtemp()
         
-        # Mock all UCKN components
+        # Set the UCKN_DATABASE_URL environment variable for testing
+        os.environ["UCKN_DATABASE_URL"] = "postgresql://test:test@localhost:5432/test_db"
+        
+        # Mock all UCKN components that UniversalKnowledgeServer initializes.
+        # Ensure UnifiedDatabase is also mocked as it uses UCKN_DATABASE_URL.
         with patch('src.uckn.mcp.universal_knowledge_server.ChromaDBConnector') as mock_chroma, \
+             patch('src.uckn.mcp.universal_knowledge_server.UnifiedDatabase') as mock_unified_db, \
              patch('src.uckn.mcp.universal_knowledge_server.ProjectDNAFingerprinter') as mock_dna, \
              patch('src.uckn.mcp.universal_knowledge_server.MultiModalEmbeddings') as mock_embeddings, \
              patch('src.uckn.mcp.universal_knowledge_server.SemanticSearchEngine') as mock_search, \
@@ -73,6 +125,8 @@ class TestUniversalKnowledgeServer:
             # Configure mocks
             self.mock_chroma = mock_chroma.return_value
             self.mock_chroma.is_available.return_value = True
+            
+            self.mock_unified_db = mock_unified_db.return_value # Add mock for UnifiedDatabase
             
             self.mock_dna = mock_dna.return_value
             self.mock_embeddings = mock_embeddings.return_value
@@ -89,6 +143,16 @@ class TestUniversalKnowledgeServer:
             
             # Initialize server
             self.server = UniversalKnowledgeServer(project_root=self.temp_dir)
+    
+    def teardown_method(self):
+        """Clean up test fixtures after each test method."""
+        # Clean up the environment variable
+        if "UCKN_DATABASE_URL" in os.environ:
+            del os.environ["UCKN_DATABASE_URL"]
+        
+        # Clean up the temporary directory
+        import shutil
+        shutil.rmtree(self.temp_dir)
     
     def test_initialization(self):
         """Test UniversalKnowledgeServer initializes correctly."""
@@ -367,28 +431,20 @@ class TestUniversalKnowledgeServer:
         """Test creation of mock components for graceful degradation."""
         # Create a new server instance that will fail component initialization
         with patch('src.uckn.mcp.universal_knowledge_server.ChromaDBConnector', side_effect=Exception("Mock init error")):
-            server = UniversalKnowledgeServer(project_root=self.temp_dir)
-            
-            # Verify mock components were created
-            assert hasattr(server, 'chroma_connector')
-            assert hasattr(server, 'dna_fingerprinter')
-            assert server.chroma_connector.is_available() is False
+            # Temporarily set the env var for this specific test if it's not already set by setup_method
+            # (though setup_method runs before each test, so it should be set)
+            original_env_var = os.environ.get("UCKN_DATABASE_URL")
+            os.environ["UCKN_DATABASE_URL"] = "dummy_url_for_mock_test"
+            try:
+                server = UniversalKnowledgeServer(project_root=self.temp_dir)
+                
+                # Verify mock components were created
+                assert hasattr(server, 'chroma_connector')
+                assert hasattr(server, 'dna_fingerprinter')
+                assert server.chroma_connector.is_available() is False
+            finally:
+                if original_env_var is not None:
+                    os.environ["UCKN_DATABASE_URL"] = original_env_var
+                else:
+                    del os.environ["UCKN_DATABASE_URL"]
 
-
-def teardown_mcp_mocks():
-    """Restore original modules"""
-    import sys
-    for name, module in sys_modules_backup.items():
-        if module is not None:
-            sys.modules[name] = module
-        elif name in sys.modules:
-            del sys.modules[name]
-
-
-def teardown_module():
-    """Clean up after all tests"""
-    teardown_mcp_mocks()
-
-
-if __name__ == "__main__":
-    pytest.main([__file__])
