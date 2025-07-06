@@ -3,11 +3,15 @@ import logging
 import datetime
 import hashlib
 import json
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, TYPE_CHECKING
 
 from pydantic import ValidationError
 
 from ..organisms.knowledge_manager import KnowledgeManager
+
+if TYPE_CHECKING:
+    from ...api.models.patterns import Pattern
+    from ...api.models.workflow import WorkflowState, InitiateReviewRequest, SubmitReviewFeedbackRequest, WorkflowTransitionRequest
 
 logger = logging.getLogger(__name__)
 

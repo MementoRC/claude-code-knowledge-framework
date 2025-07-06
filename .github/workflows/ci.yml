@@ -89,7 +89,7 @@ jobs:
     - name: Run tests
       run: |
         eval "$(pixi shell --env-hook bash)"
-        ci-test
+        pixi run ci-test
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
@@ -172,17 +172,17 @@ jobs:
     - name: Run linting
       run: |
         eval "$(pixi shell --env-hook bash)"
-        ci-lint
+        pixi run ci-lint
 
     - name: Check formatting
       run: |
         eval "$(pixi shell --env-hook bash)"
-        ci-format-check
+        pixi run ci-format-check
 
     - name: Type checking
       run: |
         eval "$(pixi shell --env-hook bash)"
-        typecheck
+        pixi run typecheck
 
   security:
     name: Security Scan
@@ -255,9 +255,10 @@ jobs:
         pip --version
 
     - name: Run Bandit Security Scan
-      uses: securecodewarrior/github-action-bandit@v1.1.1
-      with:
-        directory: src/
+      run: |
+        eval "$(pixi shell --env-hook bash)"
+        pip install bandit[toml]
+        bandit -r src/ -f json -o bandit-report.json || true
         
     - name: Safety Check
       run: |

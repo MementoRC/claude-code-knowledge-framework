@@ -132,6 +132,7 @@ black = "*"
 mypy = "*"
 pre-commit = "*"
 alembic = "*" # Added for database migrations
+mcp = "*"
 
 [tool.pixi.feature.mcp.dependencies]
 nodejs = ">=18"
