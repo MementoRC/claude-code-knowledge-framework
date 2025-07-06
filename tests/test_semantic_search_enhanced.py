@@ -44,9 +44,9 @@ class TestEnhancedSemanticSearchEngine:
         except ImportError:
             pass
 
-    @patch('uckn.core.semantic_search_enhanced.chromadb')
+    @patch('uckn.core.semantic_search_enhanced.ChromaDBConnector')
     @patch('uckn.core.semantic_search_enhanced.SentenceTransformer')
-    def test_engine_initialization_success(self, mock_st, mock_chromadb):
+    def test_engine_initialization_success(self, mock_st, mock_chromadb_connector):
         """Test successful engine initialization"""
         # Mock successful model loading
         mock_model = MagicMock()
@@ -55,7 +55,7 @@ class TestEnhancedSemanticSearchEngine:
         # Mock ChromaDB
         mock_client = MagicMock()
         mock_collection = MagicMock()
-        mock_chromadb.PersistentClient.return_value = mock_client
+        mock_chromadb_connector.PersistentClient.return_value = mock_client
         mock_client.get_or_create_collection.return_value = mock_collection
         
         from uckn.core.enhanced_semantic_search_engine import EnhancedSemanticSearchEngine
@@ -79,9 +79,9 @@ class TestEnhancedSemanticSearchEngine:
         assert engine.chroma_client is None
         assert engine.collection is None
 
-    @patch('uckn.core.semantic_search_enhanced.chromadb')
+    @patch('uckn.core.semantic_search_enhanced.ChromaDBConnector')
     @patch('uckn.core.semantic_search_enhanced.SentenceTransformer')
-    def test_encode_functionality(self, mock_st, mock_chromadb):
+    def test_encode_functionality(self, mock_st, mock_chromadb_connector):
         """Test text encoding functionality"""
         # Setup mocks
         mock_model = MagicMock()
@@ -101,9 +101,9 @@ class TestEnhancedSemanticSearchEngine:
         assert len(result) == 384
         mock_model.encode.assert_called_once_with(text, convert_to_numpy=True)
 
-    @patch('uckn.core.semantic_search_enhanced.chromadb')
+    @patch('uckn.core.semantic_search_enhanced.ChromaDBConnector')
     @patch('uckn.core.semantic_search_enhanced.SentenceTransformer')
-    def test_encode_caching(self, mock_st, mock_chromadb):
+    def test_encode_caching(self, mock_st, mock_chromadb_connector):
         """Test LRU caching functionality"""
         # Setup mocks
         mock_model = MagicMock()
@@ -125,9 +125,9 @@ class TestEnhancedSemanticSearchEngine:
         assert mock_model.encode.call_count == 1  # No additional calls
         assert result1 == result2
 
-    @patch('uckn.core.semantic_search_enhanced.chromadb')
+    @patch('uckn.core.semantic_search_enhanced.ChromaDBConnector')
     @patch('uckn.core.semantic_search_enhanced.SentenceTransformer')
-    def test_encode_invalid_inputs(self, mock_st, mock_chromadb):
+    def test_encode_invalid_inputs(self, mock_st, mock_chromadb_connector):
         """Test encoding with invalid inputs"""
         mock_st.return_value = MagicMock()
         
@@ -140,9 +140,9 @@ class TestEnhancedSemanticSearchEngine:
         assert engine.encode([]) is None
         assert engine.encode("") is None
 
-    @patch('uckn.core.semantic_search_enhanced.chromadb')
+    @patch('uckn.core.semantic_search_enhanced.ChromaDBConnector')
     @patch('uckn.core.semantic_search_enhanced.SentenceTransformer')
-    def test_multimodal_content_encoding(self, mock_st, mock_chromadb):
+    def test_multimodal_content_encoding(self, mock_st, mock_chromadb_connector):
         """Test encoding different content types"""
         mock_model = MagicMock()
         mock_model.encode.return_value = np.array([0.1] * 384)
@@ -165,9 +165,9 @@ class TestEnhancedSemanticSearchEngine:
             assert isinstance(result, list)
             assert len(result) == 384
 
-    @patch('uckn.core.semantic_search_enhanced.chromadb')
+    @patch('uckn.core.semantic_search_enhanced.ChromaDBConnector')
     @patch('uckn.core.semantic_search_enhanced.SentenceTransformer')
-    def test_session_embedding_generation(self, mock_st, mock_chromadb):
+    def test_session_embedding_generation(self, mock_st, mock_chromadb_connector):
         """Test session data embedding generation"""
         mock_model = MagicMock()
         mock_model.encode.return_value = np.array([0.1] * 384)
@@ -206,9 +206,9 @@ class TestEnhancedSemanticSearchEngine:
         assert "pytest" in called_text
         assert "Module import failure" in called_text
 
-    @patch('uckn.core.semantic_search_enhanced.chromadb')
+    @patch('uckn.core.semantic_search_enhanced.ChromaDBConnector')
     @patch('uckn.core.semantic_search_enhanced.SentenceTransformer')
-    def test_text_extraction_comprehensive(self, mock_st, mock_chromadb):
+    def test_text_extraction_comprehensive(self, mock_st, mock_chromadb_connector):
         """Test comprehensive text extraction from session data"""
         mock_st.return_value = MagicMock()
         
@@ -246,16 +246,16 @@ class TestEnhancedSemanticSearchEngine:
         assert "Common data cleaning issue" in extracted_text
         assert "pd.to_numeric" in extracted_text
 
-    @patch('uckn.core.semantic_search_enhanced.chromadb')
+    @patch('uckn.core.semantic_search_enhanced.ChromaDBConnector')
     @patch('uckn.core.semantic_search_enhanced.SentenceTransformer')
-    def test_get_embedding_stats(self, mock_st, mock_chromadb):
+    def test_get_embedding_stats(self, mock_st, mock_chromadb_connector):
         """Test embedding statistics functionality"""
         # Setup mocks
         mock_collection = MagicMock()
         mock_collection.count.return_value = 5
         mock_client = MagicMock()
         mock_client.get_or_create_collection.return_value = mock_collection
-        mock_chromadb.PersistentClient.return_value = mock_client
+        mock_chromadb_connector.PersistentClient.return_value = mock_client
         mock_st.return_value = MagicMock()
         
         from uckn.core.enhanced_semantic_search_engine import EnhancedSemanticSearchEngine
@@ -315,9 +315,9 @@ class TestSemanticSearchAtomIntegration:
         if os.path.exists(TEST_KNOWLEDGE_DIR):
             shutil.rmtree(TEST_KNOWLEDGE_DIR)
 
-    @patch('uckn.core.semantic_search_enhanced.chromadb')
+    @patch('uckn.core.semantic_search_enhanced.ChromaDBConnector')
     @patch('uckn.core.semantic_search_enhanced.SentenceTransformer')
-    def test_semantic_search_atom_initialization(self, mock_st, mock_chromadb):
+    def test_semantic_search_atom_initialization(self, mock_st, mock_chromadb_connector):
         """Test SemanticSearch atom initialization with enhanced engine"""
         mock_st.return_value = MagicMock()
         
@@ -337,9 +337,9 @@ class TestSemanticSearchAtomIntegration:
         assert atom.engine is None
         assert atom.encode("test") is None
 
-    @patch('uckn.core.semantic_search_enhanced.chromadb')
+    @patch('uckn.core.semantic_search_enhanced.ChromaDBConnector')
     @patch('uckn.core.semantic_search_enhanced.SentenceTransformer')
-    def test_semantic_search_atom_encode_delegation(self, mock_st, mock_chromadb):
+    def test_semantic_search_atom_encode_delegation(self, mock_st, mock_chromadb_connector):
         """Test that SemanticSearch atom properly delegates to enhanced engine"""
         mock_model = MagicMock()
         mock_embedding = np.array([0.1] * 384)
@@ -363,9 +363,9 @@ class TestSemanticSearchAtomIntegration:
 class TestPerformanceOptimizations:
     """Test suite for performance optimization features"""
 
-    @patch('uckn.core.semantic_search_enhanced.chromadb')
+    @patch('uckn.core.semantic_search_enhanced.ChromaDBConnector')
     @patch('uckn.core.semantic_search_enhanced.SentenceTransformer')
-    def test_caching_performance(self, mock_st, mock_chromadb):
+    def test_caching_performance(self, mock_st, mock_chromadb_connector):
         """Test that caching improves performance"""
         mock_model = MagicMock()
         mock_model.encode.return_value = np.array([0.1] * 384)
@@ -389,9 +389,9 @@ class TestPerformanceOptimizations:
         # Model should only be called once due to caching
         assert mock_model.encode.call_count == call_count_after_first
 
-    @patch('uckn.core.semantic_search_enhanced.chromadb')
+    @patch('uckn.core.semantic_search_enhanced.ChromaDBConnector')
     @patch('uckn.core.semantic_search_enhanced.SentenceTransformer')
-    def test_different_inputs_not_cached_together(self, mock_st, mock_chromadb):
+    def test_different_inputs_not_cached_together(self, mock_st, mock_chromadb_connector):
         """Test that different inputs get different cache entries"""
         mock_model = MagicMock()
         # Return different embeddings for different inputs
