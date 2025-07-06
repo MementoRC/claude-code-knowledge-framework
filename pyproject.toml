@@ -108,7 +108,7 @@ build-backend = "hatchling.build"
 packages = ["src/uckn"]
 
 [tool.pixi.project]
-channels = ["conda-forge", "pytorch"]
+channels = ["conda-forge"] # Removed 'pytorch' channel for minimal CI
 platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
 
 [tool.pixi.dependencies]
@@ -132,23 +132,26 @@ black = "*"
 mypy = "*"
 pre-commit = "*"
 alembic = "*" # Added for database migrations
-mcp = "*"
+mcp = "*" # Kept for dev environment, but moved to ci-deps for CI
 
-[tool.pixi.feature.mcp.dependencies]
-nodejs = ">=18"
-pnpm = "*"
+[tool.pixi.feature.ci-deps.dependencies] # New feature for minimal CI dependencies
+pytest = "*"
+pytest-cov = "*"
+pytest-asyncio = "*"
+ruff = "*"
+black = "*"
+mypy = "*"
+mcp = "*" # MCP Python package needed for core functionality tests
+websockets = "*" # Dependency of mcp
+anyio = "*" # Dependency of mcp
 
-[tool.pixi.feature.ml.dependencies]
-pytorch = "*"
-sentence-transformers = "*"
-chromadb = "*"
-SQLAlchemy = "*" # Added for PostgreSQL ORM
-psycopg2-binary = "*" # PostgreSQL driver with binary support
+# Removed [tool.pixi.feature.mcp.dependencies] (nodejs, pnpm) as not needed for Python CI
+# Removed [tool.pixi.feature.ml.dependencies] (pytorch, etc.) as not needed for minimal CI
 
 [tool.pixi.environments]
 default = {features = ["ml", "mcp"], solve-group = "default"}
 dev = {features = ["dev", "ml", "mcp"], solve-group = "default"}
-ci = {features = ["dev", "mcp"], solve-group = "default"}
+ci = {features = ["ci-deps"], solve-group = "default"} # Simplified for minimal CI
 docs = {features = ["docs"], solve-group = "default"}
 
 [tool.pixi.tasks]
