@@ -33,6 +33,7 @@ if not _DISABLE_TORCH:
         else:
             try:
                 from transformers import AutoTokenizer, AutoModel
+
                 TRANSFORMERS_AVAILABLE = True
             except Exception:
                 AutoTokenizer = None
@@ -47,6 +48,7 @@ if not _DISABLE_TORCH:
     # Try importing sentence-transformers defensively
     try:
         from sentence_transformers import SentenceTransformer
+
         SENTENCE_TRANSFORMERS_AVAILABLE = True
     except Exception:
         SentenceTransformer = None
@@ -59,6 +61,7 @@ else:
     SentenceTransformer = None
     TRANSFORMERS_AVAILABLE = False
     SENTENCE_TRANSFORMERS_AVAILABLE = False
+
 
 class MultiModalEmbeddings:
     """
@@ -77,7 +80,11 @@ class MultiModalEmbeddings:
     def __init__(self, device: Optional[str] = None):
         self._logger = logging.getLogger(__name__)
         # Defensive: If torch is unavailable, always use cpu
-        if torch is not None and hasattr(torch, "cuda") and callable(getattr(torch.cuda, "is_available", None)):
+        if (
+            torch is not None
+            and hasattr(torch, "cuda")
+            and callable(getattr(torch.cuda, "is_available", None))
+        ):
             self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         else:
             self.device = "cpu"
@@ -93,7 +100,9 @@ class MultiModalEmbeddings:
             self._init_code_model()
             self._init_text_model()
         else:
-            self._logger.warning("Torch and transformers are disabled by environment variable.")
+            self._logger.warning(
+                "Torch and transformers are disabled by environment variable."
+            )
 
         # In-memory cache for embeddings
         self._embedding_cache = {}
@@ -101,47 +110,61 @@ class MultiModalEmbeddings:
     def is_available(self) -> bool:
         """
         Checks if the MultiModalEmbeddings component is initialized and ready for use.
-        
+
         Returns:
             bool: True if at least one embedding model is available, False otherwise.
         """
         # Component is available if at least one model is initialized
         # or if we have the basic dependencies available
-        has_text_model = (
-            SENTENCE_TRANSFORMERS_AVAILABLE and 
-            self.text_model is not None
-        )
+        has_text_model = SENTENCE_TRANSFORMERS_AVAILABLE and self.text_model is not None
         has_code_model = (
-            TRANSFORMERS_AVAILABLE and 
-            self.code_model is not None and 
-            self.code_tokenizer is not None
+            TRANSFORMERS_AVAILABLE
+            and self.code_model is not None
+            and self.code_tokenizer is not None
         )
-        
+
         # Available if we have at least one working model or basic dependencies
         return has_text_model or has_code_model or SENTENCE_TRANSFORMERS_AVAILABLE
 
     def _init_code_model(self):
-        if not TRANSFORMERS_AVAILABLE or AutoTokenizer is None or AutoModel is None or torch is None:
-            self._logger.warning("Transformers not available. Code embedding will fallback to text model.")
+        if (
+            not TRANSFORMERS_AVAILABLE
+            or AutoTokenizer is None
+            or AutoModel is None
+            or torch is None
+        ):
+            self._logger.warning(
+                "Transformers not available. Code embedding will fallback to text model."
+            )
             return
         try:
             self.code_tokenizer = AutoTokenizer.from_pretrained(self._CODE_MODEL_NAME)
-            self.code_model = AutoModel.from_pretrained(self._CODE_MODEL_NAME).to(self.device)
+            self.code_model = AutoModel.from_pretrained(self._CODE_MODEL_NAME).to(
+                self.device
+            )
             self._logger.info(f"Loaded code model: {self._CODE_MODEL_NAME}")
         except Exception as e:
-            self._logger.warning(f"Failed to load code model '{self._CODE_MODEL_NAME}': {e}. Falling back to text model.")
+            self._logger.warning(
+                f"Failed to load code model '{self._CODE_MODEL_NAME}': {e}. Falling back to text model."
+            )
             self.code_tokenizer = None
             self.code_model = None
 
     def _init_text_model(self):
         if not SENTENCE_TRANSFORMERS_AVAILABLE or SentenceTransformer is None:
-            self._logger.warning("SentenceTransformers not available. Text embedding will be disabled.")
+            self._logger.warning(
+                "SentenceTransformers not available. Text embedding will be disabled."
+            )
             return
         try:
-            self.text_model = SentenceTransformer(self._TEXT_MODEL_NAME, device=self.device)
+            self.text_model = SentenceTransformer(
+                self._TEXT_MODEL_NAME, device=self.device
+            )
             self._logger.info(f"Loaded text model: {self._TEXT_MODEL_NAME}")
         except Exception as e:
-            self._logger.error(f"Failed to load text model '{self._TEXT_MODEL_NAME}': {e}")
+            self._logger.error(
+                f"Failed to load text model '{self._TEXT_MODEL_NAME}': {e}"
+            )
             self.text_model = None
 
     def _hash_input(self, data: Any) -> str:
@@ -164,12 +187,16 @@ class MultiModalEmbeddings:
             return cached
         if self.code_model and self.code_tokenizer and torch is not None:
             try:
-                inputs = self.code_tokenizer(code, return_tensors="pt", truncation=True, max_length=256)
+                inputs = self.code_tokenizer(
+                    code, return_tensors="pt", truncation=True, max_length=256
+                )
                 inputs = {k: v.to(self.device) for k, v in inputs.items()}
                 with torch.no_grad():
                     outputs = self.code_model(**inputs)
                     # Use [CLS] token representation
-                    embedding = outputs.last_hidden_state[:, 0, :].squeeze().cpu().numpy()
+                    embedding = (
+                        outputs.last_hidden_state[:, 0, :].squeeze().cpu().numpy()
+                    )
                     embedding = embedding / np.linalg.norm(embedding)
                     embedding = embedding.tolist()
                 self._set_cached_embedding(key, embedding)
@@ -186,7 +213,9 @@ class MultiModalEmbeddings:
             return cached
         if self.text_model:
             try:
-                embedding = self.text_model.encode(text, convert_to_numpy=True, normalize_embeddings=True)
+                embedding = self.text_model.encode(
+                    text, convert_to_numpy=True, normalize_embeddings=True
+                )
                 embedding = embedding.tolist()
                 self._set_cached_embedding(key, embedding)
                 return embedding
@@ -208,16 +237,15 @@ class MultiModalEmbeddings:
     def _embed_error(self, error_msg: str) -> Optional[List[float]]:
         # Preprocess: remove file paths, line numbers, stack traces, etc.
         import re
-        cleaned = re.sub(r'File ".*?", line \d+, in .*\n', '', error_msg)
-        cleaned = re.sub(r'\s+at\s+.*\n', '', cleaned)
-        cleaned = re.sub(r'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\n', '', cleaned)
+
+        cleaned = re.sub(r'File ".*?", line \d+, in .*\n', "", error_msg)
+        cleaned = re.sub(r"\s+at\s+.*\n", "", cleaned)
+        cleaned = re.sub(r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.*\n", "", cleaned)
         cleaned = cleaned.strip()
         return self._embed_text(cleaned)
 
     def embed(
-        self,
-        data: Union[str, Dict[str, Any]],
-        data_type: str = "auto"
+        self, data: Union[str, Dict[str, Any]], data_type: str = "auto"
     ) -> Optional[List[float]]:
         """
         Generate embedding for a single data item.
@@ -250,13 +278,13 @@ class MultiModalEmbeddings:
         elif data_type == "error":
             return self._embed_error(data)
         else:
-            self._logger.warning(f"Unknown data_type '{data_type}', defaulting to text embedding.")
+            self._logger.warning(
+                f"Unknown data_type '{data_type}', defaulting to text embedding."
+            )
             return self._embed_text(str(data))
 
     def embed_batch(
-        self,
-        items: List[Union[str, Dict[str, Any]]],
-        data_type: str = "auto"
+        self, items: List[Union[str, Dict[str, Any]]], data_type: str = "auto"
     ) -> List[Optional[List[float]]]:
         """
         Batch embedding for a list of items.
@@ -268,9 +296,7 @@ class MultiModalEmbeddings:
         return embeddings
 
     def combine_embeddings(
-        self,
-        embeddings: List[List[float]],
-        method: str = "mean"
+        self, embeddings: List[List[float]], method: str = "mean"
     ) -> Optional[List[float]]:
         """
         Combine multiple embeddings into a single vector.
@@ -281,7 +307,7 @@ class MultiModalEmbeddings:
         arrs = [np.array(e) for e in embeddings if e is not None]
         if not arrs:
             return None
-            
+
         # Ensure all embeddings have the same dimension for mean
         if method == "mean":
             # Check if all arrays have the same shape
@@ -293,7 +319,7 @@ class MultiModalEmbeddings:
                 for arr in arrs:
                     if arr.shape[0] < max_dim:
                         padded = np.zeros(max_dim)
-                        padded[:arr.shape[0]] = arr
+                        padded[: arr.shape[0]] = arr
                         padded_arrs.append(padded)
                     else:
                         padded_arrs.append(arr)
@@ -311,7 +337,7 @@ class MultiModalEmbeddings:
                 for arr in arrs:
                     if arr.shape[0] < max_dim:
                         padded = np.zeros(max_dim)
-                        padded[:arr.shape[0]] = arr
+                        padded[: arr.shape[0]] = arr
                         padded_arrs.append(padded)
                     else:
                         padded_arrs.append(arr)
@@ -326,7 +352,7 @@ class MultiModalEmbeddings:
         text: Optional[str] = None,
         config: Optional[str] = None,
         error: Optional[str] = None,
-        combine_method: str = "mean"
+        combine_method: str = "mean",
     ) -> Optional[List[float]]:
         """
         Generate a multi-modal embedding from any combination of code, text, config, and error.
@@ -358,7 +384,7 @@ class MultiModalEmbeddings:
         limit: int = 10,
         min_similarity: float = 0.7,
         combine_method: str = "mean",
-        metadata_filter: Optional[Dict[str, Any]] = None
+        metadata_filter: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """
         Multi-modal search: embed query, search ChromaDB, return results.
@@ -369,10 +395,12 @@ class MultiModalEmbeddings:
             text=query.get("text"),
             config=query.get("config"),
             error=query.get("error"),
-            combine_method=combine_method
+            combine_method=combine_method,
         )
         if query_embedding is None:
-            self._logger.warning("Failed to generate query embedding for multi-modal search.")
+            self._logger.warning(
+                "Failed to generate query embedding for multi-modal search."
+            )
             return []
         # Defensive: If chroma_connector is None, return empty
         if chroma_connector is None:
@@ -383,5 +411,5 @@ class MultiModalEmbeddings:
             query_embedding=query_embedding,
             n_results=limit,
             min_similarity=min_similarity,
-            where_clause=metadata_filter
+            where_clause=metadata_filter,
         )

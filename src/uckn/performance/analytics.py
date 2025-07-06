@@ -11,10 +11,12 @@ import logging
 import time
 from typing import Callable, Any, Dict, List
 
+
 class PerformanceProfiler:
     """
     Profiles function execution time and collects metrics.
     """
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.metrics: List[Dict[str, Any]] = []
@@ -27,11 +29,12 @@ class PerformanceProfiler:
             metric = {
                 "function": fn.__name__,
                 "elapsed": elapsed,
-                "timestamp": time.time()
+                "timestamp": time.time(),
             }
             self.metrics.append(metric)
             self.logger.info(f"Profiled {fn.__name__}: {elapsed:.4f}s")
             return result
+
         return wrapper
 
     def get_metrics(self) -> List[Dict[str, Any]]:
@@ -40,10 +43,12 @@ class PerformanceProfiler:
     def clear(self):
         self.metrics.clear()
 
+
 class CacheAnalytics:
     """
     Analyzes cache performance (hit/miss rates).
     """
+
     def __init__(self):
         self.hits = 0
         self.misses = 0
@@ -60,16 +65,14 @@ class CacheAnalytics:
         return self.hits / total if total > 0 else 0.0
 
     def report(self) -> Dict[str, Any]:
-        return {
-            "hits": self.hits,
-            "misses": self.misses,
-            "hit_rate": self.hit_rate()
-        }
+        return {"hits": self.hits, "misses": self.misses, "hit_rate": self.hit_rate()}
+
 
 class BottleneckDetector:
     """
     Identifies slow operations and resource bottlenecks.
     """
+
     def __init__(self, threshold=1.0):
         self.threshold = threshold
         self.logger = logging.getLogger(__name__)
@@ -77,11 +80,14 @@ class BottleneckDetector:
 
     def record(self, fn_name: str, elapsed: float):
         if elapsed > self.threshold:
-            self.slow_calls.append({"function": fn_name, "elapsed": elapsed, "timestamp": time.time()})
+            self.slow_calls.append(
+                {"function": fn_name, "elapsed": elapsed, "timestamp": time.time()}
+            )
             self.logger.warning(f"Bottleneck detected in {fn_name}: {elapsed:.2f}s")
 
     def get_bottlenecks(self) -> List[Dict[str, Any]]:
         return self.slow_calls
+
 
 performance_profiler = PerformanceProfiler()
 cache_analytics = CacheAnalytics()

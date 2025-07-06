@@ -12,9 +12,9 @@ from .pattern_classification import PatternClassification
 
 __all__ = [
     "PatternManager",
-    "ErrorSolutionManager", 
+    "ErrorSolutionManager",
     "PatternMigrator",
     "PatternAnalytics",
     "TechStackCompatibilityMatrix",
-    "PatternClassification"
+    "PatternClassification",
 ]

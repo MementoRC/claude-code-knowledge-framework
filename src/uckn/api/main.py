@@ -12,10 +12,20 @@ from fastapi.responses import JSONResponse
 
 from ..core.organisms.knowledge_manager import KnowledgeManager
 from .dependencies import set_knowledge_manager
-from .routers import patterns, projects, collaboration, health, teams, auth, predictions, workflow
+from .routers import (
+    patterns,
+    projects,
+    collaboration,
+    health,
+    teams,
+    auth,
+    predictions,
+    workflow,
+)
 
 # --- GLOBAL KNOWLEDGE MANAGER SINGLETON FOR DEPENDENCY INJECTION ---
 _knowledge_manager = None
+
 
 def get_knowledge_manager():
     """
@@ -26,6 +36,7 @@ def get_knowledge_manager():
     if _knowledge_manager is None:
         _knowledge_manager = KnowledgeManager()
     return _knowledge_manager
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -60,7 +71,7 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Add CORS middleware
@@ -79,7 +90,7 @@ async def global_exception_handler(request, exc):
     logger.error(f"Global exception: {exc}")
     return JSONResponse(
         status_code=500,
-        content={"detail": "Internal server error", "type": "internal_error"}
+        content={"detail": "Internal server error", "type": "internal_error"},
     )
 
 

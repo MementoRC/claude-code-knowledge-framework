@@ -15,7 +15,7 @@ from .config import performance_config
 
 __all__ = [
     "performance_cache",
-    "async_task_queue", 
+    "async_task_queue",
     "BatchProcessor",
     "ChromaDBOptimizer",
     "resource_monitor",

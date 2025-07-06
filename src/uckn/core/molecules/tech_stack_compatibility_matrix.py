@@ -43,12 +43,12 @@ class TechStackCompatibilityMatrix:
         # internal metadata validation will fail for this collection, and
         # add/update operations will not succeed.
         if self._COLLECTION_NAME not in self.chroma_connector.collections:
-             self._logger.error(
-                 f"ChromaDB collection '{self._COLLECTION_NAME}' is not initialized "
-                 "or recognized by the provided ChromaDBConnector. "
-                 "Please ensure ChromaDBConnector's `_COLLECTION_SCHEMAS` "
-                 f"includes the schema for '{self._COLLECTION_NAME}'."
-             )
+            self._logger.error(
+                f"ChromaDB collection '{self._COLLECTION_NAME}' is not initialized "
+                "or recognized by the provided ChromaDBConnector. "
+                "Please ensure ChromaDBConnector's `_COLLECTION_SCHEMAS` "
+                f"includes the schema for '{self._COLLECTION_NAME}'."
+            )
 
     def is_available(self) -> bool:
         """
@@ -84,14 +84,10 @@ class TechStackCompatibilityMatrix:
         combo_string = json.dumps(combined_sorted_techs)
 
         # Hash the string to create a unique ID
-        return hashlib.sha256(combo_string.encode('utf-8')).hexdigest()
+        return hashlib.sha256(combo_string.encode("utf-8")).hexdigest()
 
     def add_tech_stack_combo(
-        self,
-        ts_a: List[str],
-        ts_b: List[str],
-        score: float,
-        description: str = ""
+        self, ts_a: List[str], ts_b: List[str], score: float, description: str = ""
     ) -> Optional[str]:
         """
         Adds a new technology stack compatibility combination to the matrix.
@@ -110,20 +106,26 @@ class TechStackCompatibilityMatrix:
             return None
 
         if not (0.0 <= score <= 1.0):
-            self._logger.error(f"Invalid score {score}. Score must be between 0.0 and 1.0.")
+            self._logger.error(
+                f"Invalid score {score}. Score must be between 0.0 and 1.0."
+            )
             return None
 
         combo_id = self._generate_combo_id(ts_a, ts_b)
         now_iso = datetime.now().isoformat()
 
         metadata = {
-            "tech_stack_a": sorted(ts_a), # Store sorted for consistent retrieval/comparison
-            "tech_stack_b": sorted(ts_b), # Store sorted for consistent retrieval/comparison
+            "tech_stack_a": sorted(
+                ts_a
+            ),  # Store sorted for consistent retrieval/comparison
+            "tech_stack_b": sorted(
+                ts_b
+            ),  # Store sorted for consistent retrieval/comparison
             "score": score,
             "description": description,
             "created_at": now_iso,
             "updated_at": now_iso,
-            "combo_id": combo_id
+            "combo_id": combo_id,
         }
 
         # A dummy document is needed for ChromaDB, as it's primarily text-based.
@@ -133,18 +135,22 @@ class TechStackCompatibilityMatrix:
         # ChromaDBConnector's add_document requires an embedding.
         # Since this molecule doesn't have a SemanticSearch dependency,
         # a dummy embedding is provided.
-        dummy_embedding = [0.0] * 384 # Common embedding dimension for sentence transformers
+        dummy_embedding = [
+            0.0
+        ] * 384  # Common embedding dimension for sentence transformers
 
         success = self.chroma_connector.add_document(
             collection_name=self._COLLECTION_NAME,
             doc_id=combo_id,
             document=document_text,
             embedding=dummy_embedding,
-            metadata=metadata
+            metadata=metadata,
         )
         return combo_id if success else None
 
-    def get_compatibility_score(self, ts_a: List[str], ts_b: List[str]) -> Optional[float]:
+    def get_compatibility_score(
+        self, ts_a: List[str], ts_b: List[str]
+    ) -> Optional[float]:
         """
         Retrieves the compatibility score between two technology stacks.
 
@@ -156,19 +162,22 @@ class TechStackCompatibilityMatrix:
             The compatibility score (float) if found, None otherwise.
         """
         if not self.is_available():
-            self._logger.warning("ChromaDB not available, cannot get compatibility score.")
+            self._logger.warning(
+                "ChromaDB not available, cannot get compatibility score."
+            )
             return None
 
         combo_id = self._generate_combo_id(ts_a, ts_b)
         result = self.chroma_connector.get_document(
-            collection_name=self._COLLECTION_NAME,
-            doc_id=combo_id
+            collection_name=self._COLLECTION_NAME, doc_id=combo_id
         )
         if result and "metadata" in result:
             return result["metadata"].get("score")
         return None
 
-    def get_compatibility_details(self, ts_a: List[str], ts_b: List[str]) -> Optional[Dict[str, Any]]:
+    def get_compatibility_details(
+        self, ts_a: List[str], ts_b: List[str]
+    ) -> Optional[Dict[str, Any]]:
         """
         Retrieves full details of a specific compatibility combination.
 
@@ -180,13 +189,14 @@ class TechStackCompatibilityMatrix:
             A dictionary containing the full compatibility details, or None if not found.
         """
         if not self.is_available():
-            self._logger.warning("ChromaDB not available, cannot get compatibility details.")
+            self._logger.warning(
+                "ChromaDB not available, cannot get compatibility details."
+            )
             return None
 
         combo_id = self._generate_combo_id(ts_a, ts_b)
         result = self.chroma_connector.get_document(
-            collection_name=self._COLLECTION_NAME,
-            doc_id=combo_id
+            collection_name=self._COLLECTION_NAME, doc_id=combo_id
         )
         if result and "metadata" in result:
             return result["metadata"]
@@ -197,7 +207,7 @@ class TechStackCompatibilityMatrix:
         ts_a: List[str],
         ts_b: List[str],
         new_score: Optional[float] = None,
-        new_description: Optional[str] = None
+        new_description: Optional[str] = None,
     ) -> bool:
         """
         Updates an existing technology stack compatibility combination.
@@ -212,22 +222,27 @@ class TechStackCompatibilityMatrix:
             True if updated successfully, False otherwise.
         """
         if not self.is_available():
-            self._logger.warning("ChromaDB not available, cannot update compatibility score.")
+            self._logger.warning(
+                "ChromaDB not available, cannot update compatibility score."
+            )
             return False
 
         if new_score is not None and not (0.0 <= new_score <= 1.0):
-            self._logger.error(f"Invalid new score {new_score}. Score must be between 0.0 and 1.0.")
+            self._logger.error(
+                f"Invalid new score {new_score}. Score must be between 0.0 and 1.0."
+            )
             return False
 
         combo_id = self._generate_combo_id(ts_a, ts_b)
-        
+
         # Retrieve existing metadata to merge updates
         existing_doc = self.chroma_connector.get_document(
-            collection_name=self._COLLECTION_NAME,
-            doc_id=combo_id
+            collection_name=self._COLLECTION_NAME, doc_id=combo_id
         )
         if not existing_doc:
-            self._logger.warning(f"Compatibility combo '{combo_id}' not found for update.")
+            self._logger.warning(
+                f"Compatibility combo '{combo_id}' not found for update."
+            )
             return False
 
         updated_metadata = existing_doc["metadata"].copy()
@@ -235,7 +250,7 @@ class TechStackCompatibilityMatrix:
             updated_metadata["score"] = new_score
         if new_description is not None:
             updated_metadata["description"] = new_description
-        
+
         updated_metadata["updated_at"] = datetime.now().isoformat()
 
         # No document text or embedding update needed unless specified,
@@ -243,9 +258,9 @@ class TechStackCompatibilityMatrix:
         return self.chroma_connector.update_document(
             collection_name=self._COLLECTION_NAME,
             doc_id=combo_id,
-            document=None, # No change to document text
-            embedding=None, # No change to embedding
-            metadata=updated_metadata
+            document=None,  # No change to document text
+            embedding=None,  # No change to embedding
+            metadata=updated_metadata,
         )
 
     def delete_tech_stack_combo(self, ts_a: List[str], ts_b: List[str]) -> bool:
@@ -260,13 +275,14 @@ class TechStackCompatibilityMatrix:
             True if deleted successfully, False otherwise.
         """
         if not self.is_available():
-            self._logger.warning("ChromaDB not available, cannot delete tech stack combo.")
+            self._logger.warning(
+                "ChromaDB not available, cannot delete tech stack combo."
+            )
             return False
 
         combo_id = self._generate_combo_id(ts_a, ts_b)
         return self.chroma_connector.delete_document(
-            collection_name=self._COLLECTION_NAME,
-            doc_id=combo_id
+            collection_name=self._COLLECTION_NAME, doc_id=combo_id
         )
 
     def get_all_compatibility_scores(self) -> List[Dict[str, Any]]:
@@ -277,11 +293,15 @@ class TechStackCompatibilityMatrix:
             A list of dictionaries, each representing a compatibility combination.
         """
         if not self.is_available():
-            self._logger.warning("ChromaDB not available, cannot retrieve all compatibility scores.")
+            self._logger.warning(
+                "ChromaDB not available, cannot retrieve all compatibility scores."
+            )
             return []
 
-        all_docs = self.chroma_connector.get_all_documents(collection_name=self._COLLECTION_NAME)
-        
+        all_docs = self.chroma_connector.get_all_documents(
+            collection_name=self._COLLECTION_NAME
+        )
+
         results = []
         for doc in all_docs:
             if "metadata" in doc:
@@ -289,10 +309,7 @@ class TechStackCompatibilityMatrix:
         return results
 
     def search_compatibility(
-        self,
-        query_tech_stack: List[str],
-        limit: int = 10,
-        min_score: float = 0.0
+        self, query_tech_stack: List[str], limit: int = 10, min_score: float = 0.0
     ) -> List[Dict[str, Any]]:
         """
         Searches for compatibility scores related to a given technology stack.
@@ -324,7 +341,7 @@ class TechStackCompatibilityMatrix:
 
         sorted_query_tech_stack = sorted(query_tech_stack)
         all_combos = self.get_all_compatibility_scores()
-        
+
         filtered_results = []
         for combo in all_combos:
             ts_a_stored = combo.get("tech_stack_a", [])
@@ -332,13 +349,14 @@ class TechStackCompatibilityMatrix:
             score = combo.get("score", 0.0)
 
             # Ensure stored lists are also sorted for consistent comparison
-            if sorted(ts_a_stored) == sorted_query_tech_stack or \
-               sorted(ts_b_stored) == sorted_query_tech_stack:
+            if (
+                sorted(ts_a_stored) == sorted_query_tech_stack
+                or sorted(ts_b_stored) == sorted_query_tech_stack
+            ):
                 if score >= min_score:
                     filtered_results.append(combo)
-            
+
             if len(filtered_results) >= limit:
                 break
-        
-        return filtered_results
 
+        return filtered_results

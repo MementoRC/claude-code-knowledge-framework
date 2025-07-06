@@ -15,7 +15,7 @@ from .cli import main as cli_main
 __all__ = [
     "KnowledgeManager",
     "SemanticSearch",
-    "UnifiedKnowledgeManager", 
+    "UnifiedKnowledgeManager",
     "cli_main",
     "__version__",
 ]

@@ -6,10 +6,10 @@ from .rate_limiting import RateLimitingMiddleware, RateLimitExceeded
 
 __all__ = [
     "AuthMiddleware",
-    "LoggingMiddleware", 
+    "LoggingMiddleware",
     "RateLimitingMiddleware",
     "get_current_user",
     "require_permission",
     "require_role",
-    "RateLimitExceeded"
+    "RateLimitExceeded",
 ]

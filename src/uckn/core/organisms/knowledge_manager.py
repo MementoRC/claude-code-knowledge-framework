@@ -12,47 +12,64 @@ from ..atoms.tech_stack_detector import TechStackDetector
 from ..molecules.pattern_manager import PatternManager
 from ..molecules.error_solution_manager import ErrorSolutionManager
 from ..molecules.pattern_classification import PatternClassification
-from ...storage import UnifiedDatabase # Changed from ChromaDBConnector
+from ...storage import UnifiedDatabase  # Changed from ChromaDBConnector
 
 
 class KnowledgeManager:
     """Core knowledge management system using a Unified Database for storage."""
 
-    def __init__(self, knowledge_dir: str = ".uckn/knowledge", pg_db_url: str = "postgresql://user:password@localhost:5432/uckn_db"):
+    def __init__(
+        self,
+        knowledge_dir: str = ".uckn/knowledge",
+        pg_db_url: str = "postgresql://user:password@localhost:5432/uckn_db",
+    ):
         self.knowledge_dir = Path(knowledge_dir)
         self.knowledge_dir.mkdir(parents=True, exist_ok=True)
         self._logger = logging.getLogger(__name__)
 
         # Initialize Unified Database connector
         self.unified_db = UnifiedDatabase(
-            pg_db_url=pg_db_url,
-            chroma_db_path=str(self.knowledge_dir / "chroma_db")
+            pg_db_url=pg_db_url, chroma_db_path=str(self.knowledge_dir / "chroma_db")
         )
         if not self.unified_db.is_available():
-            self._logger.warning("Unified Database (PostgreSQL and/or ChromaDB) is not fully available. Knowledge storage and retrieval will be limited.")
+            self._logger.warning(
+                "Unified Database (PostgreSQL and/or ChromaDB) is not fully available. Knowledge storage and retrieval will be limited."
+            )
 
         # Initialize Semantic Search for embeddings
         self.semantic_search = SemanticSearch(knowledge_dir=str(self.knowledge_dir))
         if not self.semantic_search.is_available():
-            self._logger.warning("Semantic search model not available. Embeddings cannot be generated.")
+            self._logger.warning(
+                "Semantic search model not available. Embeddings cannot be generated."
+            )
 
         # Initialize molecules, passing the unified_db
         self.pattern_manager = PatternManager(self.unified_db, self.semantic_search)
-        self.error_solution_manager = ErrorSolutionManager(self.unified_db, self.semantic_search)
-        self.pattern_classification = PatternClassification(self.unified_db) # PatternClassification now uses UnifiedDB
-        
+        self.error_solution_manager = ErrorSolutionManager(
+            self.unified_db, self.semantic_search
+        )
+        self.pattern_classification = PatternClassification(
+            self.unified_db
+        )  # PatternClassification now uses UnifiedDB
+
         # Initialize atoms
         self.tech_detector = TechStackDetector()
 
     # Project management methods (new)
-    def add_project(self, name: str, description: Optional[str] = None) -> Optional[str]:
+    def add_project(
+        self, name: str, description: Optional[str] = None
+    ) -> Optional[str]:
         """Add a new project."""
         try:
             project_id = self.unified_db.add_project(name, description)
             if not project_id:
                 # Fallback: try to create the project directly if not implemented
-                if hasattr(self.unified_db, "pg_connector") and hasattr(self.unified_db.pg_connector, "add_project"):
-                    project_id = self.unified_db.pg_connector.add_project(name, description)
+                if hasattr(self.unified_db, "pg_connector") and hasattr(
+                    self.unified_db.pg_connector, "add_project"
+                ):
+                    project_id = self.unified_db.pg_connector.add_project(
+                        name, description
+                    )
             return project_id
         except Exception as e:
             self._logger.error(f"Failed to add project: {e}")
@@ -99,10 +116,14 @@ class KnowledgeManager:
         project_id = pattern_data.get("project_id")
 
         if not document_text:
-            self._logger.error("Pattern data must include 'document' text for embedding.")
+            self._logger.error(
+                "Pattern data must include 'document' text for embedding."
+            )
             return None
         if not self.semantic_search.is_available():
-            self._logger.error("Semantic search not available, cannot generate embeddings for pattern.")
+            self._logger.error(
+                "Semantic search not available, cannot generate embeddings for pattern."
+            )
             return None
 
         embedding = self.semantic_search.encode(document_text)
@@ -115,7 +136,7 @@ class KnowledgeManager:
             embedding=embedding,
             metadata=metadata,
             pattern_id=pattern_data.get("pattern_id"),
-            project_id=project_id
+            project_id=project_id,
         )
 
     def get_pattern(self, pattern_id: str) -> Optional[Dict[str, Any]]:
@@ -132,17 +153,21 @@ class KnowledgeManager:
         if document_text and self.semantic_search.is_available():
             embedding = self.semantic_search.encode(document_text)
             if embedding is None:
-                self._logger.error(f"Failed to generate new embedding for pattern {pattern_id} during update.")
+                self._logger.error(
+                    f"Failed to generate new embedding for pattern {pattern_id} during update."
+                )
                 return False
         elif document_text:
-            self._logger.warning("Semantic search not available, cannot re-generate embedding for updated document text.")
+            self._logger.warning(
+                "Semantic search not available, cannot re-generate embedding for updated document text."
+            )
 
         return self.unified_db.update_pattern(
             pattern_id=pattern_id,
             document_text=document_text,
             embedding=embedding,
             metadata=metadata,
-            project_id=project_id
+            project_id=project_id,
         )
 
     def delete_pattern(self, pattern_id: str) -> bool:
@@ -154,20 +179,26 @@ class KnowledgeManager:
         query: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[Dict[str, Any]] = None
+        metadata_filter: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """Search for knowledge patterns using semantic similarity."""
         if not self.semantic_search.is_available():
-            self._logger.warning("Semantic search not available, cannot generate query embedding.")
+            self._logger.warning(
+                "Semantic search not available, cannot generate query embedding."
+            )
             return []
         query_embedding = self.semantic_search.encode(query)
         if query_embedding is None:
             self._logger.error("Failed to generate query embedding for pattern search.")
             return []
-        return self.unified_db.search_patterns(query_embedding, limit, min_similarity, metadata_filter)
+        return self.unified_db.search_patterns(
+            query_embedding, limit, min_similarity, metadata_filter
+        )
 
     # Pattern classification methods
-    def create_category(self, name: str, description: str = "", category_id: Optional[str] = None) -> Optional[str]:
+    def create_category(
+        self, name: str, description: str = "", category_id: Optional[str] = None
+    ) -> Optional[str]:
         """Create a new pattern category."""
         return self.unified_db.add_category(name, description, category_id)
 
@@ -175,12 +206,20 @@ class KnowledgeManager:
         """Retrieve a specific category."""
         return self.unified_db.get_category(category_id)
 
-    def update_category(self, category_id: str, name: Optional[str] = None, description: Optional[str] = None) -> bool:
+    def update_category(
+        self,
+        category_id: str,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+    ) -> bool:
         """Update an existing category."""
         updates = {}
-        if name is not None: updates["name"] = name
-        if description is not None: updates["description"] = description
-        if not updates: return False # No updates provided
+        if name is not None:
+            updates["name"] = name
+        if description is not None:
+            updates["description"] = description
+        if not updates:
+            return False  # No updates provided
         return self.unified_db.update_category(category_id, updates)
 
     def delete_category(self, category_id: str) -> bool:
@@ -212,10 +251,14 @@ class KnowledgeManager:
             project_id = solution_data.get("project_id")
 
             if not document_text:
-                self._logger.error("Solution data must include 'document' text for embedding.")
+                self._logger.error(
+                    "Solution data must include 'document' text for embedding."
+                )
                 return None
             if not self.semantic_search.is_available():
-                self._logger.error("Semantic search not available, cannot generate embeddings for error solution.")
+                self._logger.error(
+                    "Semantic search not available, cannot generate embeddings for error solution."
+                )
                 return None
 
             embedding = self.semantic_search.encode(document_text)
@@ -228,17 +271,19 @@ class KnowledgeManager:
                 embedding=embedding,
                 metadata=metadata,
                 solution_id=solution_data.get("solution_id"),
-                project_id=project_id
+                project_id=project_id,
             )
             if not solution_id:
                 # Fallback: try to create the solution directly if not implemented
-                if hasattr(self.unified_db, "pg_connector") and hasattr(self.unified_db.pg_connector, "add_error_solution"):
+                if hasattr(self.unified_db, "pg_connector") and hasattr(
+                    self.unified_db.pg_connector, "add_error_solution"
+                ):
                     solution_id = self.unified_db.pg_connector.add_error_solution(
                         document_text=document_text,
                         embedding=embedding,
                         metadata=metadata,
                         solution_id=solution_data.get("solution_id"),
-                        project_id=project_id
+                        project_id=project_id,
                     )
             return solution_id
         except Exception as e:
@@ -258,20 +303,26 @@ class KnowledgeManager:
         error_query: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[Dict[str, Any]] = None
+        metadata_filter: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """Search for error solutions using semantic similarity."""
         if not self.semantic_search.is_available():
-            self._logger.warning("Semantic search not available, cannot generate query embedding.")
+            self._logger.warning(
+                "Semantic search not available, cannot generate query embedding."
+            )
             return []
         query_embedding = self.semantic_search.encode(error_query)
         if query_embedding is None:
             self._logger.error("Failed to generate query embedding for error search.")
             return []
-        return self.unified_db.search_error_solutions(query_embedding, limit, min_similarity, metadata_filter)
+        return self.unified_db.search_error_solutions(
+            query_embedding, limit, min_similarity, metadata_filter
+        )
 
     # Team Access Management (new)
-    def add_team_access(self, user_id: str, project_id: str, role: str) -> Optional[str]:
+    def add_team_access(
+        self, user_id: str, project_id: str, role: str
+    ) -> Optional[str]:
         """Add team access for a user to a project."""
         return self.unified_db.add_team_access(user_id, project_id, role)
 
@@ -293,15 +344,25 @@ class KnowledgeManager:
 
     # Compatibility Matrix Management (new)
     def add_compatibility_entry(
-        self, source_tech: str, target_tech: str, compatibility_score: float, notes: Optional[str] = None
+        self,
+        source_tech: str,
+        target_tech: str,
+        compatibility_score: float,
+        notes: Optional[str] = None,
     ) -> Optional[str]:
         """Add a new compatibility matrix entry."""
         try:
-            entry_id = self.unified_db.add_compatibility_entry(source_tech, target_tech, compatibility_score, notes)
+            entry_id = self.unified_db.add_compatibility_entry(
+                source_tech, target_tech, compatibility_score, notes
+            )
             if not entry_id:
                 # Fallback: try to create the entry directly if not implemented
-                if hasattr(self.unified_db, "pg_connector") and hasattr(self.unified_db.pg_connector, "add_compatibility_entry"):
-                    entry_id = self.unified_db.pg_connector.add_compatibility_entry(source_tech, target_tech, compatibility_score, notes)
+                if hasattr(self.unified_db, "pg_connector") and hasattr(
+                    self.unified_db.pg_connector, "add_compatibility_entry"
+                ):
+                    entry_id = self.unified_db.pg_connector.add_compatibility_entry(
+                        source_tech, target_tech, compatibility_score, notes
+                    )
             return entry_id
         except Exception as e:
             self._logger.error(f"Failed to add compatibility entry: {e}")
@@ -315,7 +376,9 @@ class KnowledgeManager:
             self._logger.error(f"Failed to get compatibility entry {entry_id}: {e}")
             return None
 
-    def update_compatibility_entry(self, entry_id: str, updates: Dict[str, Any]) -> bool:
+    def update_compatibility_entry(
+        self, entry_id: str, updates: Dict[str, Any]
+    ) -> bool:
         """Update an existing compatibility matrix entry."""
         try:
             return self.unified_db.update_compatibility_entry(entry_id, updates)
@@ -336,11 +399,13 @@ class KnowledgeManager:
         source_tech: Optional[str] = None,
         target_tech: Optional[str] = None,
         min_score: Optional[float] = None,
-        max_score: Optional[float] = None
+        max_score: Optional[float] = None,
     ) -> List[Dict[str, Any]]:
         """Search compatibility entries."""
         try:
-            return self.unified_db.search_compatibility_entries(source_tech, target_tech, min_score, max_score)
+            return self.unified_db.search_compatibility_entries(
+                source_tech, target_tech, min_score, max_score
+            )
         except Exception as e:
             self._logger.error(f"Failed to search compatibility entries: {e}")
             return []
@@ -368,9 +433,15 @@ class KnowledgeManager:
             "semantic_search_available": self.semantic_search.is_available(),
             "knowledge_dir": str(self.knowledge_dir),
             "components": {
-                "pattern_manager": "healthy" if unified_db_status and self.semantic_search.is_available() else "degraded",
-                "error_solution_manager": "healthy" if unified_db_status and self.semantic_search.is_available() else "degraded",
-                "pattern_classification": "healthy" if unified_db_status else "degraded",
-                "tech_detector": "healthy"
-            }
+                "pattern_manager": "healthy"
+                if unified_db_status and self.semantic_search.is_available()
+                else "degraded",
+                "error_solution_manager": "healthy"
+                if unified_db_status and self.semantic_search.is_available()
+                else "degraded",
+                "pattern_classification": "healthy"
+                if unified_db_status
+                else "degraded",
+                "tech_detector": "healthy",
+            },
         }

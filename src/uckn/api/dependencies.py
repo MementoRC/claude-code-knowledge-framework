@@ -37,23 +37,25 @@ def get_predictive_issue_detector() -> PredictiveIssueDetector:
         try:
             # Get knowledge manager
             km = get_knowledge_manager()
-            
+
             # Initialize components
             tech_stack_detector = TechStackDetector()
             issue_detection_rules = IssueDetectionRules(tech_stack_detector)
             issue_prediction_models = IssuePredictionModels()
-            
+
             # Create the detector
             _predictive_issue_detector = PredictiveIssueDetector(
                 tech_stack_detector=tech_stack_detector,
                 issue_detection_rules=issue_detection_rules,
                 issue_prediction_models=issue_prediction_models,
                 error_solution_manager=km.error_solution_manager,
-                pattern_analytics=km.pattern_analytics
+                pattern_analytics=km.pattern_analytics,
             )
         except Exception as e:
-            raise HTTPException(status_code=503, detail=f"Predictive issue detector not available: {e}")
-    
+            raise HTTPException(
+                status_code=503, detail=f"Predictive issue detector not available: {e}"
+            )
+
     return _predictive_issue_detector
 
 

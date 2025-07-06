@@ -13,8 +13,10 @@ from typing import Callable, Any, Awaitable
 import threading
 import queue
 
+
 class AsyncTaskQueue:
     """Background async task queue with worker threads."""
+
     def __init__(self, max_workers=4):
         self.tasks = queue.Queue()
         self.max_workers = max_workers
@@ -47,15 +49,19 @@ class AsyncTaskQueue:
         for w in self.workers:
             w.join(timeout=1)
 
+
 async_task_queue = AsyncTaskQueue()
+
 
 async def async_embed(embed_fn: Callable[..., Awaitable], *args, **kwargs) -> Any:
     """Run embedding generation asynchronously."""
     return await embed_fn(*args, **kwargs)
 
+
 async def async_search(search_fn: Callable[..., Awaitable], *args, **kwargs) -> Any:
     """Run search operation asynchronously."""
     return await search_fn(*args, **kwargs)
+
 
 async def run_in_executor(fn: Callable, *args, **kwargs) -> Any:
     """Run blocking function in thread executor."""

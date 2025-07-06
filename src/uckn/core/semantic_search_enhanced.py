@@ -17,6 +17,7 @@ if _DISABLE_TORCH:
 else:
     try:
         from sentence_transformers import SentenceTransformer
+
         SENTENCE_TRANSFORMER_AVAILABLE = True
     except (ImportError, RuntimeError) as e:
         logging.getLogger(__name__).warning(
@@ -28,6 +29,7 @@ else:
 
 try:
     from uckn.storage.chromadb_connector import ChromaDBConnector
+
     CHROMADB_CONNECTOR_AVAILABLE = True
 except ImportError:
     logging.getLogger(__name__).warning(
@@ -39,6 +41,7 @@ except ImportError:
 
 try:
     from .multi_modal_embeddings import MultiModalEmbeddings
+
     MULTIMODAL_EMBEDDINGS_AVAILABLE = True
 except ImportError:
     logging.getLogger(__name__).warning(
@@ -48,7 +51,10 @@ except ImportError:
     MultiModalEmbeddings = None
     MULTIMODAL_EMBEDDINGS_AVAILABLE = False
 
-def _tech_stack_match(query_stack: Optional[List[str]], doc_stack: Optional[List[str]]) -> float:
+
+def _tech_stack_match(
+    query_stack: Optional[List[str]], doc_stack: Optional[List[str]]
+) -> float:
     """
     Compute a tech stack compatibility score between two stacks.
     Returns a float between 0.0 and 1.0.
@@ -65,6 +71,7 @@ def _tech_stack_match(query_stack: Optional[List[str]], doc_stack: Optional[List
         return 0.5
     return len(intersection) / len(union)
 
+
 class EnhancedSemanticSearchEngine:
     """
     Enhanced semantic search engine using sentence transformers and ChromaDB.
@@ -73,11 +80,14 @@ class EnhancedSemanticSearchEngine:
     features like LRU caching, batch processing, and robust error handling.
     """
 
-    def __init__(self, knowledge_dir: str = ".uckn/knowledge",
-                 model_name: str = "all-MiniLM-L6-v2",
-                 device: str = "cpu",
-                 embedding_atom: Optional[MultiModalEmbeddings] = None,
-                 chroma_connector: Optional[ChromaDBConnector] = None):
+    def __init__(
+        self,
+        knowledge_dir: str = ".uckn/knowledge",
+        model_name: str = "all-MiniLM-L6-v2",
+        device: str = "cpu",
+        embedding_atom: Optional[MultiModalEmbeddings] = None,
+        chroma_connector: Optional[ChromaDBConnector] = None,
+    ):
         self._logger = logging.getLogger(__name__)
         self.knowledge_dir = knowledge_dir
         self.model_name = model_name
@@ -95,42 +105,60 @@ class EnhancedSemanticSearchEngine:
             if SENTENCE_TRANSFORMER_AVAILABLE:
                 self._init_sentence_transformer()
             else:
-                self._logger.warning("SentenceTransformer not available, semantic encoding will be disabled.")
+                self._logger.warning(
+                    "SentenceTransformer not available, semantic encoding will be disabled."
+                )
 
             if CHROMADB_CONNECTOR_AVAILABLE and not self.chroma_connector:
                 self._init_chromadb()
             elif not CHROMADB_CONNECTOR_AVAILABLE:
-                self._logger.warning("ChromaDBConnector not available, ChromaDB search will be disabled.")
+                self._logger.warning(
+                    "ChromaDBConnector not available, ChromaDB search will be disabled."
+                )
 
             # Initialize MultiModalEmbeddings if not provided
             if MULTIMODAL_EMBEDDINGS_AVAILABLE and not self.embedding_atom:
                 self._init_multimodal_embeddings()
             elif not MULTIMODAL_EMBEDDINGS_AVAILABLE:
-                self._logger.warning("MultiModalEmbeddings not available, multi-modal search will be disabled.")
+                self._logger.warning(
+                    "MultiModalEmbeddings not available, multi-modal search will be disabled."
+                )
 
             # Check initialization status
             has_embeddings = self.sentence_model or self.embedding_atom
             has_storage = self.chroma_connector and self.chroma_connector.is_available()
-            
+
             if has_embeddings and has_storage:
                 self._is_initialized = True
-                self._logger.info("EnhancedSemanticSearchEngine initialized successfully.")
+                self._logger.info(
+                    "EnhancedSemanticSearchEngine initialized successfully."
+                )
             else:
                 self._is_initialized = False
-                self._logger.warning("EnhancedSemanticSearchEngine could not be fully initialized due to missing dependencies or connection issues.")
+                self._logger.warning(
+                    "EnhancedSemanticSearchEngine could not be fully initialized due to missing dependencies or connection issues."
+                )
 
         except Exception as e:
-            self._logger.error(f"Failed to initialize EnhancedSemanticSearchEngine: {e}")
+            self._logger.error(
+                f"Failed to initialize EnhancedSemanticSearchEngine: {e}"
+            )
             self._is_initialized = False
 
     def _init_sentence_transformer(self) -> None:
         """Loads the sentence transformer model."""
         try:
-            self.sentence_model = SentenceTransformer(self.model_name, device=self.device)
-            self._logger.info(f"SentenceTransformer model '{self.model_name}' loaded on device '{self.device}'.")
+            self.sentence_model = SentenceTransformer(
+                self.model_name, device=self.device
+            )
+            self._logger.info(
+                f"SentenceTransformer model '{self.model_name}' loaded on device '{self.device}'."
+            )
         except Exception as e:
             self.sentence_model = None
-            self._logger.error(f"Failed to load SentenceTransformer model '{self.model_name}': {e}")
+            self._logger.error(
+                f"Failed to load SentenceTransformer model '{self.model_name}': {e}"
+            )
 
     def _init_chromadb(self) -> None:
         """Initializes the ChromaDBConnector."""
@@ -159,17 +187,21 @@ class EnhancedSemanticSearchEngine:
         """Check if the engine and its underlying components are fully available."""
         return self._is_initialized
 
-    @lru_cache(maxsize=128) # Cache for single text encodings
+    @lru_cache(maxsize=128)  # Cache for single text encodings
     def encode(self, text: str) -> Optional[List[float]]:
         """
         Generate embeddings for a single text using the underlying sentence transformer model.
         Results are cached using LRU.
         """
         if not self.is_available() or self.sentence_model is None:
-            self._logger.warning("Semantic search engine not available or model not loaded, cannot encode text.")
+            self._logger.warning(
+                "Semantic search engine not available or model not loaded, cannot encode text."
+            )
             return None
         if not isinstance(text, str):
-            self._logger.error(f"Invalid input type for encode: Expected str, got {type(text)}")
+            self._logger.error(
+                f"Invalid input type for encode: Expected str, got {type(text)}"
+            )
             return None
         try:
             embedding = self.sentence_model.encode(text, convert_to_numpy=True)
@@ -178,28 +210,42 @@ class EnhancedSemanticSearchEngine:
             self._logger.error(f"Failed to encode text '{text[:50]}...': {e}")
             return None
 
-    def batch_encode(self, texts: List[str], batch_size: int = 32) -> Optional[List[List[float]]]:
+    def batch_encode(
+        self, texts: List[str], batch_size: int = 32
+    ) -> Optional[List[List[float]]]:
         """
         Generate embeddings for a list of texts in batches.
         This method does not use LRU cache directly, but individual encodes might if called separately.
         """
         if not self.is_available() or self.sentence_model is None:
-            self._logger.warning("Semantic search engine not available or model not loaded, cannot batch encode texts.")
+            self._logger.warning(
+                "Semantic search engine not available or model not loaded, cannot batch encode texts."
+            )
             return None
         if not texts:
             return []
         if not all(isinstance(t, str) for t in texts):
-            self._logger.error("Invalid input type for batch_encode: All elements must be strings.")
+            self._logger.error(
+                "Invalid input type for batch_encode: All elements must be strings."
+            )
             return None
         try:
-            embeddings = self.sentence_model.encode(texts, batch_size=batch_size, convert_to_numpy=True)
+            embeddings = self.sentence_model.encode(
+                texts, batch_size=batch_size, convert_to_numpy=True
+            )
             return embeddings.tolist()
         except Exception as e:
             self._logger.error(f"Failed to batch encode texts: {e}")
             return None
 
-    def search(self, query: str, collection_name: str, limit: int = 10, min_similarity: float = 0.7,
-               metadata_filter: Optional[Dict[str, Any]] = None) -> List[Dict]:
+    def search(
+        self,
+        query: str,
+        collection_name: str,
+        limit: int = 10,
+        min_similarity: float = 0.7,
+        metadata_filter: Optional[Dict[str, Any]] = None,
+    ) -> List[Dict]:
         """
         Perform semantic search in a specified ChromaDB collection.
 
@@ -214,7 +260,9 @@ class EnhancedSemanticSearchEngine:
             A list of dictionaries, each containing 'id', 'document', 'metadata', and 'similarity_score'.
         """
         if not self.is_available() or self.chroma_connector is None:
-            self._logger.warning("Semantic search engine or ChromaDB connector not available, cannot perform search.")
+            self._logger.warning(
+                "Semantic search engine or ChromaDB connector not available, cannot perform search."
+            )
             return []
 
         query_embedding = self.encode(query)
@@ -223,13 +271,15 @@ class EnhancedSemanticSearchEngine:
             return []
 
         try:
-            self._logger.info(f"Performing semantic search for query: '{query}' in collection '{collection_name}'")
+            self._logger.info(
+                f"Performing semantic search for query: '{query}' in collection '{collection_name}'"
+            )
             results = self.chroma_connector.search_documents(
                 collection_name=collection_name,
                 query_embedding=query_embedding,
                 n_results=limit,
                 min_similarity=min_similarity,
-                where_clause=metadata_filter
+                where_clause=metadata_filter,
             )
             return results
         except Exception as e:
@@ -247,8 +297,10 @@ class EnhancedSemanticSearchEngine:
             "cache_current_size": cache_info.currsize,
             "cache_max_size": cache_info.maxsize,
             "model_name": self.model_name if self.sentence_model else "N/A",
-            "chroma_db_available": self.chroma_connector.is_available() if self.chroma_connector else False,
-            "engine_initialized": self._is_initialized
+            "chroma_db_available": self.chroma_connector.is_available()
+            if self.chroma_connector
+            else False,
+            "engine_initialized": self._is_initialized,
         }
 
     # --- Multi-Modal and Advanced Search Methods ---
@@ -273,7 +325,7 @@ class EnhancedSemanticSearchEngine:
     def _rank_results(
         self,
         results: List[Dict[str, Any]],
-        query_tech_stack: Optional[List[str]] = None
+        query_tech_stack: Optional[List[str]] = None,
     ) -> List[Dict[str, Any]]:
         """
         Advanced ranking of search results considering:
@@ -286,24 +338,24 @@ class EnhancedSemanticSearchEngine:
 
         for result in results:
             metadata = result.get("metadata", {})
-            
+
             # Base similarity score (from vector search)
             base_score = result.get("similarity_score", 0.0)
-            
+
             # Technology stack compatibility bonus
             doc_tech_stack = self._extract_tech_stack(metadata)
             tech_score = _tech_stack_match(query_tech_stack, doc_tech_stack)
-            
+
             # Success rate bonus
             success_rate = self._get_success_rate(metadata)
-            
+
             # Combined score with weighted components
             combined_score = (
-                base_score * 0.6 +      # 60% similarity
-                tech_score * 0.25 +     # 25% tech compatibility  
-                success_rate * 0.15     # 15% success rate
+                base_score * 0.6  # 60% similarity
+                + tech_score * 0.25  # 25% tech compatibility
+                + success_rate * 0.15  # 15% success rate
             )
-            
+
             result["combined_score"] = combined_score
             result["tech_compatibility"] = tech_score
 
@@ -315,22 +367,22 @@ class EnhancedSemanticSearchEngine:
         self,
         results: List[Dict[str, Any]],
         tech_stack: Optional[List[str]],
-        min_compatibility: float = 0.3
+        min_compatibility: float = 0.3,
     ) -> List[Dict[str, Any]]:
         """Filter results by technology stack compatibility."""
         if not tech_stack:
             return results
-        
+
         filtered = []
         for result in results:
             metadata = result.get("metadata", {})
             doc_tech_stack = self._extract_tech_stack(metadata)
             compatibility = _tech_stack_match(tech_stack, doc_tech_stack)
-            
+
             if compatibility >= min_compatibility:
                 result["tech_compatibility"] = compatibility
                 filtered.append(result)
-        
+
         return filtered
 
     @lru_cache(maxsize=128)
@@ -350,7 +402,7 @@ class EnhancedSemanticSearchEngine:
             if text and self.sentence_model:
                 return self.sentence_model.encode(text).tolist()
             return None
-            
+
         # Use multi-modal embedding if more than one modality is present
         if sum(x is not None for x in [text, code, error]) > 1:
             return self.embedding_atom.multi_modal_embed(
@@ -371,13 +423,17 @@ class EnhancedSemanticSearchEngine:
             return None
         elif isinstance(tech_stack, str):
             # Split by common separators
-            return [s.strip() for s in tech_stack.replace(",", " ").split() if s.strip()]
+            return [
+                s.strip() for s in tech_stack.replace(",", " ").split() if s.strip()
+            ]
         elif isinstance(tech_stack, list):
             return [str(s).strip() for s in tech_stack if str(s).strip()]
         else:
             return None
 
-    def search_by_text(self, query_text: str, tech_stack=None, limit: int = 10) -> List[Dict[str, Any]]:
+    def search_by_text(
+        self, query_text: str, tech_stack=None, limit: int = 10
+    ) -> List[Dict[str, Any]]:
         """
         Semantic search for code patterns and error solutions by text.
 
@@ -392,31 +448,33 @@ class EnhancedSemanticSearchEngine:
         if not self.is_available():
             self._logger.warning("Search engine not available")
             return []
-            
+
         query_tech_stack = self._parse_tech_stack(tech_stack)
         embedding = self._cached_embed(query_text, "text")
         if embedding is None:
             self._logger.warning("Failed to generate embedding for text query.")
             return []
-            
+
         results = []
         for collection in ("code_patterns", "error_solutions"):
             res = self.search(
                 query=query_text,
                 collection_name=collection,
                 limit=limit,
-                min_similarity=0.7
+                min_similarity=0.7,
             )
             results.extend(res)
-            
+
         # Apply technology stack filtering
         if query_tech_stack:
             results = self._filter_by_tech_stack(results, query_tech_stack)
-            
+
         ranked = self._rank_results(results, query_tech_stack)
         return ranked[:limit]
 
-    def search_by_code(self, code_snippet: str, tech_stack=None, limit: int = 10) -> List[Dict[str, Any]]:
+    def search_by_code(
+        self, code_snippet: str, tech_stack=None, limit: int = 10
+    ) -> List[Dict[str, Any]]:
         """
         Semantic search for code patterns and error solutions by code snippet.
 
@@ -431,13 +489,13 @@ class EnhancedSemanticSearchEngine:
         if not self.is_available():
             self._logger.warning("Search engine not available")
             return []
-            
+
         query_tech_stack = self._parse_tech_stack(tech_stack)
         embedding = self._cached_embed(code_snippet, "code")
         if embedding is None:
             self._logger.warning("Failed to generate embedding for code query.")
             return []
-            
+
         results = []
         for collection in ("code_patterns", "error_solutions"):
             if self.chroma_connector:
@@ -445,20 +503,22 @@ class EnhancedSemanticSearchEngine:
                     collection_name=collection,
                     query_embedding=embedding,
                     n_results=limit,
-                    where=None
+                    where=None,
                 )
                 for result in res:
                     result["similarity_score"] = 1.0 - result.get("distance", 0.0)
                 results.extend(res)
-                
+
         # Apply technology stack filtering
         if query_tech_stack:
             results = self._filter_by_tech_stack(results, query_tech_stack)
-            
+
         ranked = self._rank_results(results, query_tech_stack)
         return ranked[:limit]
 
-    def search_by_error(self, error_message: str, tech_stack=None, limit: int = 10) -> List[Dict[str, Any]]:
+    def search_by_error(
+        self, error_message: str, tech_stack=None, limit: int = 10
+    ) -> List[Dict[str, Any]]:
         """
         Semantic search for error solutions by error message.
 
@@ -473,13 +533,13 @@ class EnhancedSemanticSearchEngine:
         if not self.is_available():
             self._logger.warning("Search engine not available")
             return []
-            
+
         query_tech_stack = self._parse_tech_stack(tech_stack)
         embedding = self._cached_embed(error_message, "error")
         if embedding is None:
             self._logger.warning("Failed to generate embedding for error query.")
             return []
-            
+
         results = []
         # Focus on error_solutions collection for error queries
         for collection in ("error_solutions", "code_patterns"):
@@ -488,16 +548,16 @@ class EnhancedSemanticSearchEngine:
                     collection_name=collection,
                     query_embedding=embedding,
                     n_results=limit,
-                    where=None
+                    where=None,
                 )
                 for result in res:
                     result["similarity_score"] = 1.0 - result.get("distance", 0.0)
                 results.extend(res)
-                
+
         # Apply technology stack filtering
         if query_tech_stack:
             results = self._filter_by_tech_stack(results, query_tech_stack)
-            
+
         ranked = self._rank_results(results, query_tech_stack)
         return ranked[:limit]
 
@@ -507,7 +567,7 @@ class EnhancedSemanticSearchEngine:
         code: Optional[str] = None,
         error: Optional[str] = None,
         tech_stack=None,
-        limit: int = 10
+        limit: int = 10,
     ) -> List[Dict[str, Any]]:
         """
         Multi-modal semantic search using any combination of text, code, and error.
@@ -525,13 +585,13 @@ class EnhancedSemanticSearchEngine:
         if not self.is_available():
             self._logger.warning("Search engine not available")
             return []
-            
+
         query_tech_stack = self._parse_tech_stack(tech_stack)
         embedding = self._embed_query(text=text, code=code, error=error)
         if embedding is None:
             self._logger.warning("Failed to generate embedding for multi-modal query.")
             return []
-            
+
         results = []
         for collection in ("code_patterns", "error_solutions"):
             if self.chroma_connector:
@@ -539,16 +599,15 @@ class EnhancedSemanticSearchEngine:
                     collection_name=collection,
                     query_embedding=embedding,
                     n_results=limit,
-                    where=None
+                    where=None,
                 )
                 for result in res:
                     result["similarity_score"] = 1.0 - result.get("distance", 0.0)
                 results.extend(res)
-                
+
         # Apply technology stack filtering
         if query_tech_stack:
             results = self._filter_by_tech_stack(results, query_tech_stack)
-            
+
         ranked = self._rank_results(results, query_tech_stack)
         return ranked[:limit]
-

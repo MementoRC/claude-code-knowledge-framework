@@ -72,8 +72,7 @@ class PermissionResponse(BaseModel):
 # Authentication Endpoints
 @router.post("/auth/login", response_model=TokenResponse)
 async def login_with_api_key(
-    request: LoginRequest,
-    km: KnowledgeManager = Depends(get_knowledge_manager)
+    request: LoginRequest, km: KnowledgeManager = Depends(get_knowledge_manager)
 ):
     """Authenticate with API key and return JWT token."""
     try:
@@ -82,21 +81,20 @@ async def login_with_api_key(
             token_data = {
                 "access_token": "mock_jwt_token_" + str(uuid4()),
                 "token_type": "bearer",
-                "expires_in": 3600
+                "expires_in": 3600,
             }
             return TokenResponse(**token_data)
         else:
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid API key"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key"
             )
-            
+
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Login failed: {str(e)}"
+            detail=f"Login failed: {str(e)}",
         )
 
 
@@ -104,7 +102,7 @@ async def login_with_api_key(
 async def oauth_login(
     provider: str,
     request: OAuthRequest,
-    km: KnowledgeManager = Depends(get_knowledge_manager)
+    km: KnowledgeManager = Depends(get_knowledge_manager),
 ):
     """OAuth login with supported providers (github, gitlab, azure-devops)."""
     try:
@@ -113,54 +111,50 @@ async def oauth_login(
         if provider not in supported_providers:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Unsupported OAuth provider. Supported: {supported_providers}"
+                detail=f"Unsupported OAuth provider. Supported: {supported_providers}",
             )
-        
+
         # Mock implementation - in real version, exchange code for token with provider
         token_data = {
             "access_token": f"oauth_{provider}_token_" + str(uuid4()),
             "token_type": "bearer",
-            "expires_in": 3600
+            "expires_in": 3600,
         }
-        
+
         return TokenResponse(**token_data)
-        
+
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"OAuth login failed: {str(e)}"
+            detail=f"OAuth login failed: {str(e)}",
         )
 
 
 @router.post("/auth/token/refresh", response_model=TokenResponse)
-async def refresh_token(
-    km: KnowledgeManager = Depends(get_knowledge_manager)
-):
+async def refresh_token(km: KnowledgeManager = Depends(get_knowledge_manager)):
     """Refresh OAuth token."""
     try:
         # Mock implementation - in real version, refresh using stored refresh token
         token_data = {
             "access_token": "refreshed_token_" + str(uuid4()),
             "token_type": "bearer",
-            "expires_in": 3600
+            "expires_in": 3600,
         }
-        
+
         return TokenResponse(**token_data)
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Token refresh failed: {str(e)}"
+            detail=f"Token refresh failed: {str(e)}",
         )
 
 
 # User Management
 @router.get("/auth/me", response_model=UserResponse)
-async def get_current_user(
-    km: KnowledgeManager = Depends(get_knowledge_manager)
-):
+async def get_current_user(km: KnowledgeManager = Depends(get_knowledge_manager)):
     """Get current user information."""
     try:
         # Mock implementation - in real version, get from JWT token or API key
@@ -172,57 +166,44 @@ async def get_current_user(
             "roles": ["contributor", "team_member"],
             "permissions": ["read:patterns", "write:patterns", "read:teams"],
             "created_at": "2024-01-01T00:00:00Z",
-            "last_login": "2024-01-01T12:00:00Z"
+            "last_login": "2024-01-01T12:00:00Z",
         }
-        
+
         return UserResponse(**user_data)
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get user info: {str(e)}"
+            detail=f"Failed to get user info: {str(e)}",
         )
 
 
 @router.get("/auth/permissions", response_model=List[PermissionResponse])
-async def get_user_permissions(
-    km: KnowledgeManager = Depends(get_knowledge_manager)
-):
+async def get_user_permissions(km: KnowledgeManager = Depends(get_knowledge_manager)):
     """Get current user's permissions."""
     try:
         # Mock implementation
         mock_permissions = [
-            {
-                "resource": "patterns",
-                "action": "read",
-                "scope": "all"
-            },
-            {
-                "resource": "patterns",
-                "action": "write",
-                "scope": "team"
-            },
-            {
-                "resource": "teams",
-                "action": "read",
-                "scope": "member"
-            }
+            {"resource": "patterns", "action": "read", "scope": "all"},
+            {"resource": "patterns", "action": "write", "scope": "team"},
+            {"resource": "teams", "action": "read", "scope": "member"},
         ]
-        
+
         return [PermissionResponse(**perm) for perm in mock_permissions]
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get permissions: {str(e)}"
+            detail=f"Failed to get permissions: {str(e)}",
         )
 
 
 # API Key Management
-@router.post("/auth/api-keys", response_model=APIKeyResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/auth/api-keys", response_model=APIKeyResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_api_key(
-    request: APIKeyCreateRequest,
-    km: KnowledgeManager = Depends(get_knowledge_manager)
+    request: APIKeyCreateRequest, km: KnowledgeManager = Depends(get_knowledge_manager)
 ):
     """Create a new API key."""
     try:
@@ -234,22 +215,20 @@ async def create_api_key(
             "permissions": request.permissions or [],
             "expires_at": request.expires_at,
             "created_at": "2024-01-01T00:00:00Z",
-            "last_used": None
+            "last_used": None,
         }
-        
+
         return APIKeyResponse(**api_key_data)
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create API key: {str(e)}"
+            detail=f"Failed to create API key: {str(e)}",
         )
 
 
 @router.get("/auth/api-keys", response_model=List[APIKeyResponse])
-async def list_api_keys(
-    km: KnowledgeManager = Depends(get_knowledge_manager)
-):
+async def list_api_keys(km: KnowledgeManager = Depends(get_knowledge_manager)):
     """List user's API keys."""
     try:
         # Mock implementation
@@ -261,31 +240,30 @@ async def list_api_keys(
                 "permissions": ["read:patterns", "write:patterns"],
                 "expires_at": "2025-01-01T00:00:00Z",
                 "created_at": "2024-01-01T00:00:00Z",
-                "last_used": "2024-01-01T12:00:00Z"
+                "last_used": "2024-01-01T12:00:00Z",
             }
         ]
-        
+
         return [APIKeyResponse(**key) for key in mock_keys]
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list API keys: {str(e)}"
+            detail=f"Failed to list API keys: {str(e)}",
         )
 
 
 @router.delete("/auth/api-keys/{key_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def revoke_api_key(
-    key_id: str,
-    km: KnowledgeManager = Depends(get_knowledge_manager)
+    key_id: str, km: KnowledgeManager = Depends(get_knowledge_manager)
 ):
     """Revoke an API key."""
     try:
         # Mock implementation - in real version, mark key as inactive in database
         pass
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to revoke API key: {str(e)}"
+            detail=f"Failed to revoke API key: {str(e)}",
         )
