@@ -87,25 +87,25 @@ jobs:
           done
 
       - name: Install dev dependencies
-        run: pixi run dev
+        run: pixi run -e ci dev
 
       - name: Lint
-        run: pixi run lint
+        run: pixi run -e ci lint
 
       - name: Typecheck
-        run: pixi run typecheck
+        run: pixi run -e ci typecheck
 
       - name: Run unit tests
-        run: pixi run test -m unit --json-report --json-report-file=pytest-unit.json
+        run: pixi run -e ci pytest tests/ -m unit --json-report --json-report-file=pytest-unit.json
 
       - name: Run integration tests
-        run: pixi run test -m integration --json-report --json-report-file=pytest-integration.json
+        run: pixi run -e ci pytest tests/ -m integration --json-report --json-report-file=pytest-integration.json
 
       - name: Run e2e tests
-        run: pixi run test -m e2e --json-report --json-report-file=pytest-e2e.json
+        run: pixi run -e ci pytest tests/ -m e2e --json-report --json-report-file=pytest-e2e.json
 
       - name: Run all tests with coverage
-        run: pixi run test-coverage-json
+        run: pixi run -e ci test-coverage-json
 
       - name: Upload coverage and test artifacts
         uses: actions/upload-artifact@v4
@@ -120,18 +120,18 @@ jobs:
 
       - name: Quality Gate (with dependencies)
         run: |
-          pixi run quality-gate
+          pixi run -e ci quality-gate
 
       - name: Regression Testing & Baseline Comparison
         run: |
           if [ -f coverage.json ]; then
-            pixi run coverage-trend
+            pixi run -e ci coverage-trend
           fi
 
       - name: Coverage Diff Analysis
         run: |
           if [ -f coverage.json ]; then
-            pixi run test-coverage-json
+            pixi run -e ci test-coverage-json
           fi
 
       - name: Notify Results (GitHub API)

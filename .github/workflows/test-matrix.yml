@@ -74,25 +74,14 @@ jobs:
             sleep 5
           done
 
-      - name: Activate pixi environment and install dev dependencies (robust)
+      - name: Install dev dependencies using pixi
         run: |
-          eval "$(pixi shell --env-hook bash)"
-          n=0
-          until [ "$n" -ge 3 ]
-          do
-            pip install -e .[dev,mcp,ml] && break
-            n=$((n+1))
-            echo "pip install -e .[dev,mcp,ml] failed, retrying ($n/3)..."
-            sleep 5
-          done
+          pixi run -e ci dev
 
       - name: Verify pixi environment
         run: |
-          eval "$(pixi shell --env-hook bash)"
-          which python
-          which pip
-          python --version
-          pip --version
+          pixi run -e ci python --version
+          pixi run -e ci pip --version
 
       - name: Select tests by marker
         id: select-tests
@@ -105,15 +94,12 @@ jobs:
             echo "PYTEST_MARK=e2e" >> $GITHUB_ENV
           fi
 
-      - name: Run selected tests (with pixi shell activation)
+      - name: Run selected tests using pixi
         run: |
-          eval "$(pixi shell --env-hook bash)"
-          which pytest || (echo "pytest not found!"; exit 127)
-          pytest --version
           if [[ -n "$PYTEST_MARK" ]]; then
-            pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+            pixi run -e ci pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
           else
-            pytest tests/ --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+            pixi run -e ci pytest tests/ --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
           fi
 
       - name: Upload test results
