@@ -75,13 +75,6 @@ mcp = [
     "websockets>=11.0.0",
     "anyio>=3.6.0",
 ]
-ml = [
-    "torch>=2.0.0",
-    "transformers>=4.20.0",
-    "scikit-learn>=1.3.0",
-    "matplotlib>=3.5.0",
-    "seaborn>=0.11.0",
-]
 docs = [
     "mkdocs>=1.5.0",
     "mkdocs-material>=9.0.0",
@@ -149,8 +142,8 @@ anyio = "*" # Dependency of mcp
 # Removed [tool.pixi.feature.ml.dependencies] (pytorch, etc.) as not needed for minimal CI
 
 [tool.pixi.environments]
-default = {features = ["ml", "mcp"], solve-group = "default"}
-dev = {features = ["dev", "ml", "mcp"], solve-group = "default"}
+default = {features = ["mcp"], solve-group = "default"}
+dev = {features = ["dev", "mcp"], solve-group = "default"}
 ci = {features = ["ci-deps"], solve-group = "default"} # Simplified for minimal CI
 docs = {features = ["docs"], solve-group = "default"}
 
