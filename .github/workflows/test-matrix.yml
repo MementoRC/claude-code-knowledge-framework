@@ -42,12 +42,19 @@ jobs:
             pixi run || pixi install --locked || pixi install || true
           fi
 
-      - name: Install dependencies (pixi) with retry
+      - name: Install dependencies (pixi) with retry and fallback
         run: |
           n=0
           until [ "$n" -ge 3 ]
           do
-            pixi install --locked && break
+            # Try locked first, then fallback to update if needed
+            if pixi install --locked; then
+              echo "✅ Locked installation successful"
+              break
+            elif [ "$n" -eq 2 ]; then
+              echo "⚠️ Locked install failed, trying update mode as fallback"
+              pixi install && break
+            fi
             n=$((n+1))
             echo "pixi install failed, retrying ($n/3)..."
             sleep 5
