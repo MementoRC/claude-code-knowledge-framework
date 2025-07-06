@@ -26,7 +26,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.8.1
         with:
           pixi-version: v0.49.0
-          cache: true
+          cache: false  # Temporarily disable during GitHub cache service outage
 
       - name: Install dependencies (pixi)
         run: pixi install --locked
