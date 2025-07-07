@@ -127,16 +127,35 @@ pre-commit = "*"
 alembic = "*" # Added for database migrations
 mcp = "*" # Kept for dev environment, but moved to ci-deps for CI
 
-[tool.pixi.feature.ci-deps.dependencies] # New feature for minimal CI dependencies
+[tool.pixi.feature.ci-deps.dependencies]
 pytest = "*"
 pytest-cov = "*"
 pytest-asyncio = "*"
 ruff = "*"
 black = "*"
 mypy = "*"
-mcp = "*" # MCP Python package needed for core functionality tests
-websockets = "*" # Dependency of mcp
-anyio = "*" # Dependency of mcp
+mcp = "*"
+websockets = "*"
+anyio = "*"
+pip = "*"
+sentence-transformers = "*"
+chromadb = "*"
+fastapi = "*"
+uvicorn = "*"
+pydantic = "*"
+numpy = "*"
+pandas = "*"
+httpx = "*"
+toml = "*"
+click = "*"
+rich = "*"
+gitpython = "*"
+jinja2 = "*"
+redis = "*"
+psutil = "*"
+SQLAlchemy = "*"
+psycopg2-binary = "*"
+alembic = "*"
 
 # Removed [tool.pixi.feature.mcp.dependencies] (nodejs, pnpm) as not needed for Python CI
 # Removed [tool.pixi.feature.ml.dependencies] (pytorch, etc.) as not needed for minimal CI
@@ -144,13 +163,14 @@ anyio = "*" # Dependency of mcp
 [tool.pixi.environments]
 default = {features = ["mcp"], solve-group = "default"}
 dev = {features = ["dev", "mcp"], solve-group = "default"}
-ci = {features = ["ci-deps"], solve-group = "default"} # Simplified for minimal CI
+ci = {features = ["ci-deps"], solve-group = "default"}
 docs = {features = ["docs"], solve-group = "default"}
 
 [tool.pixi.tasks]
 # Development tasks
 install = "pip install -e ."
 dev = "pip install -e '.[dev,mcp]'"
+ci-dev = "pip install -e ."
 test = "pytest tests/ -v"
 test-cov = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term"
 benchmark = "pytest tests/benchmarks/ --benchmark-only --benchmark-sort=mean"
@@ -184,6 +204,7 @@ docs-build = "mkdocs build"
 mcp-server = { cmd = "python -m uckn.mcp.universal_knowledge_server", env = { PYTHONPATH = "src" } }
 
 # CI/CD tasks
+ci-install = "pip install -e ."
 ci-test = {cmd = "pytest tests/ --cov=src/uckn --cov-report=xml --timeout=90", env = {ENVIRONMENT = "ci"}}
 ci-lint = "ruff check src/ tests/ --output-format=github"
 ci-format-check = "ruff format --check src/ tests/"
