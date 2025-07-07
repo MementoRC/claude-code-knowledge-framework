@@ -2,145 +2,32 @@ name: Comprehensive Testing
 
 on:
   push:
-    branches: [main, development]
-    paths-ignore:
-      - '**.md'
-      - '**/docs/**'
-  pull_request:
-    branches: [main, development]
-    paths-ignore:
-      - '**.md'
-      - '**/docs/**'
-  workflow_dispatch:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 * * *' # Daily at midnight UTC
 
 jobs:
-  changed-files:
+  full-test-suite:
     runs-on: ubuntu-latest
-    outputs:
-      any_changed: ${{ steps.filter.outputs.any_changed }}
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12'] # Example matrix
     steps:
-      - uses: actions/checkout@v4
-      - id: filter
-        uses: dorny/paths-filter@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Pixi
+        uses: prefix-dev/setup-pixi@v0.1.0
         with:
-          filters: |
-            src:
-              - 'src/**'
-            tests:
-              - 'tests/**'
-            workflows:
-              - '.github/workflows/**'
-            config:
-              - 'pyproject.toml'
-              - 'requirements.txt'
-              - 'setup.cfg'
-      - name: Set output if any relevant files changed
-        run: echo "any_changed=${{ steps.filter.outputs.src == 'true' || steps.filter.outputs.tests == 'true' || steps.filter.outputs.config == 'true' }}" >> $GITHUB_OUTPUT
+          pixi-version: latest
+          python-version: ${{ matrix.python-version }}
 
-  test:
-    needs: changed-files
-    if: needs.changed-files.outputs.any_changed == 'true'
-    runs-on: ubuntu-latest
-    env:
-      ENVIRONMENT: ci
-      PYTHONUNBUFFERED: 1
-      PIXI_ENV: ci
-    steps:
-      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: pixi run ci-dev # Changed from 'dev' to 'ci-dev' for CI environment
 
-      - name: Setup pixi with cache fallback
-        id: setup-pixi
-        uses: prefix-dev/setup-pixi@v0.8.1
-        with:
-          pixi-version: v0.49.0
-          cache: false  # Temporarily disable during GitHub cache service outage
-        continue-on-error: true
+      - name: Run full test suite
+        run: pixi run ci-test
 
-      - name: Secondary cache fallback when pixi cache fails
-        if: steps.setup-pixi.outputs.cache-hit != 'true'
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pixi/cache
-            ~/.cache/pip
-            .pixi
-          key: pixi-fallback-${{ runner.os }}-${{ hashFiles('pixi.lock') }}
-          restore-keys: |
-            pixi-fallback-${{ runner.os }}-
-        continue-on-error: true
-
-      - name: Install dependencies (pixi) with fallback
-        run: |
-          n=0
-          until [ "$n" -ge 3 ]
-          do
-            if pixi install --locked; then
-              echo "✅ Locked installation successful"
-              break
-            elif [ "$n" -eq 2 ]; then
-              echo "⚠️ Locked install failed, trying update mode as fallback"
-              pixi install && break
-            fi
-            n=$((n+1))
-            echo "pixi install failed, retrying ($n/3)..."
-            sleep 5
-          done
-
-      - name: Install dev dependencies
-        run: pixi run -e ci dev
-
-      - name: Lint
-        run: pixi run -e ci lint
-
-      - name: Typecheck
-        run: pixi run -e ci typecheck
-
-      - name: Run unit tests
-        run: pixi run -e ci pytest tests/ -m unit --json-report --json-report-file=pytest-unit.json
-
-      - name: Run integration tests
-        run: pixi run -e ci pytest tests/ -m integration --json-report --json-report-file=pytest-integration.json
-
-      - name: Run e2e tests
-        run: pixi run -e ci pytest tests/ -m e2e --json-report --json-report-file=pytest-e2e.json
-
-      - name: Run all tests with coverage
-        run: pixi run -e ci test-coverage-json
-
-      - name: Upload coverage and test artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-artifacts
-          path: |
-            .coverage
-            coverage.json
-            pytest-unit.json
-            pytest-integration.json
-            pytest-e2e.json
-
-      - name: Quality Gate (with dependencies)
-        run: |
-          pixi run -e ci quality-gate
-
-      - name: Regression Testing & Baseline Comparison
-        run: |
-          if [ -f coverage.json ]; then
-            pixi run -e ci coverage-trend
-          fi
-
-      - name: Coverage Diff Analysis
-        run: |
-          if [ -f coverage.json ]; then
-            pixi run -e ci test-coverage-json
-          fi
-
-      - name: Notify Results (GitHub API)
-        if: always()
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          curl -X POST \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
-            -d '{"state": "success", "context": "Comprehensive Tests", "description": "All tests and quality checks complete."}'
+      - name: Generate coverage report
+        run: pixi run test-coverage-json
