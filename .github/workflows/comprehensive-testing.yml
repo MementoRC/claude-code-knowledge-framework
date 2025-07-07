@@ -44,7 +44,7 @@ jobs:
     env:
       ENVIRONMENT: ci
       PYTHONUNBUFFERED: 1
-      PIXI_ENV: ci
+      # PIXI_ENV: ci # Removed: Initial pixi install will target default, then specific envs can be activated.
     steps:
       - uses: actions/checkout@v4
 
@@ -69,7 +69,7 @@ jobs:
             pixi-fallback-${{ runner.os }}-
         continue-on-error: true
 
-      - name: Install dependencies (pixi) with fallback
+      - name: Install dependencies (pixi) with retry and fallback
         run: |
           n=0
           until [ "$n" -ge 3 ]
@@ -85,6 +85,10 @@ jobs:
             echo "pixi install failed, retrying ($n/3)..."
             sleep 5
           done
+
+      - name: Activate pixi environment
+        run: |
+          eval "$(pixi shell --env-hook bash)"
 
       - name: Install dev dependencies
         run: pixi run -e ci ci-dev

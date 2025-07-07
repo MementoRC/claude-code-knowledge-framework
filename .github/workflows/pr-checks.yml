@@ -33,29 +33,32 @@ jobs:
           echo "⚠️ Pixi cache miss or failed to restore."
         fi
 
-    - name: Ensure .pixi environment exists (with retry)
+    - name: Install pixi dependencies for CI environment (with retry)
       run: |
         n=0
         until [ "$n" -ge 3 ]
         do
-          if [ ! -d ".pixi" ]; then
-            echo "No .pixi directory found, initializing pixi environment (attempt $((n+1))/3)..."
-            pixi run || true # Allow pixi run to fail without exiting immediately
-          fi
-          if [ -d ".pixi" ]; then
-            echo "Pixi environment directory found."
+          if pixi install -e ci --locked; then
+            echo "✅ Locked installation for CI environment successful"
             break
+          elif [ "$n" -eq 2 ]; then
+            echo "⚠️ Locked install for CI environment failed, trying update mode as fallback"
+            pixi install -e ci && break
           fi
           n=$((n+1))
-          echo "Pixi environment setup failed, retrying ($n/3)..."
+          echo "pixi install for CI environment failed, retrying ($n/3)..."
           sleep 5
         done
-        if [ ! -d ".pixi" ]; then
-          echo "❌ Failed to set up pixi environment after multiple retries."
+        if [ "$n" -ge 3 ]; then
+          echo "❌ Failed to install pixi dependencies for CI environment after multiple retries."
           exit 1
         fi
 
-    - name: Install dependencies using pixi
+    - name: Activate pixi environment
+      run: |
+        eval "$(pixi shell --env-hook bash)"
+
+    - name: Install dev dependencies for CI environment
       run: |
         pixi run -e ci ci-dev
 
@@ -126,7 +129,6 @@ jobs:
 
     - name: Check imports and dependencies
       run: |
-        eval "$(pixi shell --env-hook bash)"
         echo "🔍 Checking import structure..."
         python << 'EOF'
         import os
@@ -148,23 +150,21 @@ jobs:
             except:
                 pass  # Skip files that can't be parsed
 
-            return violations
+            all_violations = []
+            for root, dirs, files in os.walk("src/uckn"):
+                for file in files:
+                    if file.endswith(".py"):
+                        file_path = os.path.join(root, file)
+                        violations = check_imports(file_path)
+                        all_violations.extend([f"{file_path}: {v}" for v in violations])
 
-        all_violations = []
-        for root, dirs, files in os.walk("src/uckn"):
-            for file in files:
-                if file.endswith(".py"):
-                    file_path = os.path.join(root, file)
-                    violations = check_imports(file_path)
-                    all_violations.extend([f"{file_path}: {v}" for v in violations])
-
-        if all_violations:
-            print("❌ Import violations:")
-            for violation in all_violations:
-                print(f"  {violation}")
-            sys.exit(1)
-        else:
-            print("✅ Import structure is clean")
+            if all_violations:
+                print("❌ Import violations:")
+                for violation in all_violations:
+                    print(f"  {violation}")
+                sys.exit(1)
+            else:
+                print("✅ Import structure is clean")
         EOF
 
   pr-coverage:
@@ -192,31 +192,30 @@ jobs:
           echo "⚠️ Pixi cache miss or failed to restore."
         fi
 
-    - name: Ensure .pixi environment exists (with retry)
+    - name: Install pixi dependencies for CI environment (with retry)
       run: |
         n=0
         until [ "$n" -ge 3 ]
         do
-          if [ ! -d ".pixi" ]; then
-            echo "No .pixi directory found, initializing pixi environment (attempt $((n+1))/3)..."
-            pixi run || true # Allow pixi run to fail without exiting immediately
-          fi
-          if [ -d ".pixi" ]; then
-            echo "Pixi environment directory found."
+          if pixi install -e ci --locked; then
+            echo "✅ Locked installation for CI environment successful"
             break
+          elif [ "$n" -eq 2 ]; then
+            echo "⚠️ Locked install for CI environment failed, trying update mode as fallback"
+            pixi install -e ci && break
           fi
           n=$((n+1))
-          echo "Pixi environment setup failed, retrying ($n/3)..."
+          echo "pixi install for CI environment failed, retrying ($n/3)..."
           sleep 5
         done
-        if [ ! -d ".pixi" ]; then
-          echo "❌ Failed to set up pixi environment after multiple retries."
+        if [ "$n" -ge 3 ]; then
+          echo "❌ Failed to install pixi dependencies for CI environment after multiple retries."
           exit 1
         fi
 
-    - name: Install dependencies using pixi
+    - name: Activate pixi environment
       run: |
-        pixi run -e ci ci-dev
+        eval "$(pixi shell --env-hook bash)"
 
     - name: Generate coverage report
       run: |
@@ -224,7 +223,7 @@ jobs:
         pixi run -e ci pytest tests/ --cov=src/uckn --cov-report=json --cov-report=term
 
         # Check coverage threshold
-        pixi run -e ci python << 'EOF'
+        python << 'EOF'
         import json
 
         with open('coverage.json', 'r') as f:
