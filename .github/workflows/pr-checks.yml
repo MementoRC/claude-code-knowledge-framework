@@ -57,7 +57,7 @@ jobs:
 
     - name: Install dependencies using pixi
       run: |
-        pixi run -e ci dev
+        pixi run -e ci ci-dev
 
     - name: Verify pixi environment
       run: |
@@ -216,7 +216,7 @@ jobs:
 
     - name: Install dependencies using pixi
       run: |
-        pixi run -e ci dev
+        pixi run -e ci ci-dev
 
     - name: Generate coverage report
       run: |

@@ -87,7 +87,7 @@ jobs:
           done
 
       - name: Install dev dependencies
-        run: pixi run -e ci dev
+        run: pixi run -e ci ci-dev
 
       - name: Lint
         run: pixi run -e ci lint
