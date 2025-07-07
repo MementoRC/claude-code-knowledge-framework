@@ -1,0 +1,63 @@
+[project]
+name = "uckn-framework"
+version = "1.0.0"
+description = "Universal Claude Code Knowledge Network"
+authors = ["Claude Code Community <noreply@anthropic.com>"]
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+
+[dependencies]
+python = ">=3.10"
+pip = "*"
+
+[pypi-dependencies]
+uckn-framework = { path = ".", editable = true }
+
+[feature.dev.dependencies]
+pytest = "*"
+pytest-cov = "*"
+pytest-asyncio = "*"
+pytest-benchmark = "*"
+memory_profiler = "*"
+locust = "*"
+psutil = "*"
+redis-py = "*"
+ruff = "*"
+black = "*"
+mypy = "*"
+pre-commit = "*"
+alembic = "*"
+mcp = "*"
+
+[feature.ci-deps.dependencies]
+pytest = "*"
+pytest-cov = "*"
+ruff = "*"
+
+[environments]
+default = { features = ["mcp"], solve-group = "default" }
+dev = { features = ["dev", "mcp"], solve-group = "default" }
+ci = { features = ["ci-deps"], solve-group = "default" }
+docs = { features = ["docs"], solve-group = "default" }
+
+[tasks]
+# Development tasks
+install = "pip install -e ."
+dev = "pip install -e '.[dev,mcp]'"
+ci-dev = "pip install -e ."
+ci-install = "pip install -e ."
+test = "pytest tests/ -v"
+test-cov = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term"
+lint = "ruff check src/ tests/"
+format = "ruff format src/ tests/"
+typecheck = "mypy src/uckn"
+pre-commit = "pre-commit run --all-files"
+
+# CI/CD tasks
+ci-test = { cmd = "pytest tests/ --cov=src/uckn --cov-report=xml --timeout=90", env = { ENVIRONMENT = "ci" } }
+ci-lint = "ruff check src/ tests/ --output-format=github"
+ci-format-check = "ruff format --check src/ tests/"
+
+# Quality metrics tasks
+quality-metrics = "python tests/quality_metrics/quality_dashboard.py --summary"
+quality-gate = "python tests/quality_metrics/quality_dashboard.py --check-gate --fail-under=90"
