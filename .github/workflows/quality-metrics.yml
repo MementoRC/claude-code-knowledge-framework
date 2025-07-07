@@ -23,29 +23,9 @@ jobs:
         continue-on-error: true
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y git
-      - name: Ensure .pixi environment exists
+      - name: Install dependencies
         run: |
-          if [ ! -d ".pixi" ]; then
-            echo "No .pixi directory found, initializing pixi environment..."
-            pixi run || pixi install --locked || pixi install || true
-          fi
-      - name: Install dependencies (with retry)
-        run: |
-          n=0
-          until [ "$n" -ge 3 ]
-          do
-            # Try locked first, then fallback to update if needed
-            if pixi install --locked; then
-              echo "✅ Locked installation successful"
-              break
-            elif [ "$n" -eq 2 ]; then
-              echo "⚠️ Locked install failed, trying update mode as fallback"
-              pixi install && break
-            fi
-            n=$((n+1))
-            echo "pixi install failed, retrying ($n/3)..."
-            sleep 5
-          done
+          pixi run ci-install
       - name: Run tests with coverage (HTML, XML, JSON, Markdown)
         run: |
           eval "$(pixi shell --env-hook bash)"
