@@ -79,7 +79,7 @@ jobs:
       - name: Install dev dependencies using pixi
         shell: bash
         run: |
-          pixi run -e ci dev
+          pixi run -e ci ci-dev
 
       - name: Verify pixi environment
         shell: bash
