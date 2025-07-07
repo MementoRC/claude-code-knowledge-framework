@@ -50,6 +50,7 @@ jobs:
         continue-on-error: true
 
       - name: Ensure .pixi environment exists
+        shell: bash
         run: |
           if [ ! -d ".pixi" ]; then
             echo "No .pixi directory found, initializing pixi environment..."
@@ -57,6 +58,7 @@ jobs:
           fi
 
       - name: Install dependencies (pixi) with retry and fallback
+        shell: bash
         run: |
           n=0
           until [ "$n" -ge 3 ]
@@ -75,16 +77,19 @@ jobs:
           done
 
       - name: Install dev dependencies using pixi
+        shell: bash
         run: |
           pixi run -e ci dev
 
       - name: Verify pixi environment
+        shell: bash
         run: |
           pixi run -e ci python --version
           pixi run -e ci pip --version
 
       - name: Select tests by marker
         id: select-tests
+        shell: bash
         run: |
           if [[ "${{ matrix.test-type }}" == "unit" ]]; then
             echo "PYTEST_MARK=unit" >> $GITHUB_ENV
@@ -95,6 +100,7 @@ jobs:
           fi
 
       - name: Run selected tests using pixi
+        shell: bash
         run: |
           if [[ -n "$PYTEST_MARK" ]]; then
             pixi run -e ci pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
@@ -117,6 +123,7 @@ jobs:
           path: ./artifacts
 
       - name: Aggregate and compare test results
+        shell: bash
         run: |
           find ./artifacts -name "*.json" -exec cat {} + > all-results.json
           # Optionally, add custom aggregation/comparison logic here
@@ -131,6 +138,7 @@ jobs:
         if: always()
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
         run: |
           curl -X POST \
             -H "Authorization: token $GITHUB_TOKEN" \
