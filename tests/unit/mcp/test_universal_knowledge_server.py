@@ -243,8 +243,9 @@ class TestUniversalKnowledgeServer:
         result = await self.server._search_patterns(query="fallback test")
 
         # Verify fallback was used
-        assert hasattr(result, "content")
-        response_text = result.content[0].text
+        assert isinstance(result, dict)
+        assert "content" in result
+        response_text = result["content"][0].text
         response = json.loads(response_text)
         assert response["results"][0]["pattern_id"] == "pattern_2"
 
@@ -264,8 +265,9 @@ class TestUniversalKnowledgeServer:
         result = await self.server._recommend_setup(project_path=self.temp_dir, limit=3)
 
         # Verify the result
-        assert hasattr(result, "content")
-        response_text = result.content[0].text
+        assert isinstance(result, dict)
+        assert "content" in result
+        response_text = result["content"][0].text
         response = json.loads(response_text)
 
         assert response["project_path"] == self.temp_dir
@@ -282,8 +284,9 @@ class TestUniversalKnowledgeServer:
         result = await self.server._recommend_setup(project_path=self.temp_dir)
 
         # Verify error response
-        assert hasattr(result, "content")
-        response_text = result.content[0].text
+        assert isinstance(result, dict)
+        assert "content" in result
+        response_text = result["content"][0].text
         response = json.loads(response_text)
 
         assert "error" in response
@@ -304,8 +307,9 @@ class TestUniversalKnowledgeServer:
         result = await self.server._predict_issues(project_path=self.temp_dir, limit=3)
 
         # Verify the result
-        assert hasattr(result, "content")
-        response_text = result.content[0].text
+        assert isinstance(result, dict)
+        assert "content" in result
+        response_text = result["content"][0].text
         response = json.loads(response_text)
 
         assert response["project_path"] == self.temp_dir
@@ -340,8 +344,9 @@ class TestUniversalKnowledgeServer:
         )
 
         # Verify the result
-        assert hasattr(result, "content")
-        response_text = result.content[0].text
+        assert isinstance(result, dict)
+        assert "content" in result
+        response_text = result["content"][0].text
         response = json.loads(response_text)
 
         assert response["solution_description"] == "Use JWT for authentication"
@@ -365,8 +370,9 @@ class TestUniversalKnowledgeServer:
         )
 
         # Verify the result
-        assert hasattr(result, "content")
-        response_text = result.content[0].text
+        assert isinstance(result, dict)
+        assert "content" in result
+        response_text = result["content"][0].text
         response = json.loads(response_text)
 
         assert response["status"] == "success"
@@ -385,8 +391,9 @@ class TestUniversalKnowledgeServer:
         )
 
         # Verify error response
-        assert hasattr(result, "content")
-        response_text = result.content[0].text
+        assert isinstance(result, dict)
+        assert "content" in result
+        response_text = result["content"][0].text
         response = json.loads(response_text)
 
         assert response["status"] == "error"
@@ -406,8 +413,9 @@ class TestUniversalKnowledgeServer:
         result = await self.server._get_project_dna(project_path=self.temp_dir)
 
         # Verify the result
-        assert hasattr(result, "content")
-        response_text = result.content[0].text
+        assert isinstance(result, dict)
+        assert "content" in result
+        response_text = result["content"][0].text
         response = json.loads(response_text)
 
         assert response["project_path"] == self.temp_dir
@@ -423,8 +431,9 @@ class TestUniversalKnowledgeServer:
         result = await self.server._get_project_dna(project_path=self.temp_dir)
 
         # Verify error response
-        assert hasattr(result, "content")
-        response_text = result.content[0].text
+        assert isinstance(result, dict)
+        assert "content" in result
+        response_text = result["content"][0].text
         response = json.loads(response_text)
 
         assert "error" in response
@@ -439,8 +448,9 @@ class TestUniversalKnowledgeServer:
         result = await self.server._search_patterns(query="error test")
 
         # Verify error is handled gracefully
-        assert hasattr(result, "content")
-        response_text = result.content[0].text
+        assert isinstance(result, dict)
+        assert "content" in result
+        response_text = result["content"][0].text
         assert "Search failed" in response_text
         assert "Mock search error" in response_text
 
