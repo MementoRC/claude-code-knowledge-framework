@@ -4,7 +4,7 @@ import json
 import logging
 import time
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -219,7 +219,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             }
 
             # Add stack trace for internal errors
-            if not isinstance(error, (ValueError, TypeError)):
+            if not isinstance(error, ValueError | TypeError):
                 import traceback
 
                 error_data["stack_trace"] = traceback.format_exc()
