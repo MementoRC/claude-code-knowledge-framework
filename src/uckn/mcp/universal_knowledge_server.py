@@ -36,15 +36,42 @@ except ImportError as e:
     MCP_AVAILABLE = False
     # Create stub classes for testing when MCP is not available
     class Server:
-        pass
+        def __init__(self, name=None):
+            self.name = name
+        def create_initialization_options(self):
+            return {}
+        async def run(self, read_stream, write_stream, options, raise_exceptions=True):
+            pass
+        def list_tools(self):
+            def decorator(func):
+                return func
+            return decorator
+        def call_tool(self):
+            def decorator(func):
+                return func
+            return decorator
     class CallToolResult:
-        pass
+        def __init__(self, content=None):
+            self.content = content or []
+        def model_dump(self):
+            return {"content": self.content}
     class TextContent:
-        pass
+        def __init__(self, type="text", text=""):
+            self.type = type
+            self.text = text
     class Tool:
-        pass
+        def __init__(self, name=None, description=None, inputSchema=None):
+            self.name = name
+            self.description = description
+            self.inputSchema = inputSchema
     def stdio_server():
-        pass
+        return MockStdioServer()
+    
+    class MockStdioServer:
+        async def __aenter__(self):
+            return (None, None)
+        async def __aexit__(self, exc_type, exc_val, exc_tb):
+            pass
 
 # Import UCKN components
 try:
