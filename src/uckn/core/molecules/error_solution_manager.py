@@ -174,9 +174,10 @@ class ErrorSolutionManager:
                 "Semantic search not available, cannot re-generate embedding for updated document text."
             )
 
-        # Update timestamp in metadata if present
-        if metadata is not None:
-            metadata["updated_at"] = datetime.now().isoformat()
+        # Update timestamp in metadata
+        if metadata is None:
+            metadata = {}
+        metadata["updated_at"] = datetime.now().isoformat()
 
         # UnifiedDatabase handles updating both PG and Chroma
         return self.unified_db.update_error_solution(

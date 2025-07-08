@@ -54,7 +54,7 @@ def get_predictive_issue_detector() -> PredictiveIssueDetector:
         except Exception as e:
             raise HTTPException(
                 status_code=503, detail=f"Predictive issue detector not available: {e}"
-            )
+            ) from e
 
     return _predictive_issue_detector
 
