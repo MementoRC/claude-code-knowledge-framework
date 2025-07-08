@@ -12,7 +12,7 @@
     },
     {
       "iteration": 2,
-      "type": "test_failure", 
+      "type": "test_failure",
       "file": "tests/unit/mcp/test_universal_knowledge_server.py",
       "description": "Fixed all remaining hasattr(result, content) patterns in MCP tests",
       "lines": "multiple",
@@ -44,7 +44,7 @@
       "type": "style_upgrade",
       "files": [
         "src/uckn/api/middleware/auth.py",
-        "src/uckn/api/middleware/logging.py", 
+        "src/uckn/api/middleware/logging.py",
         "src/uckn/api/models/common.py",
         "src/uckn/api/models/patterns.py"
       ],

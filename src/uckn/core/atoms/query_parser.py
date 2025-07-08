@@ -156,7 +156,7 @@ class QueryParser:
             # Insert implicit ANDs
             if (
                 i < len(tokens)
-                and isinstance(processed_tokens[-1], (dict, str))
+                and isinstance(processed_tokens[-1], dict | str)
                 and tokens[i] not in ["AND", "OR", "NOT", ")"]
                 and not (isinstance(tokens[i], dict) and tokens[i].get("operator"))
             ):  # If next token is not an operator or a parsed sub-query

@@ -9,7 +9,7 @@ import hashlib
 import logging
 import os
 import threading
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import numpy as np
 
@@ -246,7 +246,7 @@ class MultiModalEmbeddings:
         return self._embed_text(cleaned)
 
     def embed(
-        self, data: Union[str, dict[str, Any]], data_type: str = "auto"
+        self, data: str | dict[str, Any], data_type: str = "auto"
     ) -> Optional[list[float]]:
         """
         Generate embedding for a single data item.
@@ -285,7 +285,7 @@ class MultiModalEmbeddings:
             return self._embed_text(str(data))
 
     def embed_batch(
-        self, items: list[Union[str, dict[str, Any]]], data_type: str = "auto"
+        self, items: list[str | dict[str, Any]], data_type: str = "auto"
     ) -> list[Optional[list[float]]]:
         """
         Batch embedding for a list of items.

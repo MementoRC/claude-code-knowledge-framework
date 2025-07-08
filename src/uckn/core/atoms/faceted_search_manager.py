@@ -69,7 +69,7 @@ class FacetedSearchManager:
 
             # Success rate ranges
             success_rate = metadata.get("success_rate", 0.0)
-            if isinstance(success_rate, (int, float)):
+            if isinstance(success_rate, int | float):
                 if success_rate >= 0.9:
                     facets["success_rate_range"]["excellent (90%+)"] += 1
                 elif success_rate >= 0.75:
@@ -195,7 +195,7 @@ class FacetedSearchManager:
             if include_doc and "min_success_rate" in filters:
                 min_rate = filters["min_success_rate"]
                 doc_rate = metadata.get("success_rate", 0.0)
-                if isinstance(doc_rate, (int, float)) and doc_rate < min_rate:
+                if isinstance(doc_rate, int | float) and doc_rate < min_rate:
                     include_doc = False
 
             if include_doc:

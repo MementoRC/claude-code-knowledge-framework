@@ -9,7 +9,7 @@ import os
 import traceback
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from ...storage.chromadb_connector import ChromaDBConnector
 from ...storage.unified_database import UnifiedDatabase
@@ -111,8 +111,8 @@ class PatternMigrator:
 
     def __init__(
         self,
-        source_dir: Union[str, Path],
-        target_dir: Optional[Union[str, Path]] = None,
+        source_dir: str | Path,
+        target_dir: Optional[str | Path] = None,
         dry_run: bool = False,
         validate_only: bool = False,
         report_only: bool = False,

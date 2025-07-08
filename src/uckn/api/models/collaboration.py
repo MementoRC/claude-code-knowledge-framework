@@ -3,7 +3,7 @@ API models for collaboration features.
 """
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
