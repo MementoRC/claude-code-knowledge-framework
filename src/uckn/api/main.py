@@ -13,13 +13,13 @@ from fastapi.responses import JSONResponse
 from ..core.organisms.knowledge_manager import KnowledgeManager
 from .dependencies import set_knowledge_manager
 from .routers import (
-    patterns,
-    projects,
+    auth,
     collaboration,
     health,
-    teams,
-    auth,
+    patterns,
     predictions,
+    projects,
+    teams,
     workflow,
 )
 

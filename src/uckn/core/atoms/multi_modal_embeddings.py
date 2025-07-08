@@ -5,12 +5,13 @@ Provides unified embedding generation for code, text, configuration files, and e
 Handles model loading, caching, batch processing, and multi-modal search combination.
 """
 
-from typing import List, Dict, Optional, Any, Union
-import logging
 import hashlib
-import threading
-import numpy as np
+import logging
 import os
+import threading
+from typing import Any, Optional, Union
+
+import numpy as np
 
 # Defensive import logic for torch and sentence-transformers
 SENTENCE_TRANSFORMERS_AVAILABLE = False
@@ -32,7 +33,7 @@ if not _DISABLE_TORCH:
             # Log or print for debugging, but do not raise
         else:
             try:
-                from transformers import AutoTokenizer, AutoModel
+                from transformers import AutoModel, AutoTokenizer
 
                 TRANSFORMERS_AVAILABLE = True
             except Exception:
@@ -171,16 +172,16 @@ class MultiModalEmbeddings:
         """Hash input for caching."""
         return hashlib.sha256(str(data).encode("utf-8")).hexdigest()
 
-    def _get_cached_embedding(self, key: str) -> Optional[List[float]]:
+    def _get_cached_embedding(self, key: str) -> Optional[list[float]]:
         return self._embedding_cache.get(key)
 
-    def _set_cached_embedding(self, key: str, embedding: List[float]):
+    def _set_cached_embedding(self, key: str, embedding: list[float]):
         if len(self._embedding_cache) >= self._CACHE_SIZE:
             # Remove oldest item (FIFO)
             self._embedding_cache.pop(next(iter(self._embedding_cache)))
         self._embedding_cache[key] = embedding
 
-    def _embed_code(self, code: str) -> Optional[List[float]]:
+    def _embed_code(self, code: str) -> Optional[list[float]]:
         key = f"code:{self._hash_input(code)}"
         cached = self._get_cached_embedding(key)
         if cached:
@@ -206,7 +207,7 @@ class MultiModalEmbeddings:
         # Fallback to text embedding
         return self._embed_text(code)
 
-    def _embed_text(self, text: str) -> Optional[List[float]]:
+    def _embed_text(self, text: str) -> Optional[list[float]]:
         key = f"text:{self._hash_input(text)}"
         cached = self._get_cached_embedding(key)
         if cached:
@@ -223,7 +224,7 @@ class MultiModalEmbeddings:
                 self._logger.error(f"Text embedding failed: {e}")
         return None
 
-    def _embed_config(self, config: str) -> Optional[List[float]]:
+    def _embed_config(self, config: str) -> Optional[list[float]]:
         # Simple tokenization: split on newlines, colons, equals, etc.
         tokens = []
         for line in config.splitlines():
@@ -234,7 +235,7 @@ class MultiModalEmbeddings:
         token_str = " ".join(tokens)
         return self._embed_text(token_str)
 
-    def _embed_error(self, error_msg: str) -> Optional[List[float]]:
+    def _embed_error(self, error_msg: str) -> Optional[list[float]]:
         # Preprocess: remove file paths, line numbers, stack traces, etc.
         import re
 
@@ -245,8 +246,8 @@ class MultiModalEmbeddings:
         return self._embed_text(cleaned)
 
     def embed(
-        self, data: Union[str, Dict[str, Any]], data_type: str = "auto"
-    ) -> Optional[List[float]]:
+        self, data: Union[str, dict[str, Any]], data_type: str = "auto"
+    ) -> Optional[list[float]]:
         """
         Generate embedding for a single data item.
         data_type: 'code', 'text', 'config', 'error', or 'auto'
@@ -284,8 +285,8 @@ class MultiModalEmbeddings:
             return self._embed_text(str(data))
 
     def embed_batch(
-        self, items: List[Union[str, Dict[str, Any]]], data_type: str = "auto"
-    ) -> List[Optional[List[float]]]:
+        self, items: list[Union[str, dict[str, Any]]], data_type: str = "auto"
+    ) -> list[Optional[list[float]]]:
         """
         Batch embedding for a list of items.
         Returns list of embeddings (None if failed).
@@ -296,8 +297,8 @@ class MultiModalEmbeddings:
         return embeddings
 
     def combine_embeddings(
-        self, embeddings: List[List[float]], method: str = "mean"
-    ) -> Optional[List[float]]:
+        self, embeddings: list[list[float]], method: str = "mean"
+    ) -> Optional[list[float]]:
         """
         Combine multiple embeddings into a single vector.
         method: 'mean' (default), 'concat'
@@ -353,7 +354,7 @@ class MultiModalEmbeddings:
         config: Optional[str] = None,
         error: Optional[str] = None,
         combine_method: str = "mean",
-    ) -> Optional[List[float]]:
+    ) -> Optional[list[float]]:
         """
         Generate a multi-modal embedding from any combination of code, text, config, and error.
         """
@@ -378,14 +379,14 @@ class MultiModalEmbeddings:
 
     def search(
         self,
-        query: Dict[str, Optional[str]],
+        query: dict[str, Optional[str]],
         collection_name: str,
         chroma_connector: Any,
         limit: int = 10,
         min_similarity: float = 0.7,
         combine_method: str = "mean",
-        metadata_filter: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        metadata_filter: Optional[dict[str, Any]] = None,
+    ) -> list[dict[str, Any]]:
         """
         Multi-modal search: embed query, search ChromaDB, return results.
         query: dict with any of 'code', 'text', 'config', 'error'

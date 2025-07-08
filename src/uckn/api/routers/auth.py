@@ -8,7 +8,7 @@ Provides authentication and authorization endpoints including:
 - Permission management
 """
 
-from typing import List, Optional
+from typing import Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -41,15 +41,15 @@ class UserResponse(BaseModel):
     email: str
     name: str
     oauth_provider: Optional[str]
-    roles: List[str]
-    permissions: List[str]
+    roles: list[str]
+    permissions: list[str]
     created_at: str
     last_login: Optional[str]
 
 
 class APIKeyCreateRequest(BaseModel):
     name: str
-    permissions: Optional[List[str]] = []
+    permissions: Optional[list[str]] = []
     expires_at: Optional[str] = None
 
 
@@ -57,7 +57,7 @@ class APIKeyResponse(BaseModel):
     id: str
     name: str
     key: str
-    permissions: List[str]
+    permissions: list[str]
     expires_at: Optional[str]
     created_at: str
     last_used: Optional[str]
@@ -178,7 +178,7 @@ async def get_current_user(km: KnowledgeManager = Depends(get_knowledge_manager)
         )
 
 
-@router.get("/auth/permissions", response_model=List[PermissionResponse])
+@router.get("/auth/permissions", response_model=list[PermissionResponse])
 async def get_user_permissions(km: KnowledgeManager = Depends(get_knowledge_manager)):
     """Get current user's permissions."""
     try:
@@ -227,7 +227,7 @@ async def create_api_key(
         )
 
 
-@router.get("/auth/api-keys", response_model=List[APIKeyResponse])
+@router.get("/auth/api-keys", response_model=list[APIKeyResponse])
 async def list_api_keys(km: KnowledgeManager = Depends(get_knowledge_manager)):
     """List user's API keys."""
     try:

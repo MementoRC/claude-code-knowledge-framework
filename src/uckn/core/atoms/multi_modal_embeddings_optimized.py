@@ -5,8 +5,9 @@ Optimized Multi-Modal Embeddings for UCKN
 - Backward compatible with MultiModalEmbeddings API.
 """
 
-import numpy as np
 import time
+
+import numpy as np
 
 
 class MultiModalEmbeddingsOptimized:

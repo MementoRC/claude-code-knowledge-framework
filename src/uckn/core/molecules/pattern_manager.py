@@ -3,13 +3,13 @@ UCKN Pattern Manager Molecule
 Handles CRUD operations for knowledge patterns
 """
 
-from typing import Dict, List, Optional, Any
+import logging
 import uuid
 from datetime import datetime
-import logging
+from typing import Any, Optional
 
-from ..atoms.semantic_search import SemanticSearch
 from ...storage import UnifiedDatabase  # Changed from ChromaDBConnector
+from ..atoms.semantic_search import SemanticSearch
 
 
 class PatternManager:
@@ -20,7 +20,7 @@ class PatternManager:
         self.semantic_search = semantic_search
         self._logger = logging.getLogger(__name__)
 
-    def add_pattern(self, pattern_data: Dict[str, Any]) -> Optional[str]:
+    def add_pattern(self, pattern_data: dict[str, Any]) -> Optional[str]:
         """
         Add a new knowledge pattern to the Unified Database.
 
@@ -77,7 +77,7 @@ class PatternManager:
         )
         return pattern_id if success else None
 
-    def get_pattern(self, pattern_id: str) -> Optional[Dict[str, Any]]:
+    def get_pattern(self, pattern_id: str) -> Optional[dict[str, Any]]:
         """
         Retrieve a specific pattern from the Unified Database.
 
@@ -94,7 +94,7 @@ class PatternManager:
             return None
         return self.unified_db.get_pattern(pattern_id)
 
-    def update_pattern(self, pattern_id: str, updates: Dict[str, Any]) -> bool:
+    def update_pattern(self, pattern_id: str, updates: dict[str, Any]) -> bool:
         """
         Update an existing pattern in the Unified Database.
 
@@ -164,8 +164,8 @@ class PatternManager:
         query: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        metadata_filter: Optional[dict[str, Any]] = None,
+    ) -> list[dict[str, Any]]:
         """
         Search for knowledge patterns using semantic similarity.
 

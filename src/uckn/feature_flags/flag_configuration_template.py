@@ -6,9 +6,9 @@ Template for atomic design in the codebase, demonstrating the pattern for
 feature flag configurations using atomic design principles.
 """
 
-from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Optional
 
 
 class TemplateLevel(Enum):
@@ -26,8 +26,8 @@ class AtomicComponent:
 
     name: str
     level: TemplateLevel
-    config: Dict[str, Any]
-    dependencies: List[str] = None
+    config: dict[str, Any]
+    dependencies: list[str] = None
 
 
 class FlagConfigurationTemplate:
@@ -39,7 +39,7 @@ class FlagConfigurationTemplate:
     """
 
     def __init__(self):
-        self._components: Dict[str, AtomicComponent] = {}
+        self._components: dict[str, AtomicComponent] = {}
 
     def add_component(self, component: AtomicComponent) -> None:
         """Add an atomic component to the template."""
@@ -49,7 +49,7 @@ class FlagConfigurationTemplate:
         """Get a component by name."""
         return self._components.get(name)
 
-    def compose_template(self) -> Dict[str, Any]:
+    def compose_template(self) -> dict[str, Any]:
         """Compose complete template from atomic components."""
         template = {"atoms": [], "molecules": [], "organisms": [], "templates": []}
 

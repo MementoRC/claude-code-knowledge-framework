@@ -1,8 +1,8 @@
 import logging
 import os
-from pathlib import Path
-from typing import List, Optional, Dict, Any
 from functools import lru_cache
+from pathlib import Path
+from typing import Any, Optional
 
 # Defensive import to handle PyTorch docstring conflicts
 _DISABLE_TORCH = os.environ.get("UCKN_DISABLE_TORCH", "0") == "1"
@@ -53,7 +53,7 @@ except ImportError:
 
 
 def _tech_stack_match(
-    query_stack: Optional[List[str]], doc_stack: Optional[List[str]]
+    query_stack: Optional[list[str]], doc_stack: Optional[list[str]]
 ) -> float:
     """
     Compute a tech stack compatibility score between two stacks.
@@ -188,7 +188,7 @@ class EnhancedSemanticSearchEngine:
         return self._is_initialized
 
     @lru_cache(maxsize=128)  # Cache for single text encodings
-    def encode(self, text: str) -> Optional[List[float]]:
+    def encode(self, text: str) -> Optional[list[float]]:
         """
         Generate embeddings for a single text using the underlying sentence transformer model.
         Results are cached using LRU.
@@ -211,8 +211,8 @@ class EnhancedSemanticSearchEngine:
             return None
 
     def batch_encode(
-        self, texts: List[str], batch_size: int = 32
-    ) -> Optional[List[List[float]]]:
+        self, texts: list[str], batch_size: int = 32
+    ) -> Optional[list[list[float]]]:
         """
         Generate embeddings for a list of texts in batches.
         This method does not use LRU cache directly, but individual encodes might if called separately.
@@ -244,8 +244,8 @@ class EnhancedSemanticSearchEngine:
         collection_name: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict]:
+        metadata_filter: Optional[dict[str, Any]] = None,
+    ) -> list[dict]:
         """
         Perform semantic search in a specified ChromaDB collection.
 
@@ -286,7 +286,7 @@ class EnhancedSemanticSearchEngine:
             self._logger.error(f"Semantic search failed: {e}")
             return []
 
-    def get_embedding_stats(self) -> Dict[str, Any]:
+    def get_embedding_stats(self) -> dict[str, Any]:
         """
         Get statistics about the embedding process, including LRU cache info.
         """
@@ -309,11 +309,11 @@ class EnhancedSemanticSearchEngine:
         """Map collection type to collection name."""
         return collection_type  # Direct mapping for now
 
-    def _get_success_rate(self, metadata: Dict[str, Any]) -> float:
+    def _get_success_rate(self, metadata: dict[str, Any]) -> float:
         """Extract success rate from metadata."""
         return float(metadata.get("success_rate", 0.5))
 
-    def _extract_tech_stack(self, metadata: Dict[str, Any]) -> List[str]:
+    def _extract_tech_stack(self, metadata: dict[str, Any]) -> list[str]:
         """Extract technology stack from metadata."""
         tech_stack = metadata.get("technologies", [])
         if isinstance(tech_stack, str):
@@ -324,9 +324,9 @@ class EnhancedSemanticSearchEngine:
 
     def _rank_results(
         self,
-        results: List[Dict[str, Any]],
-        query_tech_stack: Optional[List[str]] = None,
-    ) -> List[Dict[str, Any]]:
+        results: list[dict[str, Any]],
+        query_tech_stack: Optional[list[str]] = None,
+    ) -> list[dict[str, Any]]:
         """
         Advanced ranking of search results considering:
         - Base similarity score
@@ -365,10 +365,10 @@ class EnhancedSemanticSearchEngine:
 
     def _filter_by_tech_stack(
         self,
-        results: List[Dict[str, Any]],
-        tech_stack: Optional[List[str]],
+        results: list[dict[str, Any]],
+        tech_stack: Optional[list[str]],
         min_compatibility: float = 0.3,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Filter results by technology stack compatibility."""
         if not tech_stack:
             return results
@@ -386,7 +386,7 @@ class EnhancedSemanticSearchEngine:
         return filtered
 
     @lru_cache(maxsize=128)
-    def _cached_embed(self, data: str, data_type: str) -> Optional[List[float]]:
+    def _cached_embed(self, data: str, data_type: str) -> Optional[list[float]]:
         """Use MultiModalEmbeddings for embedding generation with caching."""
         if self.embedding_atom:
             return self.embedding_atom.embed(data, data_type=data_type)
@@ -395,7 +395,7 @@ class EnhancedSemanticSearchEngine:
             return self.sentence_model.encode(data).tolist()
         return None
 
-    def _embed_query(self, text=None, code=None, error=None) -> Optional[List[float]]:
+    def _embed_query(self, text=None, code=None, error=None) -> Optional[list[float]]:
         """Generate embeddings for multi-modal queries."""
         if not self.embedding_atom:
             # Fallback: use text embedding if available
@@ -417,7 +417,7 @@ class EnhancedSemanticSearchEngine:
         else:
             return None
 
-    def _parse_tech_stack(self, tech_stack) -> Optional[List[str]]:
+    def _parse_tech_stack(self, tech_stack) -> Optional[list[str]]:
         """Parse technology stack from various input formats."""
         if tech_stack is None:
             return None
@@ -433,7 +433,7 @@ class EnhancedSemanticSearchEngine:
 
     def search_by_text(
         self, query_text: str, tech_stack=None, limit: int = 10
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Semantic search for code patterns and error solutions by text.
 
@@ -474,7 +474,7 @@ class EnhancedSemanticSearchEngine:
 
     def search_by_code(
         self, code_snippet: str, tech_stack=None, limit: int = 10
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Semantic search for code patterns and error solutions by code snippet.
 
@@ -518,7 +518,7 @@ class EnhancedSemanticSearchEngine:
 
     def search_by_error(
         self, error_message: str, tech_stack=None, limit: int = 10
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Semantic search for error solutions by error message.
 
@@ -568,7 +568,7 @@ class EnhancedSemanticSearchEngine:
         error: Optional[str] = None,
         tech_stack=None,
         limit: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Multi-modal semantic search using any combination of text, code, and error.
 

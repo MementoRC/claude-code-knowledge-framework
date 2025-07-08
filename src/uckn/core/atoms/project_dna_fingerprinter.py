@@ -5,9 +5,10 @@ Implements project DNA fingerprinting for technology stack analysis,
 similarity scoring, and compatibility matrix generation.
 """
 
-import logging
 import json
-from typing import Dict, Any, List, Optional
+import logging
+from typing import Any, Optional
+
 import numpy as np
 
 from .tech_stack_detector import TechStackDetector
@@ -49,8 +50,8 @@ class ProjectDNAFingerprinter:
         self.tech_detector = TechStackDetector()
 
     def generate_fingerprint(
-        self, project_path: str, extra_metadata: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, project_path: str, extra_metadata: Optional[dict[str, Any]] = None
+    ) -> dict[str, Any]:
         """
         Generate a DNA fingerprint for a project at the given path.
         """
@@ -74,7 +75,7 @@ class ProjectDNAFingerprinter:
             self._logger.error(f"Failed to generate fingerprint: {e}")
             return {}
 
-    def _to_weighted_vector(self, fingerprint: Dict[str, Any]) -> List[float]:
+    def _to_weighted_vector(self, fingerprint: dict[str, Any]) -> list[float]:
         """
         Convert fingerprint dict to a weighted feature vector.
         """
@@ -87,7 +88,7 @@ class ProjectDNAFingerprinter:
             vector.append(weight if present else 0.0)
         return vector
 
-    def _get_global_feature_list(self, fingerprint: Dict[str, Any]) -> List[str]:
+    def _get_global_feature_list(self, fingerprint: dict[str, Any]) -> list[str]:
         """
         Build a sorted list of all features present in the fingerprint.
         """
@@ -100,7 +101,7 @@ class ProjectDNAFingerprinter:
                 features.append(values)
         return sorted(set(features))
 
-    def _feature_present(self, feature: str, fingerprint: Dict[str, Any]) -> bool:
+    def _feature_present(self, feature: str, fingerprint: dict[str, Any]) -> bool:
         """
         Check if a feature is present in any fingerprint category.
         """
@@ -125,7 +126,7 @@ class ProjectDNAFingerprinter:
                 return 2.0
         return 1.0
 
-    def compute_similarity(self, fp1: Dict[str, Any], fp2: Dict[str, Any]) -> float:
+    def compute_similarity(self, fp1: dict[str, Any], fp2: dict[str, Any]) -> float:
         """
         Compute similarity score between two fingerprints using cosine similarity.
         """
@@ -164,7 +165,7 @@ class ProjectDNAFingerprinter:
             self._logger.error(f"Failed to compute similarity: {e}")
             return 0.0
 
-    def _compatibility_bonus(self, fp1: Dict[str, Any], fp2: Dict[str, Any]) -> float:
+    def _compatibility_bonus(self, fp1: dict[str, Any], fp2: dict[str, Any]) -> float:
         """
         Add bonus to similarity based on known compatible tech pairs.
         """
@@ -177,8 +178,8 @@ class ProjectDNAFingerprinter:
         return bonus
 
     def generate_compatibility_matrix(
-        self, fingerprints: List[Dict[str, Any]]
-    ) -> List[List[float]]:
+        self, fingerprints: list[dict[str, Any]]
+    ) -> list[list[float]]:
         """
         Generate a compatibility matrix for a list of project fingerprints.
         """
@@ -194,7 +195,7 @@ class ProjectDNAFingerprinter:
                     )
         return matrix
 
-    def serialize_fingerprint(self, fingerprint: Dict[str, Any]) -> str:
+    def serialize_fingerprint(self, fingerprint: dict[str, Any]) -> str:
         """
         Serialize a fingerprint to a JSON string.
         """
@@ -204,7 +205,7 @@ class ProjectDNAFingerprinter:
             self._logger.error(f"Failed to serialize fingerprint: {e}")
             return ""
 
-    def deserialize_fingerprint(self, data: str) -> Dict[str, Any]:
+    def deserialize_fingerprint(self, data: str) -> dict[str, Any]:
         """
         Deserialize a fingerprint from a JSON string.
         """

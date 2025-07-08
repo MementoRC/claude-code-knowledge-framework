@@ -3,16 +3,16 @@ UCKN Knowledge Manager Organism
 Main orchestrator for the knowledge management system
 """
 
-from pathlib import Path
-from typing import Dict, List, Optional, Any
 import logging
+from pathlib import Path
+from typing import Any, Optional
 
+from ...storage import UnifiedDatabase  # Changed from ChromaDBConnector
 from ..atoms.semantic_search import SemanticSearch
 from ..atoms.tech_stack_detector import TechStackDetector
-from ..molecules.pattern_manager import PatternManager
 from ..molecules.error_solution_manager import ErrorSolutionManager
 from ..molecules.pattern_classification import PatternClassification
-from ...storage import UnifiedDatabase  # Changed from ChromaDBConnector
+from ..molecules.pattern_manager import PatternManager
 
 
 class KnowledgeManager:
@@ -75,7 +75,7 @@ class KnowledgeManager:
             self._logger.error(f"Failed to add project: {e}")
             return None
 
-    def get_project(self, project_id: str) -> Optional[Dict[str, Any]]:
+    def get_project(self, project_id: str) -> Optional[dict[str, Any]]:
         """Retrieve a specific project."""
         try:
             return self.unified_db.get_project(project_id)
@@ -83,7 +83,7 @@ class KnowledgeManager:
             self._logger.error(f"Failed to get project {project_id}: {e}")
             return None
 
-    def update_project(self, project_id: str, updates: Dict[str, Any]) -> bool:
+    def update_project(self, project_id: str, updates: dict[str, Any]) -> bool:
         """Update an existing project."""
         try:
             return self.unified_db.update_project(project_id, updates)
@@ -99,7 +99,7 @@ class KnowledgeManager:
             self._logger.error(f"Failed to delete project {project_id}: {e}")
             return False
 
-    def get_all_projects(self) -> List[Dict[str, Any]]:
+    def get_all_projects(self) -> list[dict[str, Any]]:
         """Get all projects."""
         try:
             return self.unified_db.get_all_projects()
@@ -108,7 +108,7 @@ class KnowledgeManager:
             return []
 
     # Pattern management methods
-    def add_pattern(self, pattern_data: Dict[str, Any]) -> Optional[str]:
+    def add_pattern(self, pattern_data: dict[str, Any]) -> Optional[str]:
         """Add a new knowledge pattern."""
         # pattern_data should now include 'document', 'metadata', and optionally 'project_id'
         document_text = pattern_data.get("document")
@@ -139,11 +139,11 @@ class KnowledgeManager:
             project_id=project_id,
         )
 
-    def get_pattern(self, pattern_id: str) -> Optional[Dict[str, Any]]:
+    def get_pattern(self, pattern_id: str) -> Optional[dict[str, Any]]:
         """Retrieve a specific pattern."""
         return self.unified_db.get_pattern(pattern_id)
 
-    def update_pattern(self, pattern_id: str, updates: Dict[str, Any]) -> bool:
+    def update_pattern(self, pattern_id: str, updates: dict[str, Any]) -> bool:
         """Update an existing pattern."""
         document_text = updates.get("document")
         metadata = updates.get("metadata")
@@ -179,8 +179,8 @@ class KnowledgeManager:
         query: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        metadata_filter: Optional[dict[str, Any]] = None,
+    ) -> list[dict[str, Any]]:
         """Search for knowledge patterns using semantic similarity."""
         if not self.semantic_search.is_available():
             self._logger.warning(
@@ -202,7 +202,7 @@ class KnowledgeManager:
         """Create a new pattern category."""
         return self.unified_db.add_category(name, description, category_id)
 
-    def get_category(self, category_id: str) -> Optional[Dict[str, Any]]:
+    def get_category(self, category_id: str) -> Optional[dict[str, Any]]:
         """Retrieve a specific category."""
         return self.unified_db.get_category(category_id)
 
@@ -234,16 +234,16 @@ class KnowledgeManager:
         """Remove a pattern from a category."""
         return self.unified_db.remove_pattern_from_category(pattern_id, category_id)
 
-    def get_patterns_by_category(self, category_id: str) -> List[str]:
+    def get_patterns_by_category(self, category_id: str) -> list[str]:
         """Get all pattern IDs in a category."""
         return self.unified_db.get_patterns_by_category(category_id)
 
-    def get_pattern_categories(self, pattern_id: str) -> List[Dict[str, Any]]:
+    def get_pattern_categories(self, pattern_id: str) -> list[dict[str, Any]]:
         """Get all categories assigned to a pattern."""
         return self.unified_db.get_pattern_categories(pattern_id)
 
     # Error solution management methods
-    def add_error_solution(self, solution_data: Dict[str, Any]) -> Optional[str]:
+    def add_error_solution(self, solution_data: dict[str, Any]) -> Optional[str]:
         """Add a new error solution."""
         try:
             document_text = solution_data.get("document")
@@ -290,7 +290,7 @@ class KnowledgeManager:
             self._logger.error(f"Failed to add error solution: {e}")
             return None
 
-    def get_error_solution(self, solution_id: str) -> Optional[Dict[str, Any]]:
+    def get_error_solution(self, solution_id: str) -> Optional[dict[str, Any]]:
         """Retrieve a specific error solution."""
         try:
             return self.unified_db.get_error_solution(solution_id)
@@ -303,8 +303,8 @@ class KnowledgeManager:
         error_query: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        metadata_filter: Optional[dict[str, Any]] = None,
+    ) -> list[dict[str, Any]]:
         """Search for error solutions using semantic similarity."""
         if not self.semantic_search.is_available():
             self._logger.warning(
@@ -326,11 +326,11 @@ class KnowledgeManager:
         """Add team access for a user to a project."""
         return self.unified_db.add_team_access(user_id, project_id, role)
 
-    def get_team_access(self, access_id: str) -> Optional[Dict[str, Any]]:
+    def get_team_access(self, access_id: str) -> Optional[dict[str, Any]]:
         """Retrieve specific team access."""
         return self.unified_db.get_team_access(access_id)
 
-    def update_team_access(self, access_id: str, updates: Dict[str, Any]) -> bool:
+    def update_team_access(self, access_id: str, updates: dict[str, Any]) -> bool:
         """Update existing team access."""
         return self.unified_db.update_team_access(access_id, updates)
 
@@ -338,7 +338,7 @@ class KnowledgeManager:
         """Delete team access."""
         return self.unified_db.delete_team_access(access_id)
 
-    def get_team_access_for_project(self, project_id: str) -> List[Dict[str, Any]]:
+    def get_team_access_for_project(self, project_id: str) -> list[dict[str, Any]]:
         """Get all team access records for a project."""
         return self.unified_db.get_team_access_for_project(project_id)
 
@@ -368,7 +368,7 @@ class KnowledgeManager:
             self._logger.error(f"Failed to add compatibility entry: {e}")
             return None
 
-    def get_compatibility_entry(self, entry_id: str) -> Optional[Dict[str, Any]]:
+    def get_compatibility_entry(self, entry_id: str) -> Optional[dict[str, Any]]:
         """Retrieve a specific compatibility matrix entry."""
         try:
             return self.unified_db.get_compatibility_entry(entry_id)
@@ -377,7 +377,7 @@ class KnowledgeManager:
             return None
 
     def update_compatibility_entry(
-        self, entry_id: str, updates: Dict[str, Any]
+        self, entry_id: str, updates: dict[str, Any]
     ) -> bool:
         """Update an existing compatibility matrix entry."""
         try:
@@ -400,7 +400,7 @@ class KnowledgeManager:
         target_tech: Optional[str] = None,
         min_score: Optional[float] = None,
         max_score: Optional[float] = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Search compatibility entries."""
         try:
             return self.unified_db.search_compatibility_entries(
@@ -411,11 +411,11 @@ class KnowledgeManager:
             return []
 
     # Tech stack analysis
-    def analyze_project_stack(self, project_path: str) -> Dict[str, Any]:
+    def analyze_project_stack(self, project_path: str) -> dict[str, Any]:
         """Analyze project technology stack."""
         return self.tech_detector.analyze_project(project_path)
 
-    def get_all_patterns_by_status(self, status: str) -> List[Dict[str, Any]]:
+    def get_all_patterns_by_status(self, status: str) -> list[dict[str, Any]]:
         """Get all patterns filtered by status. Used by workflow manager."""
         try:
             # Use the unified database to search patterns by status
@@ -425,7 +425,7 @@ class KnowledgeManager:
             return []
 
     # Health and utility methods
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Get the health status of all components."""
         unified_db_status = self.unified_db.is_available()
         return {

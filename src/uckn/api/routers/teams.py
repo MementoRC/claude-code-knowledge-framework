@@ -8,7 +8,7 @@ Provides comprehensive team management endpoints including:
 - Invitation system
 """
 
-from typing import List, Optional
+from typing import Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -98,7 +98,7 @@ async def create_team(
         )
 
 
-@router.get("/teams", response_model=List[TeamResponse])
+@router.get("/teams", response_model=list[TeamResponse])
 async def list_teams(km: KnowledgeManager = Depends(get_knowledge_manager)):
     """List teams for the current user."""
     try:
@@ -154,7 +154,7 @@ async def get_team(team_id: str, km: KnowledgeManager = Depends(get_knowledge_ma
         )
 
 
-@router.get("/teams/{team_id}/members", response_model=List[TeamMemberResponse])
+@router.get("/teams/{team_id}/members", response_model=list[TeamMemberResponse])
 async def list_team_members(
     team_id: str, km: KnowledgeManager = Depends(get_knowledge_manager)
 ):

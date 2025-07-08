@@ -17,7 +17,7 @@ import json
 import logging
 import os
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 # Add the src directory to the path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -30,65 +30,80 @@ try:
         TextContent,
         Tool,
     )
+
     MCP_AVAILABLE = True
 except ImportError as e:
     print(f"MCP library not available: {e}", file=sys.stderr)
     MCP_AVAILABLE = False
+
     # Create stub classes for testing when MCP is not available
     class Server:
         def __init__(self, name=None):
             self.name = name
+
         def create_initialization_options(self):
             return {}
+
         async def run(self, read_stream, write_stream, options, raise_exceptions=True):
             pass
+
         def list_tools(self):
             def decorator(func):
                 return func
+
             return decorator
+
         def call_tool(self):
             def decorator(func):
                 return func
+
             return decorator
+
     class CallToolResult:
         def __init__(self, content=None):
             self.content = content or []
+
         def model_dump(self):
             return {"content": self.content}
+
     class TextContent:
         def __init__(self, type="text", text=""):
             self.type = type
             self.text = text
+
     class Tool:
         def __init__(self, name=None, description=None, inputSchema=None):
             self.name = name
             self.description = description
             self.inputSchema = inputSchema
+
     def stdio_server():
         return MockStdioServer()
-    
+
     class MockStdioServer:
         async def __aenter__(self):
             return (None, None)
+
         async def __aexit__(self, exc_type, exc_val, exc_tb):
             pass
 
+
 # Import UCKN components
 try:
+    from uckn.core.atoms.multi_modal_embeddings import MultiModalEmbeddings
+    from uckn.core.atoms.project_dna_fingerprinter import ProjectDNAFingerprinter
+    from uckn.core.molecules.pattern_analytics import PatternAnalytics
+    from uckn.core.molecules.pattern_manager import PatternManager
+    from uckn.core.molecules.tech_stack_compatibility_matrix import (
+        TechStackCompatibilityMatrix,
+    )
     from uckn.core.organisms.knowledge_manager import KnowledgeManager
     from uckn.core.organisms.pattern_recommendation_engine import (
         PatternRecommendationEngine,
     )
-    from uckn.core.atoms.project_dna_fingerprinter import ProjectDNAFingerprinter
     from uckn.core.semantic_search_enhanced import (
         EnhancedSemanticSearchEngine as SemanticSearchEngine,
     )
-    from uckn.core.atoms.multi_modal_embeddings import MultiModalEmbeddings
-    from uckn.core.molecules.tech_stack_compatibility_matrix import (
-        TechStackCompatibilityMatrix,
-    )
-    from uckn.core.molecules.pattern_analytics import PatternAnalytics
-    from uckn.core.molecules.pattern_manager import PatternManager
     from uckn.storage.chromadb_connector import ChromaDBConnector
     from uckn.storage.unified_database import UnifiedDatabase
 except ImportError as e:
@@ -192,7 +207,7 @@ class UniversalKnowledgeServer:
         """Register MCP tools."""
 
         @self.server.list_tools()
-        async def handle_list_tools() -> List[Tool]:
+        async def handle_list_tools() -> list[Tool]:
             """List available tools."""
             return [
                 Tool(
@@ -359,7 +374,7 @@ class UniversalKnowledgeServer:
 
         @self.server.call_tool()
         async def handle_call_tool(
-            name: str, arguments: Dict[str, Any]
+            name: str, arguments: dict[str, Any]
         ) -> CallToolResult:
             """Handle tool calls."""
             try:
@@ -606,7 +621,7 @@ class UniversalKnowledgeServer:
         pattern_description: str,
         pattern_type: str,
         pattern_code: str = "",
-        technologies: List[str] = None,
+        technologies: list[str] = None,
         project_path: str = None,
     ) -> CallToolResult:
         """Contribute a new pattern."""

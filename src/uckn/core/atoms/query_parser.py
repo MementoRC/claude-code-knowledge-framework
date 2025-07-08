@@ -5,15 +5,15 @@ Parses complex search queries, supporting boolean operators (AND, OR, NOT),
 basic stemming, and synonym expansion.
 """
 
-import re
 import logging
-from typing import Dict, Any, List, Optional
+import re
 from collections import deque
+from typing import Any, Optional
 
 try:
+    import nltk
     from nltk.stem import PorterStemmer
     from nltk.tokenize import word_tokenize
-    import nltk
 
     # Download necessary NLTK data if not already present
     try:
@@ -33,12 +33,12 @@ class QueryParser:
     applying boolean logic, stemming, and synonym expansion.
     """
 
-    def __init__(self, synonym_map: Optional[Dict[str, List[str]]] = None):
+    def __init__(self, synonym_map: Optional[dict[str, list[str]]] = None):
         self._logger = logging.getLogger(__name__)
         self.stemmer = PorterStemmer() if NLTK_AVAILABLE else None
         self.synonym_map = synonym_map or self._default_synonym_map()
 
-    def _default_synonym_map(self) -> Dict[str, List[str]]:
+    def _default_synonym_map(self) -> dict[str, list[str]]:
         """Provides a default, simple synonym map."""
         return {
             "python": ["py", "pythonic"],
@@ -59,7 +59,7 @@ class QueryParser:
             return self.stemmer.stem(word.lower())
         return word.lower()
 
-    def _expand_synonyms(self, word: str) -> List[str]:
+    def _expand_synonyms(self, word: str) -> list[str]:
         """Expands a word to include its synonyms and its stemmed form."""
         word_lower = word.lower()
         expanded_words = {word_lower}
@@ -81,7 +81,7 @@ class QueryParser:
 
         return list(expanded_words)
 
-    def parse_query(self, query_string: str) -> Dict[str, Any]:
+    def parse_query(self, query_string: str) -> dict[str, Any]:
         """
         Parses a query string with boolean operators (AND, OR, NOT).
         Example: "python AND (flask OR django) NOT deprecated"
@@ -241,7 +241,7 @@ class QueryParser:
             )
             return {"operator": "AND", "clauses": list(temp_q)}
 
-    def extract_terms(self, query_dict: Dict[str, Any]) -> List[str]:
+    def extract_terms(self, query_dict: dict[str, Any]) -> list[str]:
         """Extract all terms from a parsed query for use in vector search."""
         terms = []
 

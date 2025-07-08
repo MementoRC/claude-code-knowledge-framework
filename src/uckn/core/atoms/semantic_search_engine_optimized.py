@@ -8,9 +8,9 @@ Optimized Semantic Search Engine for UCKN
 
 import asyncio
 import logging
-from typing import Optional, List, Dict, Any
-from functools import wraps
 import time
+from functools import wraps
+from typing import Any, Optional
 
 from src.uckn.core.atoms.multi_modal_embeddings_optimized import (
     MultiModalEmbeddingsOptimized,
@@ -126,7 +126,7 @@ class SemanticSearchEngineOptimized:
 
     def search(
         self,
-        query: Dict[str, Optional[str]],
+        query: dict[str, Optional[str]],
         collection_name: str,
         limit: int = 10,
         min_similarity: float = 0.7,
@@ -156,7 +156,7 @@ class SemanticSearchEngineOptimized:
 
     def batch_search(
         self,
-        queries: List[Dict[str, Optional[str]]],
+        queries: list[dict[str, Optional[str]]],
         collection_name: str,
         limit: int = 10,
         min_similarity: float = 0.7,

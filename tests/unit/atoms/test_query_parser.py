@@ -3,6 +3,7 @@ Tests for QueryParser atom.
 """
 
 import pytest
+
 from src.uckn.core.atoms.query_parser import QueryParser
 
 

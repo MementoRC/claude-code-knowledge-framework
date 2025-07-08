@@ -3,12 +3,12 @@ UCKN Synchronization Queue
 Manages offline sync queue for handling updates when server is unavailable.
 """
 
-import logging
 import json
-from datetime import datetime
-from typing import Dict, List, Set, Any, Optional
+import logging
 from collections import deque
+from datetime import datetime
 from enum import Enum
+from typing import Any, Optional
 
 
 class QueueOperation(Enum):
@@ -45,12 +45,12 @@ class SyncQueue:
         self.logger = logging.getLogger(__name__)
 
         # Priority queues for different operation types
-        self.queues: Dict[QueuePriority, deque] = {
+        self.queues: dict[QueuePriority, deque] = {
             priority: deque() for priority in QueuePriority
         }
 
         # Track patterns that are already queued to avoid duplicates
-        self.queued_patterns: Set[str] = set()
+        self.queued_patterns: set[str] = set()
 
         # Statistics
         self.stats = {
@@ -65,7 +65,7 @@ class SyncQueue:
         pattern_id: str,
         operation: QueueOperation = QueueOperation.SYNC,
         priority: QueuePriority = QueuePriority.NORMAL,
-        data: Optional[Dict[str, Any]] = None,
+        data: Optional[dict[str, Any]] = None,
     ) -> bool:
         """
         Add a pattern operation to the sync queue.
@@ -114,7 +114,7 @@ class SyncQueue:
 
         return True
 
-    def get_next_batch(self, batch_size: int = 10) -> List[Dict[str, Any]]:
+    def get_next_batch(self, batch_size: int = 10) -> list[dict[str, Any]]:
         """
         Get the next batch of items to process, ordered by priority.
 
@@ -135,7 +135,7 @@ class SyncQueue:
 
         return batch
 
-    def get_pending_patterns(self, limit: int = 100) -> List[str]:
+    def get_pending_patterns(self, limit: int = 100) -> list[str]:
         """
         Get list of pattern IDs that are pending sync.
 
@@ -160,7 +160,7 @@ class SyncQueue:
 
         return pattern_ids
 
-    def mark_processed(self, pattern_ids: List[str]) -> None:
+    def mark_processed(self, pattern_ids: list[str]) -> None:
         """Mark patterns as successfully processed and remove from queue."""
         for pattern_id in pattern_ids:
             if pattern_id in self.queued_patterns:
@@ -211,7 +211,7 @@ class SyncQueue:
 
         return False
 
-    def clear_processed(self, pattern_ids: List[str]) -> None:
+    def clear_processed(self, pattern_ids: list[str]) -> None:
         """Clear processed patterns from the queue."""
         self.mark_processed(pattern_ids)
 
@@ -233,7 +233,7 @@ class SyncQueue:
 
         self.logger.info("Sync queue cleared")
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get queue statistics."""
         priority_counts = {
             priority.name.lower(): len(self.queues[priority])
@@ -248,7 +248,7 @@ class SyncQueue:
             else 0,
         }
 
-    def get_failed_items(self) -> List[Dict[str, Any]]:
+    def get_failed_items(self) -> list[dict[str, Any]]:
         """Get items that have failed at least once."""
         failed_items = []
 
@@ -282,7 +282,7 @@ class SyncQueue:
         self.logger.info(f"Reset {retry_count} failed items for retry")
         return retry_count
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize queue to dictionary for persistence."""
         queue_data = {}
 
@@ -296,7 +296,7 @@ class SyncQueue:
             "max_size": self.max_size,
         }
 
-    def from_dict(self, data: Dict[str, Any]) -> None:
+    def from_dict(self, data: dict[str, Any]) -> None:
         """Restore queue from serialized dictionary."""
         try:
             # Restore queues
@@ -337,7 +337,7 @@ class SyncQueue:
     def load_from_file(self, file_path: str) -> bool:
         """Load queue from file."""
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 data = json.load(f)
 
             self.from_dict(data)

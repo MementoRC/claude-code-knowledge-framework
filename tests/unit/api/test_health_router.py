@@ -2,13 +2,15 @@
 Tests for health monitoring API endpoints.
 """
 
+from unittest.mock import Mock
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import Mock
+
+from src.uckn.api.dependencies import get_knowledge_manager
 
 # Import the main FastAPI app and the dependency
 from src.uckn.api.main import app
-from src.uckn.api.dependencies import get_knowledge_manager
 from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
 
 
@@ -17,10 +19,12 @@ def client():
     """Test client fixture."""
     return TestClient(app)
 
+
 @pytest.fixture
 def mock_knowledge_manager():
     """Mock KnowledgeManager instance."""
     return Mock(spec=KnowledgeManager)
+
 
 @pytest.fixture(autouse=True)
 def override_knowledge_manager_dependency(mock_knowledge_manager):
@@ -29,7 +33,7 @@ def override_knowledge_manager_dependency(mock_knowledge_manager):
     """
     app.dependency_overrides[get_knowledge_manager] = lambda: mock_knowledge_manager
     yield
-    app.dependency_overrides = {} # Clean up after test
+    app.dependency_overrides = {}  # Clean up after test
 
 
 @pytest.mark.unit
@@ -49,8 +53,8 @@ def test_system_status_healthy(client, mock_knowledge_manager):
         "unified_db_available": True,
         "components": {
             "pattern_manager": "healthy",
-            "error_solution_manager": "healthy"
-        }
+            "error_solution_manager": "healthy",
+        },
     }
 
     response = client.get("/api/v1/status")
@@ -69,8 +73,8 @@ def test_system_status_degraded(client, mock_knowledge_manager):
         "unified_db_available": False,
         "components": {
             "pattern_manager": "degraded",
-            "error_solution_manager": "degraded"
-        }
+            "error_solution_manager": "degraded",
+        },
     }
 
     response = client.get("/api/v1/status")
@@ -80,15 +84,19 @@ def test_system_status_degraded(client, mock_knowledge_manager):
     assert "components" in data
     mock_knowledge_manager.get_health_status.assert_called_once()
 
+
 @pytest.mark.unit
 def test_system_status_error(client, mock_knowledge_manager):
     """Test system status endpoint when an error occurs in the knowledge manager."""
-    mock_knowledge_manager.get_health_status.side_effect = Exception("Simulated KM error")
+    mock_knowledge_manager.get_health_status.side_effect = Exception(
+        "Simulated KM error"
+    )
 
     response = client.get("/api/v1/status")
-    assert response.status_code == 200 # The endpoint itself handles the exception and returns a status
+    assert (
+        response.status_code == 200
+    )  # The endpoint itself handles the exception and returns a status
     data = response.json()
     assert data["status"] == "unhealthy"
     assert data["components"] == {}
     mock_knowledge_manager.get_health_status.assert_called_once()
-

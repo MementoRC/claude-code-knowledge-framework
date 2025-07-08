@@ -1,12 +1,16 @@
-import pytest
 import numpy as np
+import pytest
 
 from src.uckn.core.atoms.multi_modal_embeddings import MultiModalEmbeddings
+
 
 class DummyChromaDBConnector:
     def __init__(self):
         self.last_query = None
-    def search_documents(self, collection_name, query_embedding, n_results, min_similarity, where_clause):
+
+    def search_documents(
+        self, collection_name, query_embedding, n_results, min_similarity, where_clause
+    ):
         self.last_query = {
             "collection_name": collection_name,
             "query_embedding": query_embedding,
@@ -19,9 +23,11 @@ class DummyChromaDBConnector:
             {"id": "1", "document": "dummy", "metadata": {}, "similarity_score": 0.99}
         ]
 
+
 @pytest.fixture(scope="module")
 def mm_embedder():
     return MultiModalEmbeddings()
+
 
 def test_code_embedding_quality(mm_embedder):
     code1 = "def add(a, b):\n    return a + b"
@@ -32,6 +38,7 @@ def test_code_embedding_quality(mm_embedder):
     sim = np.dot(emb1, emb2) / (np.linalg.norm(emb1) * np.linalg.norm(emb2))
     assert sim > 0.8  # Similar code should have high similarity
 
+
 def test_text_embedding_quality(mm_embedder):
     text1 = "Add two numbers"
     text2 = "Sum two values"
@@ -40,6 +47,7 @@ def test_text_embedding_quality(mm_embedder):
     assert emb1 is not None and emb2 is not None
     sim = np.dot(emb1, emb2) / (np.linalg.norm(emb1) * np.linalg.norm(emb2))
     assert sim > 0.6  # Lowered threshold for semantic similarity
+
 
 def test_config_embedding(mm_embedder):
     config1 = "setting1 = true\nsetting2 = 42"
@@ -50,8 +58,9 @@ def test_config_embedding(mm_embedder):
     sim = np.dot(emb1, emb2) / (np.linalg.norm(emb1) * np.linalg.norm(emb2))
     assert sim > 0.7
 
+
 def test_error_embedding(mm_embedder):
-    error1 = "Traceback (most recent call last):\n  File \"main.py\", line 1, in <module>\nZeroDivisionError: division by zero"
+    error1 = 'Traceback (most recent call last):\n  File "main.py", line 1, in <module>\nZeroDivisionError: division by zero'
     error2 = "ZeroDivisionError: division by zero"
     emb1 = mm_embedder.embed(error1, data_type="error")
     emb2 = mm_embedder.embed(error2, data_type="error")
@@ -59,33 +68,39 @@ def test_error_embedding(mm_embedder):
     sim = np.dot(emb1, emb2) / (np.linalg.norm(emb1) * np.linalg.norm(emb2))
     assert sim > 0.8
 
+
 def test_batch_processing(mm_embedder):
     items = [
         {"type": "text", "content": "Hello world"},
         {"type": "code", "content": "def foo(): pass"},
         {"type": "config", "content": "foo = bar"},
-        {"type": "error", "content": "ValueError: invalid value"}
+        {"type": "error", "content": "ValueError: invalid value"},
     ]
     embs = mm_embedder.embed_batch(items)
     assert all(e is not None for e in embs)
     assert len(embs) == 4
+
 
 def test_multi_modal_combination(mm_embedder):
     code = "def foo(): return 1"
     text = "Function that returns one"
     config = "foo = 1"
     error = "NameError: name 'foo' is not defined"
-    emb = mm_embedder.multi_modal_embed(code=code, text=text, config=config, error=error)
+    emb = mm_embedder.multi_modal_embed(
+        code=code, text=text, config=config, error=error
+    )
     assert emb is not None
     # Should be normalized
     norm = np.linalg.norm(emb)
     assert abs(norm - 1.0) < 1e-3
+
 
 def test_caching(mm_embedder):
     text = "cache test"
     emb1 = mm_embedder.embed(text, data_type="text")
     emb2 = mm_embedder.embed(text, data_type="text")
     assert emb1 is emb2 or np.allclose(emb1, emb2)
+
 
 def test_search_integration(mm_embedder):
     chroma = DummyChromaDBConnector()

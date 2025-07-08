@@ -1,24 +1,28 @@
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from ...core.organisms.knowledge_manager import KnowledgeManager
 from ...core.molecules.workflow_manager import WorkflowManager
+from ...core.organisms.knowledge_manager import KnowledgeManager
 from ..dependencies import (
     get_knowledge_manager,
-)  # Assuming get_knowledge_manager exists
-from ..routers.collaboration import (
-    manager as connection_manager_instance,
-)  # Import the global ConnectionManager instance directly
-from ..models.workflow import (
-    WorkflowTransitionRequest,
-    SubmitReviewFeedbackRequest,
-    InitiateReviewRequest,
-    WorkflowStatusResponse,
-    WorkflowActionResponse,
 )
 from ..models.patterns import PatternStatus  # For consistency
+
+# Import the global ConnectionManager instance directly
+from ..models.workflow import (
+    InitiateReviewRequest,
+    SubmitReviewFeedbackRequest,
+    WorkflowActionResponse,
+    WorkflowStatusResponse,
+    WorkflowTransitionRequest,
+)
+
+# Assuming get_knowledge_manager exists
+from ..routers.collaboration import (
+    manager as connection_manager_instance,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -39,7 +43,7 @@ def get_current_user_id() -> str:
     return "test_user_id"
 
 
-def get_current_user_roles() -> List[str]:
+def get_current_user_roles() -> list[str]:
     """Returns dummy user roles for testing purposes."""
     return ["contributor", "admin"]
 
@@ -117,7 +121,7 @@ async def transition_pattern_state(
     request: WorkflowTransitionRequest,
     workflow_manager: WorkflowManager = Depends(get_workflow_manager),
     user_id: str = Depends(get_current_user_id),
-    user_roles: List[str] = Depends(get_current_user_roles),
+    user_roles: list[str] = Depends(get_current_user_roles),
 ):
     """
     Transitions a pattern to a new workflow state (e.g., approve, reject, publish).
@@ -175,8 +179,8 @@ async def get_pattern_workflow_status(
 
 @router.get(
     "/patterns/workflow/pending_reviews",
-    response_model=List[
-        Dict[str, Any]
+    response_model=list[
+        dict[str, Any]
     ],  # Using Dict[str, Any] for simplicity, could define a specific model
     summary="Get patterns awaiting review",
 )
@@ -185,7 +189,7 @@ async def get_patterns_awaiting_review_endpoint(
         get_current_user_id
     ),  # Default to current user
     workflow_manager: WorkflowManager = Depends(get_workflow_manager),
-    user_roles: List[str] = Depends(get_current_user_roles),
+    user_roles: list[str] = Depends(get_current_user_roles),
 ):
     """
     Retrieves a list of patterns that are currently in the 'in_review' state

@@ -6,9 +6,9 @@ temporal filters, quality metrics, and other dynamic filters based on document m
 """
 
 import logging
-from datetime import datetime
-from typing import Dict, Any, List, Optional
 from collections import defaultdict
+from datetime import datetime
+from typing import Any, Optional
 
 
 class FacetedSearchManager:
@@ -28,7 +28,7 @@ class FacetedSearchManager:
         self._facet_cache = {}
         self._cache_expiry = {}
 
-    def extract_facets(self, documents: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def extract_facets(self, documents: list[dict[str, Any]]) -> dict[str, Any]:
         """
         Extract available facets from a collection of documents.
 
@@ -135,8 +135,8 @@ class FacetedSearchManager:
         return result
 
     def apply_facet_filters(
-        self, documents: List[Dict[str, Any]], filters: Dict[str, Any]
-    ) -> List[Dict[str, Any]]:
+        self, documents: list[dict[str, Any]], filters: dict[str, Any]
+    ) -> list[dict[str, Any]]:
         """
         Apply facet filters to a list of documents.
 

@@ -4,7 +4,7 @@ import json
 import logging
 import time
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -246,7 +246,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
         return "unknown"
 
-    def _get_user_info(self, request: Request) -> Optional[Dict[str, Any]]:
+    def _get_user_info(self, request: Request) -> Optional[dict[str, Any]]:
         """Get user information from request state"""
         if hasattr(request.state, "user"):
             user = request.state.user
@@ -257,7 +257,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             }
         return None
 
-    def _filter_headers(self, headers: Dict[str, str]) -> Dict[str, str]:
+    def _filter_headers(self, headers: dict[str, str]) -> dict[str, str]:
         """Filter out sensitive headers from logs"""
         filtered = {}
         for key, value in headers.items():

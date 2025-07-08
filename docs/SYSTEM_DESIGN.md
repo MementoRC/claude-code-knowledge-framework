@@ -35,7 +35,7 @@ A state-of-the-art knowledge management system designed specifically for Claude 
   "timestamp": "2024-12-23T14:30:15Z",
   "context": {
     "repository": "llm-pytest-analyzer",
-    "branch": "mnt/review-cleanup", 
+    "branch": "mnt/review-cleanup",
     "pr_number": 123,
     "ci_status": "failure",
     "initial_failures": ["test_module.py::test_function", "..."]
@@ -81,23 +81,23 @@ A state-of-the-art knowledge management system designed specifically for Claude 
 def complete_session_with_knowledge_capture(session_data):
     # Extract lessons learned
     lessons = extract_lessons_learned(session_data)
-    
+
     # Identify patterns
     patterns = identify_solution_patterns(session_data)
-    
+
     # Store knowledge
     knowledge_record = create_knowledge_record(
         session_data=session_data,
         lessons=lessons,
         patterns=patterns
     )
-    
+
     # Update knowledge base
     store_knowledge_record(knowledge_record)
-    
+
     # Update pattern database
     update_pattern_database(patterns)
-    
+
     return knowledge_record
 ```
 
@@ -113,17 +113,17 @@ def complete_session_with_knowledge_capture(session_data):
 def search_knowledge_base(query, context=None):
     # 1. Keyword search for exact matches
     keyword_results = keyword_search(query)
-    
+
     # 2. Semantic search for similar issues
     semantic_results = semantic_search(query, top_k=5)
-    
+
     # 3. Context-aware filtering
     if context:
         results = filter_by_context(
-            keyword_results + semantic_results, 
+            keyword_results + semantic_results,
             context
         )
-    
+
     # 4. Rank by relevance and recency
     return rank_results(results)
 ```

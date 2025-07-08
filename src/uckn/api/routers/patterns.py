@@ -2,18 +2,18 @@
 Pattern management endpoints for UCKN API.
 """
 
-import logging
 import datetime  # Added for timestamp
 import hashlib  # Added for document hash
-from typing import Dict, Any, List, Optional
+import logging
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from ...core.organisms.knowledge_manager import KnowledgeManager
 from ..dependencies import get_knowledge_manager
-from ..models.patterns import PatternSubmission, PatternStatus
 from ..models.common import BaseResponse  # For PatternContributionResponse inheritance
+from ..models.patterns import PatternStatus, PatternSubmission
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -22,7 +22,7 @@ router = APIRouter()
 class TechStackFilter(BaseModel):
     """Technology stack filter for pattern search."""
 
-    technologies: Optional[List[str]] = None
+    technologies: Optional[list[str]] = None
     project_type: Optional[str] = None
     complexity: Optional[str] = None
 
@@ -39,7 +39,7 @@ class PatternSearchRequest(BaseModel):
 class PatternSearchResponse(BaseModel):
     """Response model for pattern search."""
 
-    patterns: List[Dict[str, Any]]
+    patterns: list[dict[str, Any]]
     total_count: int
     query_time_ms: int
 

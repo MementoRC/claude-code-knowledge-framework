@@ -1,23 +1,29 @@
+import json
 import os
 import tempfile
-import json
+
 import pytest
+
 from src.uckn.core.atoms.project_dna_fingerprinter import ProjectDNAFingerprinter
+
 
 class DummyTechStackDetector:
     """
     Dummy TechStackDetector for controlled test input.
     """
+
     def __init__(self, stack):
         self._stack = stack
 
     def analyze_project(self, project_path):
         return self._stack
 
+
 @pytest.fixture
 def fingerprinter():
     fp = ProjectDNAFingerprinter()
     return fp
+
 
 def test_fingerprint_generation_python(fingerprinter, monkeypatch):
     stack = {
@@ -28,7 +34,7 @@ def test_fingerprint_generation_python(fingerprinter, monkeypatch):
         "testing": ["pytest"],
         "ci_cd": ["GitHub Actions"],
         "libraries": ["numpy", "pandas"],
-        "architecture": ["MVC"]
+        "architecture": ["MVC"],
     }
     # Patch tech_detector
     fingerprinter.tech_detector = DummyTechStackDetector(stack)
@@ -40,6 +46,7 @@ def test_fingerprint_generation_python(fingerprinter, monkeypatch):
         assert isinstance(fp["vector"], list)
         assert any(x > 0 for x in fp["vector"])
 
+
 def test_fingerprint_generation_javascript(fingerprinter, monkeypatch):
     stack = {
         "languages": ["JavaScript"],
@@ -49,13 +56,14 @@ def test_fingerprint_generation_javascript(fingerprinter, monkeypatch):
         "testing": ["Jest"],
         "ci_cd": ["GitHub Actions"],
         "libraries": ["lodash"],
-        "architecture": ["SPA"]
+        "architecture": ["SPA"],
     }
     fingerprinter.tech_detector = DummyTechStackDetector(stack)
     with tempfile.TemporaryDirectory() as tmpdir:
         fp = fingerprinter.generate_fingerprint(tmpdir)
         assert "JavaScript" in fp["languages"]
         assert "vector" in fp
+
 
 def test_similarity_score_related_projects(fingerprinter):
     fp1 = {
@@ -66,7 +74,7 @@ def test_similarity_score_related_projects(fingerprinter):
         "testing": ["pytest"],
         "ci_cd": ["GitHub Actions"],
         "libraries": ["numpy"],
-        "architecture": ["MVC"]
+        "architecture": ["MVC"],
     }
     fp2 = {
         "languages": ["Python"],
@@ -76,7 +84,7 @@ def test_similarity_score_related_projects(fingerprinter):
         "testing": ["pytest"],
         "ci_cd": ["GitHub Actions"],
         "libraries": ["pandas"],
-        "architecture": ["MVC"]
+        "architecture": ["MVC"],
     }
     fingerprinter.tech_detector = DummyTechStackDetector(fp1)
     v1 = fingerprinter.generate_fingerprint("dummy1")
@@ -84,6 +92,7 @@ def test_similarity_score_related_projects(fingerprinter):
     v2 = fingerprinter.generate_fingerprint("dummy2")
     sim = fingerprinter.compute_similarity(v1, v2)
     assert 0.5 < sim <= 1.0
+
 
 def test_similarity_score_unrelated_projects(fingerprinter):
     fp1 = {
@@ -94,7 +103,7 @@ def test_similarity_score_unrelated_projects(fingerprinter):
         "testing": ["pytest"],
         "ci_cd": ["GitHub Actions"],
         "libraries": ["numpy"],
-        "architecture": ["MVC"]
+        "architecture": ["MVC"],
     }
     fp2 = {
         "languages": ["JavaScript"],
@@ -104,7 +113,7 @@ def test_similarity_score_unrelated_projects(fingerprinter):
         "testing": ["Jest"],
         "ci_cd": ["CircleCI"],
         "libraries": ["lodash"],
-        "architecture": ["SPA"]
+        "architecture": ["SPA"],
     }
     fingerprinter.tech_detector = DummyTechStackDetector(fp1)
     v1 = fingerprinter.generate_fingerprint("dummy1")
@@ -112,6 +121,7 @@ def test_similarity_score_unrelated_projects(fingerprinter):
     v2 = fingerprinter.generate_fingerprint("dummy2")
     sim = fingerprinter.compute_similarity(v1, v2)
     assert 0.0 <= sim < 0.5
+
 
 def test_serialization_deserialization(fingerprinter):
     fp = {
@@ -123,13 +133,14 @@ def test_serialization_deserialization(fingerprinter):
         "ci_cd": ["GitHub Actions"],
         "libraries": ["numpy"],
         "architecture": ["MVC"],
-        "vector": [1.0, 2.0, 3.0]
+        "vector": [1.0, 2.0, 3.0],
     }
     s = fingerprinter.serialize_fingerprint(fp)
     assert isinstance(s, str)
     fp2 = fingerprinter.deserialize_fingerprint(s)
     assert fp2["languages"] == ["Python"]
     assert fp2["vector"] == [1.0, 2.0, 3.0]
+
 
 def test_compatibility_matrix(fingerprinter):
     fp1 = {
@@ -140,7 +151,7 @@ def test_compatibility_matrix(fingerprinter):
         "testing": ["pytest"],
         "ci_cd": ["GitHub Actions"],
         "libraries": ["numpy"],
-        "architecture": ["MVC"]
+        "architecture": ["MVC"],
     }
     fp2 = {
         "languages": ["JavaScript"],
@@ -150,7 +161,7 @@ def test_compatibility_matrix(fingerprinter):
         "testing": ["Jest"],
         "ci_cd": ["GitHub Actions"],
         "libraries": ["lodash"],
-        "architecture": ["SPA"]
+        "architecture": ["SPA"],
     }
     fingerprinter.tech_detector = DummyTechStackDetector(fp1)
     v1 = fingerprinter.generate_fingerprint("dummy1")
@@ -163,6 +174,7 @@ def test_compatibility_matrix(fingerprinter):
     assert 0.0 <= matrix[1][0] <= 1.0
     assert matrix[1][1] == 1.0
 
+
 def test_performance_large_project(monkeypatch, fingerprinter):
     # Simulate a large project with many libraries and frameworks
     stack = {
@@ -173,7 +185,7 @@ def test_performance_large_project(monkeypatch, fingerprinter):
         "testing": ["pytest", "unittest", "nose"],
         "ci_cd": ["GitHub Actions", "TravisCI", "CircleCI"],
         "libraries": [f"lib{i}" for i in range(1000)],
-        "architecture": ["MVC", "Microservices"]
+        "architecture": ["MVC", "Microservices"],
     }
     fingerprinter.tech_detector = DummyTechStackDetector(stack)
     with tempfile.TemporaryDirectory() as tmpdir:

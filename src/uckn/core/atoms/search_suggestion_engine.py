@@ -6,9 +6,9 @@ based on user behavior, popular searches, and content analysis.
 """
 
 import logging
-from typing import Dict, Any, List, Optional
-from collections import defaultdict
 import re
+from collections import defaultdict
+from typing import Any, Optional
 
 
 class SearchSuggestionEngine:
@@ -81,7 +81,7 @@ class SearchSuggestionEngine:
 
     def get_autocomplete_suggestions(
         self, partial_query: str, limit: int = 5
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get autocomplete suggestions for a partial query."""
         if not partial_query or len(partial_query) < 2:
             return []
@@ -128,7 +128,7 @@ class SearchSuggestionEngine:
 
         return sorted_suggestions[:limit]
 
-    def get_related_suggestions(self, query: str, limit: int = 3) -> List[str]:
+    def get_related_suggestions(self, query: str, limit: int = 3) -> list[str]:
         """Get related search suggestions for a given query."""
         normalized_query = self._normalize_query(query).lower()
 
@@ -162,7 +162,7 @@ class SearchSuggestionEngine:
         """Normalize a query for consistent processing."""
         return re.sub(r"\s+", " ", query.strip())
 
-    def _extract_terms(self, query: str) -> List[str]:
+    def _extract_terms(self, query: str) -> list[str]:
         """Extract meaningful terms from a query."""
         terms = re.findall(r"\w+", query.lower())
         return [term for term in terms if len(term) >= 2]

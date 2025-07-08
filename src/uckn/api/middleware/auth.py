@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import HTTPException, Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from ..dependencies import get_settings, validate_api_key, get_user_context
+from ..dependencies import get_settings, get_user_context, validate_api_key
 
 logger = logging.getLogger(__name__)
 

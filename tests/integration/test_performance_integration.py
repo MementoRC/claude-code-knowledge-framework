@@ -1,17 +1,22 @@
 import pytest
-from src.uckn.core.atoms.semantic_search_engine_optimized import (
-    SemanticSearchEngineOptimized,
-    CacheManager,
-    ResourceMonitor,
-    PerformanceAnalytics,
+
+from src.uckn.core.atoms.multi_modal_embeddings_optimized import (
+    MultiModalEmbeddingsOptimized,
 )
-from src.uckn.core.atoms.multi_modal_embeddings_optimized import MultiModalEmbeddingsOptimized
+from src.uckn.core.atoms.semantic_search_engine_optimized import (
+    CacheManager,
+    PerformanceAnalytics,
+    ResourceMonitor,
+    SemanticSearchEngineOptimized,
+)
+
 
 def test_performance_integration(monkeypatch):
     # Dummy ChromaDBConnector
     class DummyChroma:
         def search_documents(self, **kwargs):
             return [{"id": 1, "score": 0.99}]
+
     cache = CacheManager(max_size=10)
     monitor = ResourceMonitor()
     analytics = PerformanceAnalytics()
@@ -40,6 +45,7 @@ def test_performance_integration(monkeypatch):
     summary = engine.get_performance_summary()
     assert "resource_usage" in summary
     assert "analytics" in summary
+
 
 def test_performance_mode_toggle():
     engine = SemanticSearchEngineOptimized(chroma_connector=None)

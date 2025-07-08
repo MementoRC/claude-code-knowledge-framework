@@ -8,13 +8,14 @@ for efficient knowledge retrieval based on meaning rather than just keywords.
 
 import json
 import logging
-import numpy as np
-from pathlib import Path
-from typing import Dict, List, Optional, Any
-from datetime import datetime
 
 # Defensive import to handle PyTorch docstring conflicts
 import os
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Optional
+
+import numpy as np
 
 _DISABLE_TORCH = os.environ.get("UCKN_DISABLE_TORCH", "0") == "1"
 
@@ -109,7 +110,7 @@ class SemanticSearchEngine:
         return self.sentence_model is not None
 
     def generate_session_embedding(
-        self, session_data: Dict[str, Any]
+        self, session_data: dict[str, Any]
     ) -> Optional[np.ndarray]:
         """Generate embedding for a session."""
         if not self.sentence_model:
@@ -128,7 +129,7 @@ class SemanticSearchEngine:
             return None
 
     def store_session_embedding(
-        self, session_id: str, session_data: Dict[str, Any]
+        self, session_id: str, session_data: dict[str, Any]
     ) -> bool:
         """Store session embedding in vector database."""
         try:
@@ -165,7 +166,7 @@ class SemanticSearchEngine:
 
     def search_similar_sessions(
         self, query: str, max_results: int = 10, similarity_threshold: float = 0.7
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Search for similar sessions using semantic similarity."""
         if not self.sentence_model:
             self._logger.warning(
@@ -193,7 +194,7 @@ class SemanticSearchEngine:
 
     def _search_chromadb(
         self, query_embedding: np.ndarray, max_results: int, similarity_threshold: float
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Search using ChromaDB vector database."""
         try:
             results = self.collection.query(
@@ -229,14 +230,14 @@ class SemanticSearchEngine:
 
     def _search_numpy_fallback(
         self, query_embedding: np.ndarray, max_results: int, similarity_threshold: float
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Fallback search using numpy similarity computation."""
         try:
             embeddings_file = self.embeddings_dir / "session_embeddings.json"
             if not embeddings_file.exists():
                 return []
 
-            with open(embeddings_file, "r") as f:
+            with open(embeddings_file) as f:
                 stored_embeddings = json.load(f)
 
             similarities = []
@@ -268,7 +269,7 @@ class SemanticSearchEngine:
             return []
 
     def _store_embedding_numpy(
-        self, session_id: str, embedding: np.ndarray, session_data: Dict[str, Any]
+        self, session_id: str, embedding: np.ndarray, session_data: dict[str, Any]
     ) -> None:
         """Store embedding using numpy fallback."""
         embeddings_file = self.embeddings_dir / "session_embeddings.json"
@@ -276,7 +277,7 @@ class SemanticSearchEngine:
         try:
             # Load existing embeddings
             if embeddings_file.exists():
-                with open(embeddings_file, "r") as f:
+                with open(embeddings_file) as f:
                     embeddings = json.load(f)
             else:
                 embeddings = {}
@@ -302,7 +303,7 @@ class SemanticSearchEngine:
         except Exception as e:
             self._logger.error(f"Failed to store numpy embedding: {e}")
 
-    def _extract_text_for_embedding(self, session_data: Dict[str, Any]) -> str:
+    def _extract_text_for_embedding(self, session_data: dict[str, Any]) -> str:
         """Extract meaningful text content from session data for embedding."""
         text_parts = []
 
@@ -338,7 +339,7 @@ class SemanticSearchEngine:
 
         return combined_text
 
-    def get_embedding_stats(self) -> Dict[str, Any]:
+    def get_embedding_stats(self) -> dict[str, Any]:
         """Get statistics about stored embeddings."""
         try:
             if self.collection is not None:
@@ -353,7 +354,7 @@ class SemanticSearchEngine:
                 # Numpy fallback stats
                 embeddings_file = self.embeddings_dir / "session_embeddings.json"
                 if embeddings_file.exists():
-                    with open(embeddings_file, "r") as f:
+                    with open(embeddings_file) as f:
                         embeddings = json.load(f)
                     return {
                         "total_embeddings": len(embeddings),

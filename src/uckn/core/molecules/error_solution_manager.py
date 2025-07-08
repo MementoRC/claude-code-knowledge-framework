@@ -3,13 +3,13 @@ UCKN Error Solution Manager Molecule
 Handles CRUD operations for error solutions
 """
 
-from typing import Dict, List, Optional, Any
+import logging
 import uuid
 from datetime import datetime
-import logging
+from typing import Any, Optional
 
-from ..atoms.semantic_search import SemanticSearch
 from ...storage import UnifiedDatabase  # Changed from ChromaDBConnector
+from ..atoms.semantic_search import SemanticSearch
 
 
 class ErrorSolutionManager:
@@ -20,7 +20,7 @@ class ErrorSolutionManager:
         self.semantic_search = semantic_search
         self._logger = logging.getLogger(__name__)
 
-    def add_error_solution(self, solution_data: Dict[str, Any]) -> Optional[str]:
+    def add_error_solution(self, solution_data: dict[str, Any]) -> Optional[str]:
         """
         Add a new error solution to the 'error_solutions' collection.
 
@@ -79,7 +79,7 @@ class ErrorSolutionManager:
         )
         return solution_id if success else None
 
-    def get_error_solution(self, solution_id: str) -> Optional[Dict[str, Any]]:
+    def get_error_solution(self, solution_id: str) -> Optional[dict[str, Any]]:
         """
         Retrieve a specific error solution from the Unified Database.
 
@@ -101,8 +101,8 @@ class ErrorSolutionManager:
         error_query: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        metadata_filter: Optional[dict[str, Any]] = None,
+    ) -> list[dict[str, Any]]:
         """
         Search for error solutions using semantic similarity.
 
@@ -140,7 +140,7 @@ class ErrorSolutionManager:
         )
         return results
 
-    def update_error_solution(self, solution_id: str, updates: Dict[str, Any]) -> bool:
+    def update_error_solution(self, solution_id: str, updates: dict[str, Any]) -> bool:
         """
         Update an existing error solution in the Unified Database.
 

@@ -2,7 +2,7 @@
 
 from .auth import AuthMiddleware, get_current_user, require_permission, require_role
 from .logging import LoggingMiddleware
-from .rate_limiting import RateLimitingMiddleware, RateLimitExceeded
+from .rate_limiting import RateLimitExceeded, RateLimitingMiddleware
 
 __all__ = [
     "AuthMiddleware",

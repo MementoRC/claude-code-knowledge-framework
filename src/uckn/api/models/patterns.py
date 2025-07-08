@@ -2,11 +2,11 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field, validator
 
-from .common import BaseResponse, TechnologyStackDNA, ValidationResult, SharingScope
+from .common import BaseResponse, SharingScope, TechnologyStackDNA, ValidationResult
 from .workflow import PatternVersion, ReviewFeedback  # New import
 
 
@@ -60,7 +60,7 @@ class PatternMetadata(BaseModel):
     technology_stack: TechnologyStackDNA = Field(
         description="Technology stack information"
     )
-    tags: List[str] = Field(default_factory=list, description="Pattern tags")
+    tags: list[str] = Field(default_factory=list, description="Pattern tags")
     author: Optional[str] = Field(default=None, description="Pattern author")
     version: str = Field(default="1.0.0", description="Pattern version")
     success_rate: Optional[float] = Field(
@@ -76,11 +76,11 @@ class PatternMetadata(BaseModel):
     estimated_time: Optional[int] = Field(
         default=None, description="Estimated implementation time in minutes"
     )
-    prerequisites: List[str] = Field(default_factory=list, description="Prerequisites")
-    related_patterns: List[str] = Field(
+    prerequisites: list[str] = Field(default_factory=list, description="Prerequisites")
+    related_patterns: list[str] = Field(
         default_factory=list, description="Related pattern IDs"
     )
-    external_links: List[str] = Field(
+    external_links: list[str] = Field(
         default_factory=list, description="External reference links"
     )
 
@@ -127,10 +127,10 @@ class Pattern(BaseModel):
     updated_at: datetime = Field(description="Last update timestamp")
     created_by: Optional[str] = Field(default=None, description="Creator user ID")
     updated_by: Optional[str] = Field(default=None, description="Last updater user ID")
-    embedding: Optional[List[float]] = Field(
+    embedding: Optional[list[float]] = Field(
         default=None, description="Semantic embedding vector"
     )
-    validation_results: List[ValidationResult] = Field(
+    validation_results: list[ValidationResult] = Field(
         default_factory=list, description="Validation results"
     )
 
@@ -138,10 +138,10 @@ class Pattern(BaseModel):
     current_version: str = Field(
         default="1.0.0", description="Current active version of the pattern"
     )
-    versions: List[PatternVersion] = Field(
+    versions: list[PatternVersion] = Field(
         default_factory=list, description="History of pattern versions"
     )
-    reviews: List[ReviewFeedback] = Field(
+    reviews: list[ReviewFeedback] = Field(
         default_factory=list, description="List of review feedback entries"
     )
 
@@ -154,10 +154,10 @@ class PatternSearchResult(BaseModel):
 
     pattern: Pattern = Field(description="Pattern data")
     similarity_score: float = Field(ge=0.0, le=1.0, description="Similarity score")
-    match_highlights: Optional[List[str]] = Field(
+    match_highlights: Optional[list[str]] = Field(
         default=None, description="Highlighted matching text"
     )
-    relevance_factors: Optional[Dict[str, float]] = Field(
+    relevance_factors: Optional[dict[str, float]] = Field(
         default=None, description="Factors contributing to relevance"
     )
 
@@ -166,16 +166,16 @@ class PatternSearchRequest(BaseModel):
     """Pattern search request model"""
 
     query: str = Field(min_length=1, max_length=1000, description="Search query")
-    filters: Optional[Dict[str, Any]] = Field(
+    filters: Optional[dict[str, Any]] = Field(
         default=None, description="Search filters"
     )
-    tech_stack_filter: Optional[Dict[str, List[str]]] = Field(
+    tech_stack_filter: Optional[dict[str, list[str]]] = Field(
         default=None, description="Technology stack filters"
     )
-    pattern_types: Optional[List[PatternType]] = Field(
+    pattern_types: Optional[list[PatternType]] = Field(
         default=None, description="Pattern types to search"
     )
-    tags: Optional[List[str]] = Field(default=None, description="Tags to filter by")
+    tags: Optional[list[str]] = Field(default=None, description="Tags to filter by")
     min_success_rate: Optional[float] = Field(
         default=None, ge=0.0, le=1.0, description="Minimum success rate"
     )
@@ -191,7 +191,7 @@ class PatternSearchRequest(BaseModel):
     )
     project_id: Optional[str] = Field(default=None, description="Filter by project ID")
 
-    def to_metadata_filter(self) -> Dict[str, Any]:
+    def to_metadata_filter(self) -> dict[str, Any]:
         """Convert search request to metadata filter"""
         filters = {}
 
@@ -228,10 +228,10 @@ class PatternSearchRequest(BaseModel):
 class PatternSearchResponse(BaseResponse):
     """Pattern search response model"""
 
-    results: List[PatternSearchResult] = Field(description="Search results")
+    results: list[PatternSearchResult] = Field(description="Search results")
     total_count: int = Field(description="Total number of matching patterns")
     search_time_ms: float = Field(description="Search execution time in milliseconds")
-    filters_applied: Dict[str, Any] = Field(description="Filters that were applied")
+    filters_applied: dict[str, Any] = Field(description="Filters that were applied")
 
 
 class PatternValidationRequest(BaseModel):
@@ -241,7 +241,7 @@ class PatternValidationRequest(BaseModel):
     validation_type: str = Field(
         default="comprehensive", description="Type of validation to perform"
     )
-    additional_context: Optional[Dict[str, Any]] = Field(
+    additional_context: Optional[dict[str, Any]] = Field(
         default=None, description="Additional validation context"
     )
 
@@ -275,13 +275,13 @@ class PatternUpdateRequest(BaseModel):
 class PatternBulkOperationRequest(BaseModel):
     """Bulk pattern operation request"""
 
-    pattern_ids: List[str] = Field(
+    pattern_ids: list[str] = Field(
         min_items=1, max_items=100, description="Pattern IDs"
     )
     operation: str = Field(
         description="Operation to perform (delete, update_status, etc.)"
     )
-    parameters: Optional[Dict[str, Any]] = Field(
+    parameters: Optional[dict[str, Any]] = Field(
         default=None, description="Operation parameters"
     )
 

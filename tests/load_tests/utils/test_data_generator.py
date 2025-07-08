@@ -16,11 +16,20 @@ TECH_STACKS = [
 ]
 
 PATTERN_TYPES = [
-    "singleton", "factory", "observer", "strategy", "test", "integration", "api", "cli"
+    "singleton",
+    "factory",
+    "observer",
+    "strategy",
+    "test",
+    "integration",
+    "api",
+    "cli",
 ]
 
+
 def random_string(length=12):
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+    return "".join(random.choices(string.ascii_letters + string.digits, k=length))
+
 
 def generate_pattern(complexity=None):
     """Generate a realistic pattern for addition."""
@@ -29,7 +38,9 @@ def generate_pattern(complexity=None):
     complexity = complexity or random.choice(["low", "medium", "high"])
     content = f"# {pattern_type.title()} Pattern Example\n"
     if "python" in tech_stack:
-        content += f"class {pattern_type.title()}:\n    def __init__(self):\n        pass\n"
+        content += (
+            f"class {pattern_type.title()}:\n    def __init__(self):\n        pass\n"
+        )
     elif "javascript" in tech_stack:
         content += f"function {pattern_type}() {{}}\n"
     else:
@@ -49,9 +60,10 @@ def generate_pattern(complexity=None):
             "success_rate": round(random.uniform(0.5, 1.0), 2),
             "pattern_id": random_string(12),
             "created_at": "2024-01-01T00:00:00Z",
-            "updated_at": "2024-01-01T00:00:00Z"
-        }
+            "updated_at": "2024-01-01T00:00:00Z",
+        },
     }
+
 
 def generate_search_queries(n=100):
     """Generate a list of realistic search queries."""

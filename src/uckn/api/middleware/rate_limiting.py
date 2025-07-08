@@ -4,7 +4,6 @@ import asyncio
 import logging
 import time
 from collections import defaultdict, deque
-from typing import Dict
 
 from fastapi import Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -23,8 +22,8 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
 
         # In-memory storage for rate limiting
         # In production, this should use Redis or similar distributed cache
-        self._request_counts: Dict[str, deque] = defaultdict(deque)
-        self._locks: Dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+        self._request_counts: dict[str, deque] = defaultdict(deque)
+        self._locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
 
         # Rate limit configurations per endpoint type
         self.rate_limits = {
@@ -124,7 +123,7 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
 
         return f"ip:{client_ip}"
 
-    def _get_rate_limit_config(self, request: Request) -> Dict[str, int]:
+    def _get_rate_limit_config(self, request: Request) -> dict[str, int]:
         """Get rate limit configuration for the endpoint"""
         path = request.url.path
         method = request.method
@@ -141,7 +140,7 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
         # Default rate limit
         return self.rate_limits["default"]
 
-    async def _check_rate_limit(self, client_id: str, config: Dict[str, int]) -> tuple:
+    async def _check_rate_limit(self, client_id: str, config: dict[str, int]) -> tuple:
         """Check if client has exceeded rate limit"""
         async with self._locks[client_id]:
             current_time = time.time()
@@ -165,7 +164,7 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
 
             return is_allowed, remaining, reset_time
 
-    async def _record_request(self, client_id: str, config: Dict[str, int]):
+    async def _record_request(self, client_id: str, config: dict[str, int]):
         """Record a new request for the client"""
         async with self._locks[client_id]:
             current_time = time.time()

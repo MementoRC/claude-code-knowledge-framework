@@ -22,7 +22,7 @@ This directory contains comprehensive load testing infrastructure for the UCKN f
 
 ### Prerequisites
 
-- Install dependencies:  
+- Install dependencies:
   `pip install .[loadtest]`
 - Ensure the UCKN server is running and accessible.
 

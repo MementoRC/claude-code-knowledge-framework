@@ -1,9 +1,10 @@
 from __future__ import annotations
-import logging
+
 import datetime
 import hashlib
 import json
-from typing import Dict, Any, List, Optional, TYPE_CHECKING
+import logging
+from typing import TYPE_CHECKING, Any, Optional
 
 from pydantic import ValidationError
 
@@ -11,7 +12,12 @@ from ..organisms.knowledge_manager import KnowledgeManager
 
 if TYPE_CHECKING:
     from ...api.models.patterns import Pattern
-    from ...api.models.workflow import WorkflowState, InitiateReviewRequest, SubmitReviewFeedbackRequest, WorkflowTransitionRequest
+    from ...api.models.workflow import (
+        InitiateReviewRequest,
+        SubmitReviewFeedbackRequest,
+        WorkflowState,
+        WorkflowTransitionRequest,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +81,7 @@ class WorkflowManager:
         self.knowledge_manager = knowledge_manager
         self.connection_manager = connection_manager
 
-    async def _get_pattern(self, pattern_id: str) -> Optional["Pattern"]:  # noqa: F821
+    async def _get_pattern(self, pattern_id: str) -> Optional[Pattern]:  # noqa: F821
         """Helper to retrieve a pattern and convert it to Pydantic model."""
         # Lazy imports
         from ...api.models.patterns import Pattern, PatternMetadata
@@ -107,7 +113,7 @@ class WorkflowManager:
         return None
 
     async def _update_pattern_in_db(
-        self, pattern_id: str, pattern_model: "Pattern"
+        self, pattern_id: str, pattern_model: Pattern
     ) -> bool:  # noqa: F821
         """Helper to update pattern in the database, converting Pydantic model to dict."""
         # Convert Pydantic model back to dictionary, handling nested models
@@ -117,7 +123,7 @@ class WorkflowManager:
     async def _broadcast_workflow_update(
         self,
         pattern_id: str,
-        new_state: "WorkflowState",
+        new_state: WorkflowState,
         message_type: str,
         user_id: str,
         version: str,
@@ -137,15 +143,15 @@ class WorkflowManager:
         await self.connection_manager.broadcast(json.dumps(update_message))
 
     async def initiate_review(
-        self, pattern_id: str, request: "InitiateReviewRequest", user_id: str
-    ) -> Dict[str, Any]:  # noqa: F821
+        self, pattern_id: str, request: InitiateReviewRequest, user_id: str
+    ) -> dict[str, Any]:  # noqa: F821
         """Initiates the review process for a pattern."""
         # Lazy imports
         from ...api.models.workflow import (
-            WorkflowState,
             PatternVersion,
-            ReviewStatus,
             ReviewFeedback,
+            ReviewStatus,
+            WorkflowState,
         )
 
         pattern = await self._get_pattern(pattern_id)
@@ -244,11 +250,11 @@ class WorkflowManager:
         }
 
     async def submit_review_feedback(
-        self, pattern_id: str, request: "SubmitReviewFeedbackRequest"
-    ) -> Dict[str, Any]:  # noqa: F821
+        self, pattern_id: str, request: SubmitReviewFeedbackRequest
+    ) -> dict[str, Any]:  # noqa: F821
         """Submits review feedback for a pattern."""
         # Lazy imports
-        from ...api.models.workflow import WorkflowState, ReviewFeedback
+        from ...api.models.workflow import ReviewFeedback, WorkflowState
 
         pattern = await self._get_pattern(pattern_id)
         if not pattern:
@@ -310,11 +316,11 @@ class WorkflowManager:
         }
 
     async def transition_state(
-        self, pattern_id: str, request: "WorkflowTransitionRequest"
-    ) -> Dict[str, Any]:  # noqa: F821
+        self, pattern_id: str, request: WorkflowTransitionRequest
+    ) -> dict[str, Any]:  # noqa: F821
         """Transitions a pattern to a new workflow state."""
         # Lazy imports
-        from ...api.models.workflow import WorkflowState, ReviewStatus, PatternVersion
+        from ...api.models.workflow import PatternVersion, ReviewStatus, WorkflowState
 
         pattern = await self._get_pattern(pattern_id)
         if not pattern:
@@ -471,7 +477,7 @@ class WorkflowManager:
             "new_version": pattern.current_version,
         }
 
-    async def get_workflow_status(self, pattern_id: str) -> Dict[str, Any]:
+    async def get_workflow_status(self, pattern_id: str) -> dict[str, Any]:
         """Retrieves the current workflow status of a pattern."""
         # Lazy imports
         from ...api.models.workflow import ReviewStatus
@@ -506,7 +512,7 @@ class WorkflowManager:
 
     async def get_patterns_awaiting_review(
         self, reviewer_id: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Retrieves patterns that are in IN_REVIEW state and optionally assigned to a specific reviewer.
         This requires KnowledgeManager to support searching by nested fields or iterating.
@@ -514,7 +520,7 @@ class WorkflowManager:
         """
         # Lazy imports
         from ...api.models.patterns import Pattern
-        from ...api.models.workflow import WorkflowState, ReviewStatus
+        from ...api.models.workflow import ReviewStatus, WorkflowState
 
         # This is a placeholder. A real implementation would query the DB efficiently.
         # Assuming KnowledgeManager can return all patterns or patterns by status.

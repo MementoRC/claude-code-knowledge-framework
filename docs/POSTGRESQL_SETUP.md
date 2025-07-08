@@ -325,7 +325,7 @@ sudo -u postgres createdb -O uckn shared_company_uckn
   }
 }
 
-# team-backend/.mcp.json  
+# team-backend/.mcp.json
 {
   "mcpServers": {
     "uckn-knowledge": {

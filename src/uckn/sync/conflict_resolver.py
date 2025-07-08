@@ -5,8 +5,8 @@ Handles conflict detection and resolution for pattern synchronization.
 
 import logging
 from datetime import datetime
-from typing import Dict, Any, Optional
 from enum import Enum
+from typing import Any, Optional
 
 
 class ConflictType(Enum):
@@ -44,8 +44,8 @@ class ConflictResolver:
         self.default_strategy = ResolutionStrategy.MANUAL
 
     def detect_conflict(
-        self, local_pattern: Dict[str, Any], server_pattern: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+        self, local_pattern: dict[str, Any], server_pattern: dict[str, Any]
+    ) -> Optional[dict[str, Any]]:
         """
         Detect conflicts between local and server patterns.
 
@@ -79,7 +79,7 @@ class ConflictResolver:
         return None
 
     def _is_concurrent_modification(
-        self, clock1: Dict[str, int], clock2: Dict[str, int]
+        self, clock1: dict[str, int], clock2: dict[str, int]
     ) -> bool:
         """Check if two vector clocks indicate concurrent modifications."""
         # Two clocks are concurrent if neither dominates the other
@@ -90,7 +90,7 @@ class ConflictResolver:
         return not (clock1_dominates or clock2_dominates)
 
     def _determine_conflict_type(
-        self, local_pattern: Dict[str, Any], server_pattern: Dict[str, Any]
+        self, local_pattern: dict[str, Any], server_pattern: dict[str, Any]
     ) -> ConflictType:
         """Determine the type of conflict based on pattern differences."""
         local_content = local_pattern.get("document", "")
@@ -115,8 +115,8 @@ class ConflictResolver:
         return ConflictType.VERSION_MISMATCH
 
     def resolve_conflict(
-        self, conflict: Dict[str, Any], strategy: Optional[ResolutionStrategy] = None
-    ) -> Dict[str, Any]:
+        self, conflict: dict[str, Any], strategy: Optional[ResolutionStrategy] = None
+    ) -> dict[str, Any]:
         """
         Resolve a conflict using the specified strategy.
 
@@ -145,7 +145,7 @@ class ConflictResolver:
             self.logger.error(f"Error resolving conflict: {e}")
             return {"success": False, "error": str(e), "conflict": conflict}
 
-    def _resolve_local_wins(self, conflict: Dict[str, Any]) -> Dict[str, Any]:
+    def _resolve_local_wins(self, conflict: dict[str, Any]) -> dict[str, Any]:
         """Resolve conflict by keeping local version."""
         local_pattern = conflict["local_version"]
 
@@ -167,7 +167,7 @@ class ConflictResolver:
             "resolved_pattern": resolved_pattern,
         }
 
-    def _resolve_server_wins(self, conflict: Dict[str, Any]) -> Dict[str, Any]:
+    def _resolve_server_wins(self, conflict: dict[str, Any]) -> dict[str, Any]:
         """Resolve conflict by keeping server version."""
         server_pattern = conflict["server_version"]
 
@@ -189,7 +189,7 @@ class ConflictResolver:
             "resolved_pattern": resolved_pattern,
         }
 
-    def _resolve_newest_wins(self, conflict: Dict[str, Any]) -> Dict[str, Any]:
+    def _resolve_newest_wins(self, conflict: dict[str, Any]) -> dict[str, Any]:
         """Resolve conflict by keeping the newest version."""
         local_pattern = conflict["local_version"]
         server_pattern = conflict["server_version"]
@@ -215,7 +215,7 @@ class ConflictResolver:
             # Fall back to local wins if timestamp parsing fails
             return self._resolve_local_wins(conflict)
 
-    def _resolve_merge(self, conflict: Dict[str, Any]) -> Dict[str, Any]:
+    def _resolve_merge(self, conflict: dict[str, Any]) -> dict[str, Any]:
         """Resolve conflict by merging local and server versions."""
         local_pattern = conflict["local_version"]
         server_pattern = conflict["server_version"]
@@ -260,7 +260,7 @@ class ConflictResolver:
             # Fall back to local wins
             return self._resolve_local_wins(conflict)
 
-    def _resolve_manual(self, conflict: Dict[str, Any]) -> Dict[str, Any]:
+    def _resolve_manual(self, conflict: dict[str, Any]) -> dict[str, Any]:
         """Return conflict for manual resolution."""
         return {
             "success": False,
@@ -271,8 +271,8 @@ class ConflictResolver:
         }
 
     def _merge_vector_clocks(
-        self, clock1: Dict[str, int], clock2: Dict[str, int]
-    ) -> Dict[str, int]:
+        self, clock1: dict[str, int], clock2: dict[str, int]
+    ) -> dict[str, int]:
         """Merge two vector clocks by taking the maximum value for each key."""
         merged = clock1.copy()
 
@@ -282,7 +282,7 @@ class ConflictResolver:
         return merged
 
     def suggest_resolution_strategy(
-        self, conflict: Dict[str, Any]
+        self, conflict: dict[str, Any]
     ) -> ResolutionStrategy:
         """Suggest the best resolution strategy for a conflict."""
         conflict_type = ConflictType(conflict.get("type", "concurrent_edit"))

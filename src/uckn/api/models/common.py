@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -20,7 +20,7 @@ class ErrorResponse(BaseResponse):
 
     success: bool = False
     error_code: Optional[str] = None
-    details: Optional[Dict[str, Any]] = None
+    details: Optional[dict[str, Any]] = None
 
 
 class PaginationParams(BaseModel):
@@ -46,7 +46,7 @@ class PaginatedResponse(BaseResponse):
 
     @classmethod
     def create(
-        cls, items: List[Any], total: int, page: int, size: int
+        cls, items: list[Any], total: int, page: int, size: int
     ) -> "PaginatedResponse":
         """Create paginated response from items and pagination info"""
         pages = (total + size - 1) // size
@@ -64,15 +64,15 @@ class PaginatedResponse(BaseResponse):
 class TechStackFilter(BaseModel):
     """Technology stack filter model"""
 
-    languages: Optional[List[str]] = Field(
+    languages: Optional[list[str]] = Field(
         default=None, description="Programming languages"
     )
-    frameworks: Optional[List[str]] = Field(default=None, description="Frameworks")
-    libraries: Optional[List[str]] = Field(default=None, description="Libraries")
-    tools: Optional[List[str]] = Field(default=None, description="Development tools")
-    platforms: Optional[List[str]] = Field(default=None, description="Platforms")
+    frameworks: Optional[list[str]] = Field(default=None, description="Frameworks")
+    libraries: Optional[list[str]] = Field(default=None, description="Libraries")
+    tools: Optional[list[str]] = Field(default=None, description="Development tools")
+    platforms: Optional[list[str]] = Field(default=None, description="Platforms")
 
-    def to_metadata_filter(self) -> Dict[str, Any]:
+    def to_metadata_filter(self) -> dict[str, Any]:
         """Convert to metadata filter dictionary"""
         filter_dict = {}
         if self.languages:
@@ -91,21 +91,21 @@ class TechStackFilter(BaseModel):
 class TechnologyStackDNA(BaseModel):
     """Technology stack DNA model"""
 
-    languages: List[str] = Field(
+    languages: list[str] = Field(
         default_factory=list, description="Programming languages detected"
     )
-    frameworks: List[str] = Field(
+    frameworks: list[str] = Field(
         default_factory=list, description="Frameworks detected"
     )
-    libraries: List[str] = Field(default_factory=list, description="Libraries detected")
-    tools: List[str] = Field(
+    libraries: list[str] = Field(default_factory=list, description="Libraries detected")
+    tools: list[str] = Field(
         default_factory=list, description="Development tools detected"
     )
-    platforms: List[str] = Field(default_factory=list, description="Platforms detected")
-    build_systems: List[str] = Field(
+    platforms: list[str] = Field(default_factory=list, description="Platforms detected")
+    build_systems: list[str] = Field(
         default_factory=list, description="Build systems detected"
     )
-    testing_frameworks: List[str] = Field(
+    testing_frameworks: list[str] = Field(
         default_factory=list, description="Testing frameworks detected"
     )
     confidence_score: float = Field(
@@ -124,7 +124,7 @@ class SearchParams(BaseModel):
     min_similarity: float = Field(
         default=0.7, ge=0.0, le=1.0, description="Minimum similarity score"
     )
-    metadata_filter: Optional[Dict[str, Any]] = Field(
+    metadata_filter: Optional[dict[str, Any]] = Field(
         default=None, description="Metadata filter"
     )
 
@@ -153,10 +153,10 @@ class ValidationResult(BaseModel):
     is_valid: bool = Field(description="Whether the pattern is valid")
     score: float = Field(ge=0.0, le=1.0, description="Validation score")
     feedback: Optional[str] = Field(default=None, description="Validation feedback")
-    issues: List[str] = Field(
+    issues: list[str] = Field(
         default_factory=list, description="List of validation issues"
     )
-    suggestions: List[str] = Field(
+    suggestions: list[str] = Field(
         default_factory=list, description="List of improvement suggestions"
     )
     validator_id: Optional[str] = Field(default=None, description="ID of the validator")
@@ -174,7 +174,7 @@ class HealthStatus(BaseModel):
         description="Whether semantic search is available"
     )
     knowledge_dir: str = Field(description="Knowledge directory path")
-    components: Dict[str, str] = Field(description="Component health status")
+    components: dict[str, str] = Field(description="Component health status")
     uptime: Optional[float] = Field(
         default=None, description="System uptime in seconds"
     )
@@ -190,16 +190,16 @@ class HealthStatus(BaseModel):
 class UpdateFilter(BaseModel):
     """Filter for subscription updates"""
 
-    pattern_types: Optional[List[str]] = Field(
+    pattern_types: Optional[list[str]] = Field(
         default=None, description="Pattern types to subscribe to"
     )
-    technologies: Optional[List[str]] = Field(
+    technologies: Optional[list[str]] = Field(
         default=None, description="Technologies to subscribe to"
     )
-    project_ids: Optional[List[str]] = Field(
+    project_ids: Optional[list[str]] = Field(
         default=None, description="Project IDs to subscribe to"
     )
-    user_ids: Optional[List[str]] = Field(
+    user_ids: Optional[list[str]] = Field(
         default=None, description="User IDs to subscribe to"
     )
     min_score: Optional[float] = Field(
@@ -215,19 +215,19 @@ class SetupRecommendation(BaseModel):
     description: str = Field(description="Detailed description")
     priority: str = Field(description="Priority level (high, medium, low)")
     effort: str = Field(description="Estimated effort (high, medium, low)")
-    commands: Optional[List[str]] = Field(
+    commands: Optional[list[str]] = Field(
         default=None, description="Commands to execute"
     )
-    files_to_create: Optional[List[str]] = Field(
+    files_to_create: Optional[list[str]] = Field(
         default=None, description="Files to create"
     )
-    files_to_modify: Optional[List[str]] = Field(
+    files_to_modify: Optional[list[str]] = Field(
         default=None, description="Files to modify"
     )
-    dependencies: Optional[List[str]] = Field(
+    dependencies: Optional[list[str]] = Field(
         default=None, description="Dependencies to install"
     )
-    references: Optional[List[str]] = Field(default=None, description="Reference links")
+    references: Optional[list[str]] = Field(default=None, description="Reference links")
     confidence_score: float = Field(
         ge=0.0, le=1.0, description="Confidence in recommendation"
     )
@@ -241,13 +241,13 @@ class IssueWarning(BaseModel):
     title: str = Field(description="Issue title")
     description: str = Field(description="Detailed description")
     potential_impact: str = Field(description="Potential impact description")
-    suggested_actions: List[str] = Field(description="Suggested actions to resolve")
+    suggested_actions: list[str] = Field(description="Suggested actions to resolve")
     confidence_score: float = Field(
         ge=0.0, le=1.0, description="Confidence in prediction"
     )
     estimated_probability: float = Field(
         ge=0.0, le=1.0, description="Estimated probability of occurrence"
     )
-    related_patterns: Optional[List[str]] = Field(
+    related_patterns: Optional[list[str]] = Field(
         default=None, description="Related pattern IDs"
     )

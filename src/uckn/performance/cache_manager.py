@@ -7,9 +7,10 @@ UCKN Performance Cache Manager
 """
 
 import logging
-import time
 import threading
-from typing import Any, Optional, Callable
+import time
+from collections.abc import Callable
+from typing import Any, Optional
 
 try:
     import redis

@@ -11,8 +11,9 @@ Manages real-time collaboration features including:
 
 import asyncio
 import logging
+from collections.abc import Callable
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Any, Callable
+from typing import Any, Optional
 from uuid import uuid4
 
 import aiohttp
@@ -33,7 +34,7 @@ class ActivityEvent(BaseModel):
     resource_id: Optional[str] = None
     resource_type: Optional[str] = None
     action: str
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -45,7 +46,7 @@ class Comment(BaseModel):
     user_id: str
     parent_id: Optional[str] = None  # For threaded comments
     content: str
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: Optional[datetime] = None
 
@@ -55,8 +56,8 @@ class NotificationPreference(BaseModel):
 
     user_id: str
     notification_type: str  # email, in_app, webhook
-    event_types: List[str]  # pattern_shared, comment_added, etc.
-    settings: Dict[str, Any] = Field(default_factory=dict)
+    event_types: list[str]  # pattern_shared, comment_added, etc.
+    settings: dict[str, Any] = Field(default_factory=dict)
     enabled: bool = True
 
 
@@ -68,9 +69,9 @@ class WebhookConfig(BaseModel):
     name: str
     url: str
     secret: Optional[str] = None
-    event_types: List[str]
+    event_types: list[str]
     enabled: bool = True
-    settings: Dict[str, Any] = Field(default_factory=dict)
+    settings: dict[str, Any] = Field(default_factory=dict)
 
 
 class CollaborationManager:
@@ -78,9 +79,9 @@ class CollaborationManager:
 
     def __init__(self, knowledge_manager: KnowledgeManager):
         self.knowledge_manager = knowledge_manager
-        self.activity_subscribers: Dict[str, List[Callable]] = {}
-        self.webhook_configs: Dict[str, List[WebhookConfig]] = {}
-        self.notification_preferences: Dict[str, List[NotificationPreference]] = {}
+        self.activity_subscribers: dict[str, list[Callable]] = {}
+        self.webhook_configs: dict[str, list[WebhookConfig]] = {}
+        self.notification_preferences: dict[str, list[NotificationPreference]] = {}
 
     async def track_activity(self, event: ActivityEvent) -> None:
         """Track an activity event and notify subscribers."""
@@ -136,7 +137,7 @@ class CollaborationManager:
 
     async def get_comments(
         self, pattern_id: str, parent_id: Optional[str] = None
-    ) -> List[Comment]:
+    ) -> list[Comment]:
         """Get comments for a pattern (optionally filtered by parent)."""
         try:
             # Mock implementation - in real version, query from database
@@ -159,7 +160,7 @@ class CollaborationManager:
 
     async def get_activity_feed(
         self, team_id: Optional[str] = None, limit: int = 50
-    ) -> List[ActivityEvent]:
+    ) -> list[ActivityEvent]:
         """Get activity feed for a team or user."""
         try:
             # Mock implementation - in real version, query from database

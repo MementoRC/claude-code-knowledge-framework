@@ -5,13 +5,14 @@ Provides REST API endpoints for predictive issue detection.
 """
 
 import logging
-from typing import List, Dict, Any, Optional
+from datetime import datetime
+from typing import Any, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
-from datetime import datetime
 
-from ..dependencies import get_predictive_issue_detector
 from ...core.organisms.predictive_issue_detector import PredictiveIssueDetector
+from ..dependencies import get_predictive_issue_detector
 
 router = APIRouter()
 _logger = logging.getLogger(__name__)
@@ -65,7 +66,7 @@ class PredictionResponse(BaseModel):
         default_factory=lambda: datetime.now().isoformat(),
         description="Timestamp of the prediction.",
     )
-    issues: List[PredictedIssue] = Field(
+    issues: list[PredictedIssue] = Field(
         ..., description="List of detected potential issues."
     )
     message: str = Field(
@@ -92,7 +93,7 @@ class FeedbackRequest(BaseModel):
     time_to_resolve_minutes: Optional[float] = Field(
         None, description="Optional time taken to resolve the issue."
     )
-    feedback_data: Optional[Dict[str, Any]] = Field(
+    feedback_data: Optional[dict[str, Any]] = Field(
         None, description="Additional arbitrary feedback data."
     )
 

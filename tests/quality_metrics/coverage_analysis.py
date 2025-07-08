@@ -8,22 +8,22 @@ Coverage analysis utilities for UCKN quality metrics.
 
 import json
 import os
-from typing import Dict, Any, Optional
 from datetime import datetime
+from typing import Any, Dict, Optional
 
 COVERAGE_JSON = os.environ.get("UCKN_COVERAGE_JSON", "coverage.json")
 COVERAGE_MD = os.environ.get("UCKN_COVERAGE_MD", "coverage.md")
 COVERAGE_HISTORY = os.environ.get("UCKN_COVERAGE_HISTORY", "coverage_history.json")
 
 
-def load_coverage_json(path: str = COVERAGE_JSON) -> Optional[Dict[str, Any]]:
+def load_coverage_json(path: str = COVERAGE_JSON) -> Optional[dict[str, Any]]:
     if not os.path.exists(path):
         return None
     with open(path) as f:
         return json.load(f)
 
 
-def extract_coverage_metrics(coverage: Dict[str, Any]) -> Dict[str, Any]:
+def extract_coverage_metrics(coverage: dict[str, Any]) -> dict[str, Any]:
     totals = coverage.get("totals", {})
     return {
         "covered_lines": totals.get("covered_lines"),
@@ -36,7 +36,7 @@ def extract_coverage_metrics(coverage: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def save_coverage_history(metrics: Dict[str, Any], path: str = COVERAGE_HISTORY):
+def save_coverage_history(metrics: dict[str, Any], path: str = COVERAGE_HISTORY):
     history = []
     if os.path.exists(path):
         with open(path) as f:
@@ -57,14 +57,18 @@ def print_coverage_trend(path: str = COVERAGE_HISTORY):
         history = json.load(f)
     print("Coverage Trend:")
     for entry in history:
-        print(f"{entry['timestamp']}: {entry['percent_covered']}% lines, {entry.get('percent_branches_covered', 'N/A')}% branches")
+        print(
+            f"{entry['timestamp']}: {entry['percent_covered']}% lines, {entry.get('percent_branches_covered', 'N/A')}% branches"
+        )
 
 
-def generate_markdown_summary(metrics: Dict[str, Any], path: str = COVERAGE_MD):
+def generate_markdown_summary(metrics: dict[str, Any], path: str = COVERAGE_MD):
     with open(path, "w") as f:
         f.write("# UCKN Coverage Summary\n\n")
         f.write(f"- **Line Coverage:** {metrics['percent_covered']}%\n")
-        f.write(f"- **Branch Coverage:** {metrics.get('percent_branches_covered', 'N/A')}%\n")
+        f.write(
+            f"- **Branch Coverage:** {metrics.get('percent_branches_covered', 'N/A')}%\n"
+        )
         f.write(f"- **Statements:** {metrics['num_statements']}\n")
         f.write(f"- **Covered Lines:** {metrics['covered_lines']}\n")
         f.write(f"- **Missing Lines:** {metrics['missing_lines']}\n")

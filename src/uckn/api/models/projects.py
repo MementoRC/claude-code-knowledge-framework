@@ -2,15 +2,15 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field, validator
 
 from .common import (
     BaseResponse,
-    TechnologyStackDNA,
-    SetupRecommendation,
     IssueWarning,
+    SetupRecommendation,
+    TechnologyStackDNA,
     UserRole,
 )
 
@@ -54,7 +54,7 @@ class ProjectMember(BaseModel):
     user_id: str = Field(description="User ID")
     username: str = Field(description="Username")
     role: UserRole = Field(description="User role in project")
-    permissions: List[str] = Field(
+    permissions: list[str] = Field(
         default_factory=list, description="Specific permissions"
     )
     joined_at: datetime = Field(description="When user joined the project")
@@ -78,7 +78,7 @@ class ProjectSettings(BaseModel):
     collaboration_enabled: bool = Field(
         default=True, description="Enable collaboration features"
     )
-    notification_preferences: Dict[str, bool] = Field(
+    notification_preferences: dict[str, bool] = Field(
         default_factory=lambda: {
             "pattern_matches": True,
             "new_recommendations": True,
@@ -87,7 +87,7 @@ class ProjectSettings(BaseModel):
         },
         description="Notification preferences",
     )
-    integration_settings: Dict[str, Any] = Field(
+    integration_settings: dict[str, Any] = Field(
         default_factory=dict, description="Integration-specific settings"
     )
 
@@ -135,7 +135,7 @@ class ProjectCreate(BaseModel):
         default=None, description="Git repository URL"
     )
     project_path: Optional[str] = Field(default=None, description="Local project path")
-    tags: List[str] = Field(default_factory=list, description="Project tags")
+    tags: list[str] = Field(default_factory=list, description="Project tags")
     settings: ProjectSettings = Field(
         default_factory=ProjectSettings, description="Project settings"
     )
@@ -168,13 +168,13 @@ class Project(BaseModel):
         default=None, description="Git repository URL"
     )
     project_path: Optional[str] = Field(default=None, description="Local project path")
-    tags: List[str] = Field(default_factory=list, description="Project tags")
+    tags: list[str] = Field(default_factory=list, description="Project tags")
     technology_stack: Optional[TechnologyStackDNA] = Field(
         default=None, description="Detected technology stack"
     )
     settings: ProjectSettings = Field(description="Project settings")
     metrics: ProjectMetrics = Field(description="Project metrics")
-    members: List[ProjectMember] = Field(
+    members: list[ProjectMember] = Field(
         default_factory=list, description="Project members"
     )
     created_at: datetime = Field(description="Creation timestamp")
@@ -208,7 +208,7 @@ class ProjectUpdate(BaseModel):
     project_path: Optional[str] = Field(
         default=None, description="Updated project path"
     )
-    tags: Optional[List[str]] = Field(default=None, description="Updated tags")
+    tags: Optional[list[str]] = Field(default=None, description="Updated tags")
     settings: Optional[ProjectSettings] = Field(
         default=None, description="Updated settings"
     )
@@ -232,7 +232,7 @@ class ProjectAnalysisRequest(BaseModel):
     include_recommendations: bool = Field(
         default=True, description="Include setup recommendations"
     )
-    exclude_patterns: List[str] = Field(
+    exclude_patterns: list[str] = Field(
         default_factory=list, description="File patterns to exclude"
     )
 
@@ -250,16 +250,16 @@ class ProjectAnalysisResponse(BaseResponse):
     technology_stack: TechnologyStackDNA = Field(
         description="Detected technology stack"
     )
-    recommendations: List[SetupRecommendation] = Field(
+    recommendations: list[SetupRecommendation] = Field(
         description="Setup recommendations"
     )
-    issue_warnings: List[IssueWarning] = Field(description="Predicted issues")
+    issue_warnings: list[IssueWarning] = Field(description="Predicted issues")
     patterns_found: int = Field(description="Number of patterns found")
     analysis_duration_ms: float = Field(description="Analysis duration in milliseconds")
     health_score: Optional[float] = Field(
         default=None, description="Project health score"
     )
-    complexity_metrics: Optional[Dict[str, Any]] = Field(
+    complexity_metrics: Optional[dict[str, Any]] = Field(
         default=None, description="Complexity metrics"
     )
 
@@ -277,8 +277,8 @@ class ProjectSearchRequest(BaseModel):
     status: Optional[ProjectStatus] = Field(
         default=None, description="Filter by status"
     )
-    tags: Optional[List[str]] = Field(default=None, description="Filter by tags")
-    technologies: Optional[List[str]] = Field(
+    tags: Optional[list[str]] = Field(default=None, description="Filter by tags")
+    technologies: Optional[list[str]] = Field(
         default=None, description="Filter by technologies"
     )
     created_after: Optional[datetime] = Field(
@@ -299,7 +299,7 @@ class ProjectMemberInvite(BaseModel):
     user_id: Optional[str] = Field(default=None, description="User ID to invite")
     email: Optional[str] = Field(default=None, description="Email to invite")
     role: UserRole = Field(description="Role to assign")
-    permissions: Optional[List[str]] = Field(
+    permissions: Optional[list[str]] = Field(
         default=None, description="Specific permissions"
     )
     message: Optional[str] = Field(default=None, description="Invitation message")
@@ -315,7 +315,7 @@ class ProjectMemberUpdate(BaseModel):
     """Project member update model"""
 
     role: Optional[UserRole] = Field(default=None, description="Updated role")
-    permissions: Optional[List[str]] = Field(
+    permissions: Optional[list[str]] = Field(
         default=None, description="Updated permissions"
     )
     is_active: Optional[bool] = Field(default=None, description="Updated active status")
@@ -333,14 +333,14 @@ class ProjectStatsResponse(BaseResponse):
 
     total_projects: int = Field(description="Total number of projects")
     active_projects: int = Field(description="Number of active projects")
-    projects_by_type: Dict[str, int] = Field(description="Projects grouped by type")
-    projects_by_visibility: Dict[str, int] = Field(
+    projects_by_type: dict[str, int] = Field(description="Projects grouped by type")
+    projects_by_visibility: dict[str, int] = Field(
         description="Projects grouped by visibility"
     )
     avg_health_score: Optional[float] = Field(
         default=None, description="Average health score"
     )
     total_patterns: int = Field(description="Total patterns across all projects")
-    most_used_technologies: List[Dict[str, Any]] = Field(
+    most_used_technologies: list[dict[str, Any]] = Field(
         description="Most commonly used technologies"
     )

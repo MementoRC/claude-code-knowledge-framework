@@ -1,10 +1,12 @@
 import os
-import tempfile
 import shutil
-import pytest
+import tempfile
 import time
 
+import pytest
+
 from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
+
 
 @pytest.fixture(scope="module")
 def temp_knowledge_dir():
@@ -12,14 +14,16 @@ def temp_knowledge_dir():
     yield temp_dir
     shutil.rmtree(temp_dir)
 
+
 @pytest.fixture(scope="module")
 def km(temp_knowledge_dir):
     km = KnowledgeManager(knowledge_dir=temp_knowledge_dir)
     yield km
 
+
 def test_basic_end_to_end_workflow(km):
     """Test basic end-to-end workflow: add → retrieve → update → delete"""
-    
+
     # 1. Add a pattern
     pattern = {
         "document": "Use factory pattern for object creation.",
@@ -29,8 +33,8 @@ def test_basic_end_to_end_workflow(km):
             "technology_stack": "python",
             "success_rate": 0.85,
             "created_at": "2024-06-28T12:00:00Z",
-            "updated_at": "2024-06-28T12:00:00Z"
-        }
+            "updated_at": "2024-06-28T12:00:00Z",
+        },
     }
     pattern_id = km.add_pattern(pattern)
     assert pattern_id is not None
@@ -50,8 +54,8 @@ def test_basic_end_to_end_workflow(km):
             "resolution_steps": "Check path,reinstall module",
             "avg_resolution_time": 3.0,
             "created_at": "2024-06-28T12:00:00Z",
-            "updated_at": "2024-06-28T12:00:00Z"
-        }
+            "updated_at": "2024-06-28T12:00:00Z",
+        },
     }
     solution_id = km.add_error_solution(solution)
     assert solution_id is not None
@@ -65,10 +69,10 @@ def test_basic_end_to_end_workflow(km):
     # 5. Test categorization
     category_id = km.create_category("Design Patterns", "Software design patterns")
     assert category_id is not None
-    
+
     assigned = km.assign_pattern_to_category(pattern_id, category_id)
     assert assigned
-    
+
     patterns_in_cat = km.get_patterns_by_category(category_id)
     assert pattern_id in patterns_in_cat
 
@@ -80,42 +84,44 @@ def test_basic_end_to_end_workflow(km):
     # 7. Cleanup
     deleted_pattern = km.delete_pattern(pattern_id)
     assert deleted_pattern
-    
+
     deleted_solution = km.error_solution_manager.delete_error_solution(solution_id)
     assert deleted_solution
-    
+
     deleted_category = km.delete_category(category_id)
     assert deleted_category
 
+
 def test_error_handling_workflow(km):
     """Test error handling in end-to-end workflow"""
-    
+
     # Test non-existent retrievals
     assert km.get_pattern("nonexistent") is None
     assert km.get_error_solution("nonexistent") is None
-    
+
     # Test invalid operations
     assert not km.assign_pattern_to_category("invalid", "invalid")
     assert not km.delete_pattern("nonexistent")
 
+
 def test_tech_stack_analysis_workflow(km):
     """Test technology stack analysis workflow"""
-    
+
     # Create a temporary project directory
     temp_project = tempfile.mkdtemp(prefix="test_project_")
     try:
         # Create a simple Python file
         with open(os.path.join(temp_project, "main.py"), "w") as f:
             f.write("def hello():\n    print('Hello World')\n")
-        
+
         # Analyze project
         tech_stack = km.analyze_project_stack(temp_project)
         assert isinstance(tech_stack, dict)
-        
+
         # Should detect Python
         languages = tech_stack.get("languages", [])
         primary = tech_stack.get("primary_language", "")
         assert "python" in str(languages).lower() or "python" in primary.lower()
-        
+
     finally:
         shutil.rmtree(temp_project)

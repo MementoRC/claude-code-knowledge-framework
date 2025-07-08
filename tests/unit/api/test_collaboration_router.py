@@ -3,23 +3,27 @@ Tests for collaboration API router.
 """
 
 import json
-import pytest
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
-from fastapi.testclient import TestClient
+
+import pytest
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 # Import the actual dependencies to override them
-from src.uckn.api.dependencies import get_knowledge_manager as original_get_knowledge_manager
-from src.uckn.api.routers.collaboration import get_collaboration_manager as original_get_collaboration_manager
-from src.uckn.api.routers.collaboration import router # Import the router itself
-
+from src.uckn.api.dependencies import (
+    get_knowledge_manager as original_get_knowledge_manager,
+)
+from src.uckn.api.routers.collaboration import (
+    get_collaboration_manager as original_get_collaboration_manager,
+)
+from src.uckn.api.routers.collaboration import router  # Import the router itself
 from src.uckn.core.molecules.collaboration_manager import (
-    CollaborationManager,
     ActivityEvent,
+    CollaborationManager,
     Comment,
     NotificationPreference,
-    WebhookConfig
+    WebhookConfig,
 )
 
 
@@ -27,11 +31,15 @@ from src.uckn.core.molecules.collaboration_manager import (
 def app(mock_knowledge_manager, mock_collaboration_manager):
     """Create FastAPI app for testing with dependency overrides."""
     app = FastAPI()
-    
+
     # Override dependencies
-    app.dependency_overrides[original_get_knowledge_manager] = lambda: mock_knowledge_manager
-    app.dependency_overrides[original_get_collaboration_manager] = lambda: mock_collaboration_manager
-    
+    app.dependency_overrides[original_get_knowledge_manager] = (
+        lambda: mock_knowledge_manager
+    )
+    app.dependency_overrides[original_get_collaboration_manager] = (
+        lambda: mock_collaboration_manager
+    )
+
     app.include_router(router, prefix="/api/v1")
     return app
 
@@ -69,7 +77,7 @@ def mock_knowledge_manager():
 
 class TestCollaborationRouter:
     """Test cases for collaboration router endpoints."""
-    
+
     # No need for @patch here as dependencies are overridden in the app fixture
     def test_add_comment_success(self, client, mock_collaboration_manager):
         """Test successful comment addition."""
@@ -77,22 +85,19 @@ class TestCollaborationRouter:
         mock_comment = Comment(
             id="comment-123",
             pattern_id="pattern-456",
-            user_id="mock_user_id", # This is hardcoded in the endpoint
+            user_id="mock_user_id",  # This is hardcoded in the endpoint
             content="Great pattern!",
             metadata={"source": "web"},
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         mock_collaboration_manager.add_comment.return_value = mock_comment
-        
+
         # Make request
         response = client.post(
             "/api/v1/patterns/pattern-456/comments",
-            json={
-                "content": "Great pattern!",
-                "metadata": {"source": "web"}
-            }
+            json={"content": "Great pattern!", "metadata": {"source": "web"}},
         )
-        
+
         print(f"Response status: {response.status_code}")
         print(f"Response content: {response.content}")
         assert response.status_code == 201
@@ -108,7 +113,7 @@ class TestCollaborationRouter:
         assert called_comment.pattern_id == "pattern-456"
         assert called_comment.user_id == "mock_user_id"
         assert called_comment.content == "Great pattern!"
-    
+
     def test_get_comments(self, client, mock_collaboration_manager):
         """Test getting comments for a pattern."""
         # Set up mock return value for the async method
@@ -118,20 +123,22 @@ class TestCollaborationRouter:
                 pattern_id="pattern-123",
                 user_id="user-1",
                 content="First comment",
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(timezone.utc),
             )
         ]
         mock_collaboration_manager.get_comments.return_value = mock_comments
-        
+
         # Make request
         response = client.get("/api/v1/patterns/pattern-123/comments")
-        
+
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
         assert data[0]["id"] == "comment-1"
-        mock_collaboration_manager.get_comments.assert_called_once_with("pattern-123", None)
-    
+        mock_collaboration_manager.get_comments.assert_called_once_with(
+            "pattern-123", None
+        )
+
     def test_create_pattern_library(self, client):
         """Test creating a team-scoped pattern library."""
         response = client.post(
@@ -140,13 +147,13 @@ class TestCollaborationRouter:
                 "name": "CI/CD Patterns",
                 "description": "Common automation patterns",
                 "pattern_ids": ["pattern-1", "pattern-2"],
-                "settings": {"auto_sync": True}
-            }
+                "settings": {"auto_sync": True},
+            },
         )
-        
+
         assert response.status_code == 201
         data = response.json()
         assert data["team_id"] == "team-123"
         assert data["name"] == "CI/CD Patterns"
-        assert "id" in data # Ensure an ID is generated
-        assert "created_at" in data # Ensure timestamp is present
+        assert "id" in data  # Ensure an ID is generated
+        assert "created_at" in data  # Ensure timestamp is present

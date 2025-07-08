@@ -6,15 +6,15 @@ Integrates multiple components to deliver personalized, context-aware suggestion
 """
 
 import logging
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Optional
 
 from ..atoms.project_dna_fingerprinter import ProjectDNAFingerprinter
 from ..atoms.semantic_search_engine import SemanticSearchEngine
-from ..molecules.tech_stack_compatibility_matrix import TechStackCompatibilityMatrix
 from ..molecules.pattern_analytics import PatternAnalytics
 from ..molecules.pattern_manager import PatternManager
+from ..molecules.tech_stack_compatibility_matrix import TechStackCompatibilityMatrix
 
 
 class RecommendationType(Enum):
@@ -38,7 +38,7 @@ class Recommendation:
     success_rate: float
     relevance_score: float
     description: str
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 
 class PatternRecommendationEngine:
@@ -92,7 +92,7 @@ class PatternRecommendationEngine:
 
     def get_setup_recommendations(
         self, project_path: str, limit: int = 10
-    ) -> List[Recommendation]:
+    ) -> list[Recommendation]:
         """
         Get setup recommendations for initial project configuration.
 
@@ -132,7 +132,7 @@ class PatternRecommendationEngine:
 
     def get_issue_resolution_recommendations(
         self, error_context: str, project_path: str, limit: int = 5
-    ) -> List[Recommendation]:
+    ) -> list[Recommendation]:
         """
         Get recommendations for resolving specific issues or errors.
 
@@ -181,7 +181,7 @@ class PatternRecommendationEngine:
 
     def get_best_practice_recommendations(
         self, project_path: str, limit: int = 8
-    ) -> List[Recommendation]:
+    ) -> list[Recommendation]:
         """
         Get best practice recommendations for the technology stack.
 
@@ -224,7 +224,7 @@ class PatternRecommendationEngine:
 
     def get_proactive_recommendations(
         self, project_path: str, limit: int = 6
-    ) -> List[Recommendation]:
+    ) -> list[Recommendation]:
         """
         Get proactive recommendations to prevent common issues.
 
@@ -269,8 +269,8 @@ class PatternRecommendationEngine:
         self,
         project_path: str,
         error_context: Optional[str] = None,
-        user_history: Optional[List[str]] = None,
-    ) -> Dict[str, List[Recommendation]]:
+        user_history: Optional[list[str]] = None,
+    ) -> dict[str, list[Recommendation]]:
         """
         Get comprehensive recommendations across all types.
 
@@ -291,10 +291,10 @@ class PatternRecommendationEngine:
         }
 
         if error_context:
-            recommendations["issue_resolution"] = (
-                self.get_issue_resolution_recommendations(
-                    error_context, project_path, limit=3
-                )
+            recommendations[
+                "issue_resolution"
+            ] = self.get_issue_resolution_recommendations(
+                error_context, project_path, limit=3
             )
 
         # Apply personalization if user history is provided
@@ -307,8 +307,8 @@ class PatternRecommendationEngine:
         return recommendations
 
     def _search_patterns_by_type(
-        self, pattern_type: str, tech_stack: List[str], limit: int
-    ) -> List[Dict[str, Any]]:
+        self, pattern_type: str, tech_stack: list[str], limit: int
+    ) -> list[dict[str, Any]]:
         """Search for patterns by type and technology stack."""
         try:
             # Use semantic search to find patterns of specific type
@@ -321,8 +321,8 @@ class PatternRecommendationEngine:
             return []
 
     def _search_high_success_patterns(
-        self, tech_stack: List[str], limit: int
-    ) -> List[Dict[str, Any]]:
+        self, tech_stack: list[str], limit: int
+    ) -> list[dict[str, Any]]:
         """Search for patterns with high success rates for the given tech stack."""
         try:
             # Get all patterns and filter by success rate
@@ -349,8 +349,8 @@ class PatternRecommendationEngine:
             return []
 
     def _convert_search_results_to_patterns(
-        self, search_results: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        self, search_results: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """Convert semantic search results to pattern format."""
         patterns = []
         for result in search_results:
@@ -365,11 +365,11 @@ class PatternRecommendationEngine:
 
     def _create_recommendations(
         self,
-        patterns: List[Dict[str, Any]],
+        patterns: list[dict[str, Any]],
         rec_type: RecommendationType,
-        fingerprint: Dict[str, Any],
-        tech_stack: List[str],
-    ) -> List[Recommendation]:
+        fingerprint: dict[str, Any],
+        tech_stack: list[str],
+    ) -> list[Recommendation]:
         """Create recommendation objects from patterns."""
         recommendations = []
 
@@ -412,7 +412,7 @@ class PatternRecommendationEngine:
         return recommendations
 
     def _calculate_compatibility_score(
-        self, pattern: Dict[str, Any], tech_stack: List[str]
+        self, pattern: dict[str, Any], tech_stack: list[str]
     ) -> float:
         """Calculate compatibility score between pattern and tech stack."""
         try:
@@ -473,8 +473,8 @@ class PatternRecommendationEngine:
         return min(max(confidence, 0.0), 1.0)  # Clamp to [0, 1]
 
     def _rank_recommendations(
-        self, recommendations: List[Recommendation], context: Dict[str, Any]
-    ) -> List[Recommendation]:
+        self, recommendations: list[Recommendation], context: dict[str, Any]
+    ) -> list[Recommendation]:
         """Rank recommendations by confidence score and other factors."""
         return sorted(
             recommendations,
@@ -483,8 +483,8 @@ class PatternRecommendationEngine:
         )
 
     def personalize_recommendations(
-        self, recommendations: List[Recommendation], user_history: List[str]
-    ) -> List[Recommendation]:
+        self, recommendations: list[Recommendation], user_history: list[str]
+    ) -> list[Recommendation]:
         """
         Personalize recommendations based on user history.
 

@@ -5,9 +5,10 @@ Handles bi-directional sync between local and server knowledge stores.
 
 import asyncio
 import logging
+from collections.abc import Callable
 from datetime import datetime
-from typing import Dict, List, Optional, Any, Callable
 from enum import Enum
+from typing import Any, Optional
 
 from ..storage.unified_database import UnifiedDatabase
 from .conflict_resolver import ConflictResolver
@@ -75,10 +76,10 @@ class SyncManager:
 
         # WebSocket connection
         self.websocket = None
-        self.sync_callbacks: List[Callable] = []
+        self.sync_callbacks: list[Callable] = []
 
         # Vector clocks for conflict detection
-        self.vector_clock: Dict[str, int] = {}
+        self.vector_clock: dict[str, int] = {}
 
     async def start(self):
         """Start the synchronization manager."""
@@ -97,11 +98,11 @@ class SyncManager:
         if self.websocket:
             await self.websocket.close()
 
-    def add_sync_callback(self, callback: Callable[[Dict[str, Any]], None]):
+    def add_sync_callback(self, callback: Callable[[dict[str, Any]], None]):
         """Add a callback for sync status updates."""
         self.sync_callbacks.append(callback)
 
-    def _notify_callbacks(self, event: Dict[str, Any]):
+    def _notify_callbacks(self, event: dict[str, Any]):
         """Notify all registered callbacks of sync events."""
         for callback in self.sync_callbacks:
             try:
@@ -113,8 +114,8 @@ class SyncManager:
         self,
         mode: SyncMode = SyncMode.INCREMENTAL,
         direction: SyncDirection = SyncDirection.BIDIRECTIONAL,
-        pattern_ids: Optional[List[str]] = None,
-    ) -> Dict[str, Any]:
+        pattern_ids: Optional[list[str]] = None,
+    ) -> dict[str, Any]:
         """
         Perform synchronization between local and server stores.
 
@@ -161,8 +162,8 @@ class SyncManager:
             return {"error": str(e)}
 
     async def _perform_sync(
-        self, mode: SyncMode, direction: SyncDirection, pattern_ids: Optional[List[str]]
-    ) -> Dict[str, Any]:
+        self, mode: SyncMode, direction: SyncDirection, pattern_ids: Optional[list[str]]
+    ) -> dict[str, Any]:
         """Internal sync implementation."""
         conflicts = []
         stats = {
@@ -207,7 +208,7 @@ class SyncManager:
 
     def _get_local_patterns_since_last_sync(
         self, mode: SyncMode
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get local patterns that need syncing."""
         try:
             if mode == SyncMode.FULL or not self.last_sync_time:
@@ -220,19 +221,19 @@ class SyncManager:
             self.logger.error(f"Error getting local patterns: {e}")
             return []
 
-    def _get_all_local_patterns(self) -> List[Dict[str, Any]]:
+    def _get_all_local_patterns(self) -> list[dict[str, Any]]:
         """Get all local patterns."""
         # This would use the unified database to get all patterns
         # For now, return empty list as placeholder
         return []
 
-    def _get_modified_patterns_since(self, since: datetime) -> List[Dict[str, Any]]:
+    def _get_modified_patterns_since(self, since: datetime) -> list[dict[str, Any]]:
         """Get patterns modified since given timestamp."""
         # This would query patterns modified after the timestamp
         # For now, return empty list as placeholder
         return []
 
-    async def _upload_patterns(self, patterns: List[Dict[str, Any]]) -> Dict[str, Any]:
+    async def _upload_patterns(self, patterns: list[dict[str, Any]]) -> dict[str, Any]:
         """Upload patterns to server."""
         uploaded = 0
         conflicts = []
@@ -258,7 +259,7 @@ class SyncManager:
 
         return {"uploaded": uploaded, "conflicts": conflicts}
 
-    async def _download_patterns(self) -> Dict[str, Any]:
+    async def _download_patterns(self) -> dict[str, Any]:
         """Download patterns from server."""
         downloaded = 0
         conflicts = []
@@ -294,8 +295,8 @@ class SyncManager:
         return {"downloaded": downloaded, "conflicts": conflicts}
 
     async def _check_upload_conflict(
-        self, pattern: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+        self, pattern: dict[str, Any]
+    ) -> Optional[dict[str, Any]]:
         """Check for conflicts when uploading a pattern."""
         # Get server version of pattern
         server_pattern = await self._get_pattern_from_server(pattern["id"])
@@ -317,8 +318,8 @@ class SyncManager:
         return None
 
     async def _check_download_conflict(
-        self, pattern: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+        self, pattern: dict[str, Any]
+    ) -> Optional[dict[str, Any]]:
         """Check for conflicts when downloading a pattern."""
         # Get local version of pattern
         local_pattern = self.local_db.get_pattern(pattern["id"])
@@ -339,7 +340,7 @@ class SyncManager:
 
         return None
 
-    def _has_conflict(self, clock1: Dict[str, int], clock2: Dict[str, int]) -> bool:
+    def _has_conflict(self, clock1: dict[str, int], clock2: dict[str, int]) -> bool:
         """Check if two vector clocks indicate a conflict."""
         # Simple conflict detection: if neither clock dominates the other
         clock1_dominates = all(clock1.get(k, 0) >= v for k, v in clock2.items())
@@ -347,7 +348,7 @@ class SyncManager:
 
         return not (clock1_dominates or clock2_dominates)
 
-    async def _send_pattern_to_server(self, pattern: Dict[str, Any]) -> bool:
+    async def _send_pattern_to_server(self, pattern: dict[str, Any]) -> bool:
         """Send a pattern to the server."""
         # Placeholder for actual HTTP request to server
         # In real implementation, this would use httpx or similar
@@ -355,7 +356,7 @@ class SyncManager:
         await asyncio.sleep(0.1)  # Simulate network delay
         return True
 
-    async def _get_patterns_from_server(self) -> List[Dict[str, Any]]:
+    async def _get_patterns_from_server(self) -> list[dict[str, Any]]:
         """Get patterns from server."""
         # Placeholder for actual HTTP request
         self.logger.info("Downloading patterns from server")
@@ -364,13 +365,13 @@ class SyncManager:
 
     async def _get_pattern_from_server(
         self, pattern_id: str
-    ) -> Optional[Dict[str, Any]]:
+    ) -> Optional[dict[str, Any]]:
         """Get a specific pattern from server."""
         # Placeholder for actual HTTP request
         await asyncio.sleep(0.1)  # Simulate network delay
         return None
 
-    async def _apply_pattern_locally(self, pattern: Dict[str, Any]) -> bool:
+    async def _apply_pattern_locally(self, pattern: dict[str, Any]) -> bool:
         """Apply a pattern to the local database."""
         try:
             # Extract required fields for local storage
@@ -426,7 +427,7 @@ class SyncManager:
                 self.logger.error(f"WebSocket listener error: {e}")
                 break
 
-    async def _handle_realtime_update(self, message: Dict[str, Any]):
+    async def _handle_realtime_update(self, message: dict[str, Any]):
         """Handle real-time update from server."""
         message_type = message.get("type")
 
@@ -466,7 +467,7 @@ class SyncManager:
             except Exception as e:
                 self.logger.error(f"Background sync loop error: {e}")
 
-    def get_sync_status(self) -> Dict[str, Any]:
+    def get_sync_status(self) -> dict[str, Any]:
         """Get current synchronization status."""
         return {
             "status": self.status.value,

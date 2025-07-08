@@ -6,8 +6,8 @@ Includes feature extraction, model training, and inference.
 """
 
 import logging
-from typing import Dict, Any, List
 import random
+from typing import Any
 
 # In a real scenario, you'd import libraries like scikit-learn, tensorflow, or pytorch
 # from sklearn.ensemble import RandomForestClassifier
@@ -57,7 +57,7 @@ class IssuePredictionModels:
         #     self._logger.error(f"Error loading ML model: {e}")
         self._is_model_trained = False  # Assume no model loaded for initial setup
 
-    def train_model(self, training_data: List[Dict[str, Any]]) -> bool:
+    def train_model(self, training_data: list[dict[str, Any]]) -> bool:
         """
         (Placeholder) Trains the ML model using historical issue data.
 
@@ -92,7 +92,7 @@ class IssuePredictionModels:
         self._logger.info("ML model training completed (mock success).")
         return True
 
-    def feature_extract(self, project_data: Dict[str, Any]) -> List[float]:
+    def feature_extract(self, project_data: dict[str, Any]) -> list[float]:
         """
         (Placeholder) Extracts features from project data for ML model input.
         This would involve using MultiModalEmbeddings for code/text,
@@ -115,7 +115,7 @@ class IssuePredictionModels:
         # For now, return a random vector
         return [random.random() for _ in range(128)]  # Mock 128-dim embedding
 
-    def predict(self, project_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def predict(self, project_data: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Predicts potential issues based on project data using the trained ML model.
 

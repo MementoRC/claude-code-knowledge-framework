@@ -19,11 +19,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ["3.10", "3.11", "3.12"]
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup pixi with cache fallback
       id: setup-pixi-step # Added ID for checking cache status
       uses: prefix-dev/setup-pixi@v0.8.1
@@ -88,11 +88,11 @@ jobs:
   lint:
     name: Code Quality
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup pixi with cache fallback
       id: setup-pixi-step # Added ID for checking cache status
       uses: prefix-dev/setup-pixi@v0.8.1
@@ -157,11 +157,11 @@ jobs:
   security:
     name: Security Scan
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup pixi with cache fallback
       id: setup-pixi-step # Added ID for checking cache status
       uses: prefix-dev/setup-pixi@v0.8.1
@@ -215,12 +215,12 @@ jobs:
       run: |
         pip install bandit[toml]
         bandit -r src/ -f json -o bandit-report.json || true
-        
+
     - name: Safety Check
       run: |
         pip install safety
         safety check --json --output safety-report.json || true
-        
+
     - name: Upload security reports
       uses: actions/upload-artifact@v4
       with:
@@ -232,18 +232,18 @@ jobs:
   atomic-design-validation:
     name: Atomic Design Standards
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup Pixi
       id: setup-pixi-step # Added ID for checking cache status
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
         pixi-version: v0.49.0
         cache: false  # Temporarily disable during GitHub cache service outage
-        
+
     - name: Log pixi cache status
       run: |
         if [ "${{ steps.setup-pixi-step.outputs.cache-hit }}" == "true" ]; then
@@ -273,7 +273,7 @@ jobs:
           echo "❌ Failed to install pixi dependencies after multiple retries."
           exit 1
         fi
-        
+
     - name: Activate pixi environment
       run: |
         eval "$(pixi shell --env-hook bash)"
@@ -281,18 +281,18 @@ jobs:
     - name: Validate UCKN atomic structure
       run: |
         echo "🏗️ Validating atomic design structure..."
-        
+
         # Check atomic directory structure
         test -d "src/uckn/core/atoms" || (echo "❌ Missing atoms directory" && exit 1)
         test -d "src/uckn/core/molecules" || (echo "❌ Missing molecules directory" && exit 1)
         test -d "src/uckn/core/organisms" || (echo "❌ Missing organisms directory" && exit 1)
         echo "✅ Atomic directory structure valid"
-        
+
         # Check file size constraints (200-500 lines)
         python << 'EOF'
         import os
         import sys
-        
+
         violations = []
         for root, dirs, files in os.walk("src/uckn"):
             for file in files:
@@ -300,10 +300,10 @@ jobs:
                     filepath = os.path.join(root, file)
                     with open(filepath, 'r') as f:
                         line_count = sum(1 for line in f)
-                    
+
                     if line_count > 500:
                         violations.append(f"{filepath}: {line_count} lines (exceeds 500)")
-        
+
         if violations:
             print("❌ File size violations:")
             for violation in violations:
@@ -312,7 +312,7 @@ jobs:
         else:
             print("✅ All files within size constraints")
         EOF
-        
+
     - name: Test UCKN framework integration
       run: |
         echo "🔧 Testing UCKN framework integration..."
@@ -350,11 +350,11 @@ jobs:
     name: Build Package
     runs-on: ubuntu-latest
     needs: [test, lint, security, atomic-design-validation]
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup pixi with cache fallback
       id: setup-pixi-step # Added ID for checking cache status
       uses: prefix-dev/setup-pixi@v0.8.1
@@ -407,15 +407,15 @@ jobs:
     - name: Install build tools
       run: |
         pip install build twine
-        
+
     - name: Build package
       run: |
         python -m build
-      
+
     - name: Check package
       run: |
         twine check dist/*
-      
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
@@ -428,17 +428,17 @@ jobs:
     needs: [build, atomic-design-validation] # Corrected dependency name
     if: github.event_name == 'release'
     environment: production
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Download build artifacts
       uses: actions/download-artifact@v4
       with:
         name: dist
         path: dist/
-        
+
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
@@ -448,11 +448,11 @@ jobs:
     name: Build Docker Images
     runs-on: ubuntu-latest
     needs: [test, lint]
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+
     - name: Setup pixi with cache fallback
       id: setup-pixi-step # Added ID for checking cache status
       uses: prefix-dev/setup-pixi@v0.8.1
@@ -504,7 +504,7 @@ jobs:
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
-      
+
     - name: Login to GitHub Container Registry
       if: github.event_name != 'pull_request'
       uses: docker/login-action@v3
@@ -512,7 +512,7 @@ jobs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-        
+
     - name: Extract metadata
       id: meta
       uses: docker/metadata-action@v5
@@ -523,7 +523,7 @@ jobs:
           type=ref,event=pr
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
-          
+
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:

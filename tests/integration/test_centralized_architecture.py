@@ -1,13 +1,22 @@
-import pytest
-import uuid
 import os
-from pathlib import Path
 import shutil
+import uuid
 from datetime import datetime
+from pathlib import Path
+
+import pytest
 
 from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
-from src.uckn.storage.postgresql_connector import PostgreSQLConnector, Base, Project, Pattern, ErrorSolution, PatternCategory, PatternCategoryLink
 from src.uckn.storage.chromadb_connector import ChromaDBConnector
+from src.uckn.storage.postgresql_connector import (
+    Base,
+    ErrorSolution,
+    Pattern,
+    PatternCategory,
+    PatternCategoryLink,
+    PostgreSQLConnector,
+    Project,
+)
 from src.uckn.storage.unified_database import UnifiedDatabase
 
 # Use a temporary directory for ChromaDB and an in-memory SQLite for PostgreSQL
@@ -18,6 +27,7 @@ from src.uckn.storage.unified_database import UnifiedDatabase
 TEST_PG_DB_URL = "sqlite:///:memory:"
 TEST_CHROMA_DIR = ".uckn_test_knowledge_integration"
 
+
 @pytest.fixture(scope="module", autouse=True)
 def setup_and_teardown_dbs():
     """
@@ -27,14 +37,14 @@ def setup_and_teardown_dbs():
     # Setup PostgreSQL (SQLite in-memory)
     pg_connector = PostgreSQLConnector(db_url=TEST_PG_DB_URL)
     Base.metadata.create_all(pg_connector.engine)
-    
+
     # Setup ChromaDB (temporary directory)
     chroma_path = Path(TEST_CHROMA_DIR)
     if chroma_path.exists():
         shutil.rmtree(chroma_path)
     chroma_path.mkdir(parents=True, exist_ok=True)
-    
-    yield # Run tests
+
+    yield  # Run tests
 
     # Teardown PostgreSQL
     Base.metadata.drop_all(pg_connector.engine)
@@ -43,6 +53,7 @@ def setup_and_teardown_dbs():
     # Teardown ChromaDB
     if chroma_path.exists():
         shutil.rmtree(chroma_path)
+
 
 @pytest.fixture(scope="function")
 def knowledge_manager_instance():
@@ -59,19 +70,21 @@ def knowledge_manager_instance():
 
     # Initialize KnowledgeManager with test paths/URLs
     km = KnowledgeManager(knowledge_dir=TEST_CHROMA_DIR, pg_db_url=TEST_PG_DB_URL)
-    
+
     # Ensure semantic search is mocked or available for tests that need embeddings
     # For integration tests, we might mock the actual embedding generation
     # to avoid downloading models and speed up tests.
     km.semantic_search.is_available = lambda: True
-    km.semantic_search.encode = lambda text: [float(ord(c) % 10) / 10.0 for c in text[:384].ljust(384, '0')] # Simple mock embedding
+    km.semantic_search.encode = lambda text: [
+        float(ord(c) % 10) / 10.0 for c in text[:384].ljust(384, "0")
+    ]  # Simple mock embedding
 
     yield km
 
     # Clean up after each test function
     pg_connector = PostgreSQLConnector(db_url=TEST_PG_DB_URL)
     Base.metadata.drop_all(pg_connector.engine)
-    Base.metadata.create_all(pg_connector.engine) # Recreate empty tables for next test
+    Base.metadata.create_all(pg_connector.engine)  # Recreate empty tables for next test
 
     chroma_path = Path(TEST_CHROMA_DIR)
     if chroma_path.exists():
@@ -86,7 +99,9 @@ def test_knowledge_manager_full_lifecycle_pattern(knowledge_manager_instance):
     assert km.get_health_status()["semantic_search_available"]
 
     # 1. Add a Project
-    project_id = km.add_project(name="My Test Project", description="A project for integration testing.")
+    project_id = km.add_project(
+        name="My Test Project", description="A project for integration testing."
+    )
     assert project_id is not None
     retrieved_project = km.get_project(project_id)
     assert retrieved_project["name"] == "My Test Project"
@@ -98,9 +113,9 @@ def test_knowledge_manager_full_lifecycle_pattern(knowledge_manager_instance):
             "technology_stack": "python,django",
             "pattern_type": "Architectural",
             "success_rate": 0.98,
-            "source": "internal"
+            "source": "internal",
         },
-        "project_id": project_id
+        "project_id": project_id,
     }
     pattern_id = km.add_pattern(pattern_data)
     assert pattern_id is not None
@@ -112,19 +127,25 @@ def test_knowledge_manager_full_lifecycle_pattern(knowledge_manager_instance):
     assert retrieved_pattern["document"] == "This is a test code pattern for Python."
     assert retrieved_pattern["metadata"]["technology_stack"] == "python,django"
     assert retrieved_pattern["project_id"] == project_id
-    assert "embedding" in retrieved_pattern and retrieved_pattern["embedding"] is not None
+    assert (
+        "embedding" in retrieved_pattern and retrieved_pattern["embedding"] is not None
+    )
 
     # 4. Update the Pattern
     updated_doc = "This is an updated test code pattern for Python."
     updated_metadata = {"success_rate": 0.99, "new_field": "value"}
-    updated = km.update_pattern(pattern_id, {"document": updated_doc, "metadata": updated_metadata})
+    updated = km.update_pattern(
+        pattern_id, {"document": updated_doc, "metadata": updated_metadata}
+    )
     assert updated
 
     retrieved_updated_pattern = km.get_pattern(pattern_id)
     assert retrieved_updated_pattern["document"] == updated_doc
     assert retrieved_updated_pattern["metadata"]["success_rate"] == 0.99
     assert retrieved_updated_pattern["metadata"]["new_field"] == "value"
-    assert retrieved_updated_pattern["metadata"]["technology_stack"] == "python,django" # Old metadata fields should persist if not explicitly overwritten
+    assert (
+        retrieved_updated_pattern["metadata"]["technology_stack"] == "python,django"
+    )  # Old metadata fields should persist if not explicitly overwritten
 
     # 5. Search for the Pattern
     search_results = km.search_patterns(query="Python code patterns", limit=1)
@@ -132,10 +153,14 @@ def test_knowledge_manager_full_lifecycle_pattern(knowledge_manager_instance):
     assert search_results[0]["id"] == pattern_id
     assert search_results[0]["document"] == updated_doc
     assert search_results[0]["metadata"]["technology_stack"] == "python,django"
-    assert search_results[0]["similarity_score"] > 0.0 # Should be > 0 with mock embedding
+    assert (
+        search_results[0]["similarity_score"] > 0.0
+    )  # Should be > 0 with mock embedding
 
     # 6. Add a Category and Assign Pattern
-    category_id = km.create_category(name="Python Patterns", description="Patterns related to Python.")
+    category_id = km.create_category(
+        name="Python Patterns", description="Patterns related to Python."
+    )
     assert category_id is not None
     assigned = km.assign_pattern_to_category(pattern_id, category_id)
     assert assigned
@@ -171,8 +196,8 @@ def test_knowledge_manager_full_lifecycle_error_solution(knowledge_manager_insta
         "metadata": {
             "error_category": "Network",
             "resolution_steps": "1. Verify IP; 2. Check firewall; 3. Restart service",
-            "avg_resolution_time": 30.5
-        }
+            "avg_resolution_time": 30.5,
+        },
     }
     solution_id = km.add_error_solution(solution_data)
     assert solution_id is not None
@@ -181,15 +206,24 @@ def test_knowledge_manager_full_lifecycle_error_solution(knowledge_manager_insta
     retrieved_solution = km.get_error_solution(solution_id)
     assert retrieved_solution is not None
     assert retrieved_solution["id"] == solution_id
-    assert retrieved_solution["document"] == "Error: Connection refused. Solution: Check network configuration."
+    assert (
+        retrieved_solution["document"]
+        == "Error: Connection refused. Solution: Check network configuration."
+    )
     assert retrieved_solution["metadata"]["error_category"] == "Network"
-    assert "embedding" in retrieved_solution and retrieved_solution["embedding"] is not None
+    assert (
+        "embedding" in retrieved_solution
+        and retrieved_solution["embedding"] is not None
+    )
 
     # 3. Search for the Error Solution
     search_results = km.search_error_solutions(error_query="Connection issues", limit=1)
     assert len(search_results) > 0
     assert search_results[0]["id"] == solution_id
-    assert search_results[0]["document"] == "Error: Connection refused. Solution: Check network configuration."
+    assert (
+        search_results[0]["document"]
+        == "Error: Connection refused. Solution: Check network configuration."
+    )
     assert search_results[0]["similarity_score"] > 0.0
 
     # 4. Delete the Error Solution
@@ -197,18 +231,23 @@ def test_knowledge_manager_full_lifecycle_error_solution(knowledge_manager_insta
     assert deleted
     assert km.get_error_solution(solution_id) is None
 
+
 @pytest.mark.integration
 def test_compatibility_matrix_crud(knowledge_manager_instance):
     km = knowledge_manager_instance
 
-    entry_id = km.add_compatibility_entry("React", "Node.js", 0.95, "Excellent compatibility")
+    entry_id = km.add_compatibility_entry(
+        "React", "Node.js", 0.95, "Excellent compatibility"
+    )
     assert entry_id is not None
 
     retrieved = km.get_compatibility_entry(entry_id)
     assert retrieved["source_tech"] == "React"
     assert retrieved["compatibility_score"] == 0.95
 
-    updated = km.update_compatibility_entry(entry_id, {"compatibility_score": 0.98, "notes": "Perfect match"})
+    updated = km.update_compatibility_entry(
+        entry_id, {"compatibility_score": 0.98, "notes": "Perfect match"}
+    )
     assert updated
     assert km.get_compatibility_entry(entry_id)["compatibility_score"] == 0.98
 
@@ -219,4 +258,3 @@ def test_compatibility_matrix_crud(knowledge_manager_instance):
     deleted = km.delete_compatibility_entry(entry_id)
     assert deleted
     assert km.get_compatibility_entry(entry_id) is None
-

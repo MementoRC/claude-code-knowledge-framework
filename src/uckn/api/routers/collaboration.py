@@ -5,7 +5,7 @@ Collaboration endpoints for UCKN API.
 import json
 import logging
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import Optional
 
 from fastapi import (
     APIRouter,
@@ -19,22 +19,24 @@ from pydantic import BaseModel, Field
 
 from ...core.molecules.collaboration_manager import (
     CollaborationManager,
-    Comment as CollabComment,
     NotificationPreference,
     WebhookConfig,
+)
+from ...core.molecules.collaboration_manager import (
+    Comment as CollabComment,
 )
 from ...core.organisms.knowledge_manager import KnowledgeManager
 from ..dependencies import get_knowledge_manager
 from ..models.collaboration import (
+    ActivityEventResponse,
     CommentRequest,
     CommentResponse,
-    ActivityEventResponse,
     NotificationPreferenceRequest,
     NotificationPreferenceResponse,
-    WebhookConfigRequest,
-    WebhookConfigResponse,
     PatternLibraryRequest,
     PatternLibraryResponse,
+    WebhookConfigRequest,
+    WebhookConfigResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -48,7 +50,7 @@ class SharingScope(BaseModel):
         ..., description="Type of sharing scope (public, team, private)"
     )
     team_id: Optional[str] = None
-    users: Optional[List[str]] = None
+    users: Optional[list[str]] = None
 
 
 class PatternShareRequest(BaseModel):
@@ -70,17 +72,17 @@ class PatternShareResponse(BaseModel):
 class UpdateFilter(BaseModel):
     """Update filter model for WebSocket subscriptions."""
 
-    pattern_types: Optional[List[str]] = None
-    technologies: Optional[List[str]] = None
-    projects: Optional[List[str]] = None
+    pattern_types: Optional[list[str]] = None
+    technologies: Optional[list[str]] = None
+    projects: Optional[list[str]] = None
 
 
 class ConnectionManager:
     """WebSocket connection manager."""
 
     def __init__(self):
-        self.active_connections: List[WebSocket] = []
-        self.connection_filters: Dict[WebSocket, UpdateFilter] = {}
+        self.active_connections: list[WebSocket] = []
+        self.connection_filters: dict[WebSocket, UpdateFilter] = {}
 
     async def connect(
         self, websocket: WebSocket, filters: Optional[UpdateFilter] = None
@@ -342,7 +344,7 @@ async def add_comment(
         )
 
 
-@router.get("/patterns/{pattern_id}/comments", response_model=List[CommentResponse])
+@router.get("/patterns/{pattern_id}/comments", response_model=list[CommentResponse])
 async def get_comments(
     pattern_id: str,
     parent_id: Optional[str] = None,
@@ -374,7 +376,7 @@ async def get_comments(
         )
 
 
-@router.get("/activity/feed", response_model=List[ActivityEventResponse])
+@router.get("/activity/feed", response_model=list[ActivityEventResponse])
 async def get_activity_feed(
     team_id: Optional[str] = None,
     limit: int = 50,
@@ -528,7 +530,7 @@ async def create_pattern_library(team_id: str, request: PatternLibraryRequest):
         )
 
 
-@router.get("/teams/{team_id}/libraries", response_model=List[PatternLibraryResponse])
+@router.get("/teams/{team_id}/libraries", response_model=list[PatternLibraryResponse])
 async def list_pattern_libraries(team_id: str):
     """List pattern libraries for a team."""
     try:

@@ -1,23 +1,23 @@
 import logging
-from typing import Any, Dict, List, Optional
+from contextlib import contextmanager
 from datetime import datetime
+from typing import Any, Optional
 
 from sqlalchemy import (
-    create_engine,
     Column,
-    String,
-    Text,
     DateTime,
     Float,
     ForeignKey,
+    String,
+    Text,
+    create_engine,
     text,
 )
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.pool import QueuePool
-from sqlalchemy.types import TypeDecorator, JSON
 from sqlalchemy.ext.mutable import MutableDict
-from contextlib import contextmanager
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from sqlalchemy.pool import QueuePool
+from sqlalchemy.types import JSON, TypeDecorator
 
 # Import JSONB specifically for PostgreSQL dialect
 try:
@@ -250,7 +250,7 @@ class PostgreSQLConnector:
             self._logger.error(f"PostgreSQL connection check failed: {e}")
             return False
 
-    def add_record(self, model: Base, data: Dict[str, Any]) -> Optional[str]:
+    def add_record(self, model: Base, data: dict[str, Any]) -> Optional[str]:
         """Adds a new record to the database."""
         try:
             with self.get_db_session() as session:
@@ -263,7 +263,7 @@ class PostgreSQLConnector:
             _logger.error(f"Failed to add {model.__name__} record: {e}")
             return None
 
-    def get_record(self, model: Base, record_id: str) -> Optional[Dict[str, Any]]:
+    def get_record(self, model: Base, record_id: str) -> Optional[dict[str, Any]]:
         """Retrieves a record by ID."""
         try:
             with self.get_db_session() as session:
@@ -279,7 +279,7 @@ class PostgreSQLConnector:
             return None
 
     def update_record(
-        self, model: Base, record_id: str, updates: Dict[str, Any]
+        self, model: Base, record_id: str, updates: dict[str, Any]
     ) -> bool:
         """Updates an existing record."""
         try:
@@ -319,7 +319,7 @@ class PostgreSQLConnector:
 
     def get_all_records(
         self, model: Base, limit: Optional[int] = None
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Retrieves all records for a given model."""
         try:
             with self.get_db_session() as session:
@@ -339,8 +339,8 @@ class PostgreSQLConnector:
             return []
 
     def filter_records(
-        self, model: Base, filters: Dict[str, Any], limit: Optional[int] = None
-    ) -> List[Dict[str, Any]]:
+        self, model: Base, filters: dict[str, Any], limit: Optional[int] = None
+    ) -> list[dict[str, Any]]:
         """Filters records based on provided criteria."""
         try:
             with self.get_db_session() as session:
@@ -363,8 +363,8 @@ class PostgreSQLConnector:
             return []
 
     def search_records_by_metadata(
-        self, model: Base, metadata_filter: Dict[str, Any], limit: Optional[int] = None
-    ) -> List[Dict[str, Any]]:
+        self, model: Base, metadata_filter: dict[str, Any], limit: Optional[int] = None
+    ) -> list[dict[str, Any]]:
         """Search records by JSONB/JSON metadata fields using cross-database compatible operators."""
         try:
             with self.get_db_session() as session:
@@ -446,7 +446,7 @@ class PostgreSQLConnector:
             )
             return False
 
-    def get_patterns_in_category(self, category_id: str) -> List[str]:
+    def get_patterns_in_category(self, category_id: str) -> list[str]:
         """Gets all pattern IDs associated with a category."""
         try:
             with self.get_db_session() as session:
@@ -460,7 +460,7 @@ class PostgreSQLConnector:
             _logger.error(f"Failed to get patterns for category {category_id}: {e}")
             return []
 
-    def get_categories_for_pattern(self, pattern_id: str) -> List[Dict[str, Any]]:
+    def get_categories_for_pattern(self, pattern_id: str) -> list[dict[str, Any]]:
         """Gets all categories associated with a pattern."""
         try:
             with self.get_db_session() as session:

@@ -3,7 +3,6 @@ Project intelligence endpoints for UCKN API.
 """
 
 import logging
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -18,11 +17,11 @@ router = APIRouter()
 class TechnologyStackDNA(BaseModel):
     """Technology stack DNA model."""
 
-    languages: List[str]
-    frameworks: List[str]
-    build_systems: List[str]
-    ci_platforms: List[str]
-    deployment_targets: List[str]
+    languages: list[str]
+    frameworks: list[str]
+    build_systems: list[str]
+    ci_platforms: list[str]
+    deployment_targets: list[str]
     complexity_score: float
     fingerprint: str
 
@@ -38,7 +37,7 @@ class ProjectAnalysisResponse(BaseModel):
 
     dna: TechnologyStackDNA
     analysis_time_ms: int
-    recommendations: List[str]
+    recommendations: list[str]
 
 
 class SetupRecommendationRequest(BaseModel):
@@ -54,14 +53,14 @@ class SetupRecommendation(BaseModel):
     title: str
     description: str
     priority: str
-    implementation_steps: List[str]
+    implementation_steps: list[str]
     estimated_time: str
 
 
 class SetupRecommendationResponse(BaseModel):
     """Response model for setup recommendations."""
 
-    recommendations: List[SetupRecommendation]
+    recommendations: list[SetupRecommendation]
     total_count: int
 
 
@@ -73,7 +72,7 @@ class IssueWarning(BaseModel):
     title: str
     description: str
     likelihood: float
-    mitigation_steps: List[str]
+    mitigation_steps: list[str]
 
 
 class IssuesPredictionRequest(BaseModel):
@@ -85,7 +84,7 @@ class IssuesPredictionRequest(BaseModel):
 class IssuesPredictionResponse(BaseModel):
     """Response model for issues prediction."""
 
-    warnings: List[IssueWarning]
+    warnings: list[IssueWarning]
     total_count: int
     risk_score: float
 

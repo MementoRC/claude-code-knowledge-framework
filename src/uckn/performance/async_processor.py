@@ -9,9 +9,10 @@ UCKN Async Processing Engine
 
 import asyncio
 import logging
-from typing import Callable, Any, Awaitable
-import threading
 import queue
+import threading
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 
 class AsyncTaskQueue:

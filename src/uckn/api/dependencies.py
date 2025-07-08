@@ -4,11 +4,11 @@ FastAPI dependencies for UCKN API.
 
 from fastapi import HTTPException
 
-from ..core.organisms.knowledge_manager import KnowledgeManager
-from ..core.organisms.predictive_issue_detector import PredictiveIssueDetector
 from ..core.atoms.tech_stack_detector import TechStackDetector
 from ..core.molecules.issue_detection_rules import IssueDetectionRules
 from ..core.molecules.issue_prediction_models import IssuePredictionModels
+from ..core.organisms.knowledge_manager import KnowledgeManager
+from ..core.organisms.predictive_issue_detector import PredictiveIssueDetector
 
 # Global instances
 _knowledge_manager: KnowledgeManager = None

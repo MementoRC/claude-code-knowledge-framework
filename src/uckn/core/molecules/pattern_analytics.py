@@ -5,12 +5,12 @@ Tracks and analyzes pattern application attempts, outcomes, and quality metrics.
 Provides real-time and batch analytics for knowledge pattern effectiveness.
 """
 
-import uuid
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional, Any, Tuple
 import statistics
+import uuid
 from collections import defaultdict
+from datetime import datetime
+from typing import Any, Optional
 
 from ...storage.chromadb_connector import ChromaDBConnector
 
@@ -37,11 +37,11 @@ class PatternAnalytics:
             return
         if self.APPLICATION_COLLECTION not in self.chroma_connector.collections:
             try:
-                self.chroma_connector.collections[self.APPLICATION_COLLECTION] = (
-                    self.chroma_connector.client.get_or_create_collection(
-                        name=self.APPLICATION_COLLECTION,
-                        metadata={"description": "UCKN pattern application attempts"},
-                    )
+                self.chroma_connector.collections[
+                    self.APPLICATION_COLLECTION
+                ] = self.chroma_connector.client.get_or_create_collection(
+                    name=self.APPLICATION_COLLECTION,
+                    metadata={"description": "UCKN pattern application attempts"},
                 )
                 self._logger.info(
                     f"ChromaDB collection '{self.APPLICATION_COLLECTION}' initialized."
@@ -54,7 +54,7 @@ class PatternAnalytics:
     def record_application(
         self,
         pattern_id: str,
-        context: Optional[Dict[str, Any]] = None,
+        context: Optional[dict[str, Any]] = None,
         application_id: Optional[str] = None,
         timestamp: Optional[str] = None,
     ) -> Optional[str]:
@@ -135,7 +135,7 @@ class PatternAnalytics:
             self._update_pattern_metrics(metadata["pattern_id"])
         return success
 
-    def get_pattern_metrics(self, pattern_id: str) -> Dict[str, Any]:
+    def get_pattern_metrics(self, pattern_id: str) -> dict[str, Any]:
         """
         Get all analytics metrics for a specific pattern.
         """
@@ -165,8 +165,8 @@ class PatternAnalytics:
         }
 
     def calculate_success_rate(
-        self, applications: Optional[List[Dict[str, Any]]] = None
-    ) -> Tuple[Optional[float], Optional[Tuple[float, float]]]:
+        self, applications: Optional[list[dict[str, Any]]] = None
+    ) -> tuple[Optional[float], Optional[tuple[float, float]]]:
         """
         Calculate success rate and 95% confidence interval using Wilson score interval.
         """
@@ -192,7 +192,7 @@ class PatternAnalytics:
         return p, (max(0.0, lower), min(1.0, upper))
 
     def _calculate_average_resolution_time(
-        self, applications: List[Dict[str, Any]]
+        self, applications: list[dict[str, Any]]
     ) -> Optional[float]:
         """
         Calculate weighted average resolution time for successful applications.
@@ -208,7 +208,7 @@ class PatternAnalytics:
         return float(statistics.mean(times))
 
     def calculate_quality_score(
-        self, applications: List[Dict[str, Any]]
+        self, applications: list[dict[str, Any]]
     ) -> Optional[float]:
         """
         Composite quality score: (success_rate * 0.4) + (time_score * 0.3) + (usage_score * 0.3)
@@ -231,7 +231,7 @@ class PatternAnalytics:
 
     def get_trend_analysis(
         self, pattern_id: str, days: int = 30, interval: str = "day"
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Analyze trends in success rate and usage over time.
         Returns a list of dicts: [{"date": ..., "success_rate": ..., "count": ...}, ...]
@@ -264,7 +264,7 @@ class PatternAnalytics:
 
     def get_top_performing_patterns(
         self, top_n: int = 5, min_applications: int = 5
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get top patterns by quality score.
         """
@@ -289,7 +289,7 @@ class PatternAnalytics:
 
     def get_problematic_patterns(
         self, threshold: float = 0.5, min_applications: int = 5
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Identify patterns with low success rates.
         """
@@ -315,7 +315,7 @@ class PatternAnalytics:
         problematic.sort(key=lambda x: x["success_rate"])
         return problematic
 
-    def _get_applications_for_pattern(self, pattern_id: str) -> List[Dict[str, Any]]:
+    def _get_applications_for_pattern(self, pattern_id: str) -> list[dict[str, Any]]:
         """
         Retrieve all application records for a given pattern.
         """
@@ -336,7 +336,7 @@ class PatternAnalytics:
             )
             return []
 
-    def _get_all_applications(self) -> List[Dict[str, Any]]:
+    def _get_all_applications(self) -> list[dict[str, Any]]:
         """
         Retrieve all application records.
         """

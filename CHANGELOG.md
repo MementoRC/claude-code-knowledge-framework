@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Git workflow enhancement with knowledge attribution
 - Command templates:
   - `knowledge_capture.md` - Session knowledge capture workflow
-  - `knowledge_retrieve.md` - Historical knowledge retrieval  
+  - `knowledge_retrieve.md` - Historical knowledge retrieval
   - `knowledge_integrated_ci.md` - Enhanced CI troubleshooting
 - Data templates:
   - `session_template.json` - Session data structure
@@ -53,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Technical Details
 - **Storage**: File-system based JSON storage
 - **Search**: Multi-strategy search (keyword, pattern, similarity)
-- **Integration**: Native Claude Code MCP tool compatibility  
+- **Integration**: Native Claude Code MCP tool compatibility
 - **Dependencies**: No external dependencies (pure Python + file system)
 - **Scalability**: Tested with 100+ session records
 - **Performance**: Sub-second search for typical knowledge bases

@@ -7,13 +7,13 @@ Integrates with existing knowledge management and analytics systems.
 """
 
 import logging
-from typing import Dict, Any, List, Optional
 from datetime import datetime  # Added import for datetime
+from typing import Any, Optional
 
 from ..atoms.tech_stack_detector import TechStackDetector
+from ..molecules.error_solution_manager import ErrorSolutionManager  # READ ONLY
 from ..molecules.issue_detection_rules import IssueDetectionRules
 from ..molecules.issue_prediction_models import IssuePredictionModels
-from ..molecules.error_solution_manager import ErrorSolutionManager  # READ ONLY
 from ..molecules.pattern_analytics import PatternAnalytics  # READ ONLY
 
 
@@ -44,7 +44,7 @@ class PredictiveIssueDetector:
         code_snippet: Optional[str] = None,
         context_description: Optional[str] = None,
         project_id: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Detects potential issues in a project or specific code context.
 
@@ -108,7 +108,7 @@ class PredictiveIssueDetector:
         outcome: str,  # e.g., "resolved", "false_positive", "ignored", "still_active"
         resolution_details: Optional[str] = None,
         time_to_resolve_minutes: Optional[float] = None,
-        feedback_data: Optional[Dict[str, Any]] = None,
+        feedback_data: Optional[dict[str, Any]] = None,
     ) -> bool:
         """
         Collects feedback on detected issues to improve future predictions and models.

@@ -1,6 +1,6 @@
 import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -83,15 +83,15 @@ class WorkflowStatusResponse(BaseModel):
     pattern_id: str = Field(description="ID of the pattern")
     current_state: WorkflowState = Field(description="Current workflow state")
     current_version: str = Field(description="Current active version number")
-    pending_reviews: List[ReviewFeedback] = Field(
+    pending_reviews: list[ReviewFeedback] = Field(
         default_factory=list,
         description="List of pending review requests for the current version",
     )
-    review_history: List[ReviewFeedback] = Field(
+    review_history: list[ReviewFeedback] = Field(
         default_factory=list,
         description="History of all submitted reviews across versions",
     )
-    version_history: List[PatternVersion] = Field(
+    version_history: list[PatternVersion] = Field(
         default_factory=list, description="History of all pattern versions"
     )
     last_transition_at: Optional[datetime.datetime] = Field(
@@ -119,7 +119,7 @@ class SubmitReviewFeedbackRequest(BaseModel):
 class InitiateReviewRequest(BaseModel):
     """Request model for initiating a pattern review."""
 
-    reviewer_ids: List[str] = Field(
+    reviewer_ids: list[str] = Field(
         description="List of user IDs to assign as reviewers"
     )
     message: Optional[str] = Field(

@@ -1,5 +1,7 @@
 import pytest
+
 from src.uckn.core.atoms.semantic_search_engine_optimized import ResourceMonitor
+
 
 def test_resource_monitor_records():
     monitor = ResourceMonitor()

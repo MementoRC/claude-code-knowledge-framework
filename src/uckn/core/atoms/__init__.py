@@ -1,6 +1,6 @@
+from .pattern_extractor import PatternExtractor
 from .project_dna_fingerprinter import ProjectDNAFingerprinter
 from .semantic_search_engine import SemanticSearchEngine
-from .pattern_extractor import PatternExtractor
 
 # Import MultiModalEmbeddings defensively to handle PyTorch issues
 try:

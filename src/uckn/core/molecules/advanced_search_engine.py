@@ -6,14 +6,14 @@ including semantic search, query parsing, faceted filtering, and personalized ra
 """
 
 import logging
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any, Optional
 
-from ..atoms.semantic_search_engine import SemanticSearchEngine
-from ..atoms.query_parser import QueryParser
 from ..atoms.faceted_search_manager import FacetedSearchManager
 from ..atoms.personalized_ranking import PersonalizedRanking
+from ..atoms.query_parser import QueryParser
 from ..atoms.search_suggestion_engine import SearchSuggestionEngine
+from ..atoms.semantic_search_engine import SemanticSearchEngine
 
 
 class AdvancedSearchEngine:
@@ -44,10 +44,10 @@ class AdvancedSearchEngine:
         self,
         query: str,
         user_id: Optional[str] = None,
-        filters: Optional[Dict[str, Any]] = None,
+        filters: Optional[dict[str, Any]] = None,
         limit: int = 20,
         enable_personalization: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Perform advanced search with all capabilities.
         """
@@ -124,7 +124,7 @@ class AdvancedSearchEngine:
 
     def get_autocomplete_suggestions(
         self, partial_query: str, limit: int = 5
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get autocomplete suggestions for a partial query."""
         try:
             return self.suggestion_engine.get_autocomplete_suggestions(
@@ -139,7 +139,7 @@ class AdvancedSearchEngine:
         user_id: str,
         pattern_id: str,
         interaction_type: str,
-        pattern_metadata: Optional[Dict[str, Any]] = None,
+        pattern_metadata: Optional[dict[str, Any]] = None,
         rating: Optional[float] = None,
     ) -> None:
         """Track user interaction for personalization improvement."""

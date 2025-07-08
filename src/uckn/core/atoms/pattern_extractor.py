@@ -6,7 +6,7 @@ import logging
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Any, Optional
 
 # Assuming TechStackDetector is in the same 'atoms' directory or accessible via relative import
 from src.uckn.core.atoms.tech_stack_detector import TechStackDetector
@@ -54,7 +54,7 @@ class PatternExtractor:
         project_path: str,
         source_file: Optional[str] = None,
         pattern_type: str = "unknown",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Generates metadata for an extracted pattern, including technology stack.
 
@@ -97,7 +97,7 @@ class PatternExtractor:
 
     def extract_from_git_changes(
         self, diff_content: str, project_path: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Extracts patterns from Git commit diff content.
         This is a simplified parser focusing on added lines.
@@ -109,9 +109,9 @@ class PatternExtractor:
         Returns:
             A list of dictionaries, each representing an extracted pattern.
         """
-        patterns: List[Dict[str, Any]] = []
+        patterns: list[dict[str, Any]] = []
         current_file = None
-        current_block: List[str] = []
+        current_block: list[str] = []
 
         try:
             for line in diff_content.splitlines():
@@ -159,7 +159,7 @@ class PatternExtractor:
 
     def extract_from_ci_changes(
         self, ci_file_path: str, project_path: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Extracts patterns from CI/CD workflow configuration files (e.g., YAML).
         This is a basic implementation that extracts the entire file content as a pattern.
@@ -172,7 +172,7 @@ class PatternExtractor:
         Returns:
             A list of dictionaries, each representing an extracted pattern.
         """
-        patterns: List[Dict[str, Any]] = []
+        patterns: list[dict[str, Any]] = []
         content = self._read_file_content(ci_file_path)
         if content:
             try:
@@ -192,7 +192,7 @@ class PatternExtractor:
 
     def extract_from_config_changes(
         self, config_file_path: str, project_path: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Extracts patterns from general configuration files (e.g., .ini, .json, .toml).
         Similar to CI/CD, this extracts the entire file content as a pattern.
@@ -204,7 +204,7 @@ class PatternExtractor:
         Returns:
             A list of dictionaries, each representing an extracted pattern.
         """
-        patterns: List[Dict[str, Any]] = []
+        patterns: list[dict[str, Any]] = []
         content = self._read_file_content(config_file_path)
         if content:
             try:
@@ -222,7 +222,7 @@ class PatternExtractor:
 
     def extract_from_documentation(
         self, doc_file_path: str, project_path: str
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Extracts patterns from documentation files (e.g., Markdown, reStructuredText).
         This extracts code blocks or specific sections from documentation.
@@ -234,7 +234,7 @@ class PatternExtractor:
         Returns:
             A list of dictionaries, each representing an extracted pattern.
         """
-        patterns: List[Dict[str, Any]] = []
+        patterns: list[dict[str, Any]] = []
         content = self._read_file_content(doc_file_path)
         if content:
             try:
@@ -242,7 +242,7 @@ class PatternExtractor:
                 # This can be expanded to parse specific sections, examples, etc.
                 code_blocks = []
                 in_code_block = False
-                current_block: List[str] = []
+                current_block: list[str] = []
                 for line in content.splitlines():
                     if line.strip().startswith("```"):
                         if in_code_block:
@@ -278,8 +278,8 @@ class PatternExtractor:
         return patterns
 
     def calculate_success_metrics(
-        self, pattern_data: Dict[str, Any], usage_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, pattern_data: dict[str, Any], usage_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Calculates and updates success metrics for a given pattern.
 

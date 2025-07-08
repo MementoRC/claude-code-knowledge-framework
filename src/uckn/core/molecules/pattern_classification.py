@@ -3,9 +3,9 @@ UCKN Pattern Classification Molecule
 Handles management of pattern categories and their assignments.
 """
 
-from typing import Dict, List, Optional, Any
-import uuid
 import logging
+import uuid
+from typing import Any, Optional
 
 from ...storage import UnifiedDatabase  # Changed from ChromaDBConnector
 
@@ -46,7 +46,7 @@ class PatternClassification:
         )
         return category_id if success else None
 
-    def get_category(self, category_id: str) -> Optional[Dict[str, Any]]:
+    def get_category(self, category_id: str) -> Optional[dict[str, Any]]:
         """
         Retrieves a pattern category by its ID.
 
@@ -167,7 +167,7 @@ class PatternClassification:
         # UnifiedDatabase handles removing link in PostgreSQL
         return self.unified_db.remove_pattern_from_category(pattern_id, category_id)
 
-    def get_patterns_in_category(self, category_id: str) -> List[str]:
+    def get_patterns_in_category(self, category_id: str) -> list[str]:
         """
         Retrieves a list of pattern IDs belonging to a specific category.
 
@@ -185,7 +185,7 @@ class PatternClassification:
         # UnifiedDatabase handles querying links in PostgreSQL
         return self.unified_db.get_patterns_by_category(category_id)
 
-    def get_categories_for_pattern(self, pattern_id: str) -> List[Dict[str, Any]]:
+    def get_categories_for_pattern(self, pattern_id: str) -> list[dict[str, Any]]:
         """
         Retrieves a list of categories assigned to a specific pattern.
 

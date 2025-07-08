@@ -3,7 +3,7 @@ Health monitoring endpoints for UCKN API.
 """
 
 import logging
-from typing import Dict, Any
+from typing import Any
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -26,7 +26,7 @@ class SystemStatusResponse(BaseModel):
     """Detailed system status response model."""
 
     status: str
-    components: Dict[str, Any]
+    components: dict[str, Any]
     uptime: str
     version: str
 

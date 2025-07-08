@@ -2,14 +2,15 @@
 UCKN Command Line Interface
 """
 
-import click
-from rich.console import Console
-from rich.table import Table
-from rich.json import JSON
-from rich import box
-from pathlib import Path
 import json
 import sys
+from pathlib import Path
+
+import click
+from rich import box
+from rich.console import Console
+from rich.json import JSON
+from rich.table import Table
 
 console = Console()
 
@@ -102,9 +103,9 @@ def migrate(
     source: str, target: str, dry_run: bool, validate_only: bool, report_only: bool
 ):
     """Migrate existing knowledge patterns to UCKN format"""
-    from uckn.core.molecules.pattern_migrator import PatternMigrator
-
     import logging
+
+    from uckn.core.molecules.pattern_migrator import PatternMigrator
 
     logger = logging.getLogger("uckn.migrate")
     logger.setLevel(logging.INFO)

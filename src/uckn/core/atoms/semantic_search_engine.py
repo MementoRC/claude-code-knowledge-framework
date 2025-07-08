@@ -13,8 +13,8 @@ Author: UCKN Team
 """
 
 import logging
-from typing import Optional, List, Dict, Any
 from functools import lru_cache
+from typing import Any, Optional
 
 from .multi_modal_embeddings import MultiModalEmbeddings
 
@@ -25,7 +25,7 @@ except ImportError:
 
 
 def _tech_stack_match(
-    query_stack: Optional[List[str]], doc_stack: Optional[List[str]]
+    query_stack: Optional[list[str]], doc_stack: Optional[list[str]]
 ) -> float:
     """
     Compute a tech stack compatibility score between two stacks.
@@ -102,13 +102,13 @@ class SemanticSearchEngine:
             raise ValueError(f"Unknown collection type: {collection_type}")
         return collection_type
 
-    def _get_success_rate(self, metadata: Dict[str, Any]) -> float:
+    def _get_success_rate(self, metadata: dict[str, Any]) -> float:
         # Try to extract a success rate from metadata, fallback to 0.5 if not present
         return float(
             metadata.get("success_rate", metadata.get("avg_resolution_time", 0.5))
         )
 
-    def _extract_tech_stack(self, metadata: Dict[str, Any]) -> List[str]:
+    def _extract_tech_stack(self, metadata: dict[str, Any]) -> list[str]:
         # Try to extract technology stack from metadata
         stack = metadata.get("technology_stack")
         if isinstance(stack, list):
@@ -119,9 +119,9 @@ class SemanticSearchEngine:
 
     def _rank_results(
         self,
-        results: List[Dict[str, Any]],
-        query_tech_stack: Optional[List[str]] = None,
-    ) -> List[Dict[str, Any]]:
+        results: list[dict[str, Any]],
+        query_tech_stack: Optional[list[str]] = None,
+    ) -> list[dict[str, Any]]:
         """
         Rank results by a weighted combination of similarity, success_rate, and tech_stack_match.
         """
@@ -150,8 +150,8 @@ class SemanticSearchEngine:
         return ranked
 
     def _filter_by_tech_stack(
-        self, results: List[Dict[str, Any]], query_tech_stack: Optional[List[str]]
-    ) -> List[Dict[str, Any]]:
+        self, results: list[dict[str, Any]], query_tech_stack: Optional[list[str]]
+    ) -> list[dict[str, Any]]:
         """
         Optionally filter results by technology stack compatibility.
         """
@@ -165,11 +165,11 @@ class SemanticSearchEngine:
         return filtered
 
     @lru_cache(maxsize=128)
-    def _cached_embed(self, data: str, data_type: str) -> Optional[List[float]]:
+    def _cached_embed(self, data: str, data_type: str) -> Optional[list[float]]:
         # Use MultiModalEmbeddings for embedding
         return self.embedding_atom.embed(data, data_type=data_type)
 
-    def _embed_query(self, text=None, code=None, error=None) -> Optional[List[float]]:
+    def _embed_query(self, text=None, code=None, error=None) -> Optional[list[float]]:
         # Use multi-modal embedding if more than one modality is present
         if sum(x is not None for x in [text, code, error]) > 1:
             return self.embedding_atom.multi_modal_embed(
@@ -186,13 +186,13 @@ class SemanticSearchEngine:
 
     def _search_collection(
         self,
-        query_embedding: List[float],
+        query_embedding: list[float],
         collection_type: str,
         limit: int,
         min_similarity: float,
-        tech_stack: Optional[List[str]] = None,
-        metadata_filter: Optional[Dict[str, Any]] = None,
-    ) -> List[Dict[str, Any]]:
+        tech_stack: Optional[list[str]] = None,
+        metadata_filter: Optional[dict[str, Any]] = None,
+    ) -> list[dict[str, Any]]:
         """
         Perform vector search in the specified collection.
         """
@@ -214,7 +214,7 @@ class SemanticSearchEngine:
         results = self._filter_by_tech_stack(results, tech_stack)
         return results[:limit]
 
-    def _parse_tech_stack(self, tech_stack) -> Optional[List[str]]:
+    def _parse_tech_stack(self, tech_stack) -> Optional[list[str]]:
         if tech_stack is None:
             return None
         if isinstance(tech_stack, str):
@@ -227,7 +227,7 @@ class SemanticSearchEngine:
 
     def search_by_text(
         self, query_text: str, tech_stack=None, limit: int = 10
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Semantic search for code patterns and error solutions by text.
 
@@ -259,7 +259,7 @@ class SemanticSearchEngine:
 
     def search_by_code(
         self, code_snippet: str, tech_stack=None, limit: int = 10
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Semantic search for code patterns and error solutions by code snippet.
 
@@ -291,7 +291,7 @@ class SemanticSearchEngine:
 
     def search_by_error(
         self, error_message: str, tech_stack=None, limit: int = 10
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Semantic search for error solutions and code patterns by error message.
 
@@ -328,7 +328,7 @@ class SemanticSearchEngine:
         error: Optional[str] = None,
         tech_stack=None,
         limit: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Multi-modal semantic search using any combination of text, code, and error.
 

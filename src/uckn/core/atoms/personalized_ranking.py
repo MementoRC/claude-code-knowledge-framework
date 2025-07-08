@@ -6,9 +6,9 @@ and behavioral patterns to improve search relevance for individual users.
 """
 
 import logging
-from datetime import datetime
-from typing import Dict, Any, List, Optional
 from collections import defaultdict
+from datetime import datetime
+from typing import Any, Optional
 
 
 class PersonalizedRanking:
@@ -39,7 +39,7 @@ class PersonalizedRanking:
         user_id: str,
         pattern_id: str,
         interaction_type: str,
-        pattern_metadata: Optional[Dict[str, Any]] = None,
+        pattern_metadata: Optional[dict[str, Any]] = None,
         rating: Optional[float] = None,
     ) -> None:
         """
@@ -118,8 +118,8 @@ class PersonalizedRanking:
             profile["successful_patterns"].add(pattern_id)
 
     def personalize_ranking(
-        self, user_id: str, search_results: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        self, user_id: str, search_results: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """
         Re-rank search results based on user preferences.
 
@@ -160,7 +160,7 @@ class PersonalizedRanking:
         return personalized_results
 
     def _calculate_personalization_score(
-        self, pattern_metadata: Dict[str, Any], user_profile: Dict[str, Any]
+        self, pattern_metadata: dict[str, Any], user_profile: dict[str, Any]
     ) -> float:
         """
         Calculate personalization score for a pattern based on user preferences.
