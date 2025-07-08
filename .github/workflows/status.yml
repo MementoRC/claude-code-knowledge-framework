@@ -9,6 +9,8 @@ jobs:
   quick-check:
     name: Quick Status Check
     runs-on: ubuntu-latest
+    env:
+      PIXI_ENV: ci # Ensure pixi targets the 'ci' environment
     
     steps:
     - name: Checkout code
@@ -19,10 +21,33 @@ jobs:
       with:
         pixi-version: v0.49.0
         cache: false  # Temporarily disable during GitHub cache service outage
+      continue-on-error: true # Add for consistent cache fallback
 
-    - name: Install dependencies
+    - name: Install dependencies (pixi) with retry and fallback
       run: |
-        pixi run ci-install
+        n=0
+        until [ "$n" -ge 3 ]
+        do
+          # Try locked first, then fallback to update if needed
+          if pixi install --locked; then # PIXI_ENV will make this target 'ci'
+            echo "✅ Locked installation successful"
+            break
+          elif [ "$n" -eq 2 ]; then
+            echo "⚠️ Locked install failed, trying update mode as fallback"
+            pixi install && break # PIXI_ENV will make this target 'ci'
+          fi
+          n=$((n+1))
+          echo "pixi install failed, retrying ($n/3)..."
+          sleep 5
+        done
+
+    - name: Activate pixi environment
+      run: |
+        eval "$(pixi shell --env-hook bash)"
+
+    - name: Install project dependencies
+      run: |
+        pixi run -e ci ci-install
 
     - name: Quick smoke test
       run: |

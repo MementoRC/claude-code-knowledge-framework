@@ -12,6 +12,7 @@ jobs:
     timeout-minutes: 30
     env:
       PYTHON_VERSION: "3.10"
+      PIXI_ENV: ci # Ensure pixi targets the 'ci' environment
     steps:
       - uses: actions/checkout@v4
       - name: Setup pixi with cache fallback
@@ -23,12 +24,36 @@ jobs:
         continue-on-error: true
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y git
-      - name: Install dependencies
+
+      - name: Install dependencies (pixi) with retry and fallback
         run: |
-          pixi run ci-install
-      - name: Run tests with coverage (HTML, XML, JSON, Markdown)
+          n=0
+          until [ "$n" -ge 3 ]
+          do
+            # Try locked first, then fallback to update if needed
+            if pixi install --locked; then # PIXI_ENV will make this target 'ci'
+              echo "✅ Locked installation successful"
+              break
+            elif [ "$n" -eq 2 ]; then
+              echo "⚠️ Locked install failed, trying update mode as fallback"
+              pixi install && break # PIXI_ENV will make this target 'ci'
+            fi
+            n=$((n+1))
+            echo "pixi install failed, retrying ($n/3)..."
+            sleep 5
+          done
+
+      - name: Activate pixi environment
         run: |
           eval "$(pixi shell --env-hook bash)"
+
+      - name: Install project dependencies
+        run: |
+          pixi run -e ci ci-install
+
+      - name: Run tests with coverage (HTML, XML, JSON, Markdown)
+        run: |
+          # The pixi shell is already activated by the previous step
           pytest tests/ --cov=src/uckn --cov-report=html --cov-report=xml --cov-report=json --cov-report=term --cov-report=term-missing --json-report --json-report-file=pytest-report.json --html=pytest-report.html --self-contained-html
           coverage markdown
       - name: Upload coverage artifacts
@@ -46,7 +71,7 @@ jobs:
       - name: diff-cover (PR only)
         if: github.event_name == 'pull_request'
         run: |
-          eval "$(pixi shell --env-hook bash)"
+          # The pixi shell is already activated by the previous step
           git fetch origin main:refs/remotes/origin/main
           diff-cover coverage.xml --compare-branch=origin/main --fail-under=90 --html-report diffcover.html --markdown-report diffcover.md --json-report diffcover.json
       - name: Upload diff-cover artifacts
