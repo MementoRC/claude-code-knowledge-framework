@@ -46,11 +46,11 @@ jobs:
         until [ "$n" -ge 3 ]
         do
           # Try locked first, then fallback to update if needed
-          if pixi install --locked; then
-            echo "✅ Locked installation successful"
+          if pixi install; then
+            echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
-            echo "⚠️ Locked install failed, trying update mode as fallback"
+            echo "⚠️ Install failed, retrying..."
             pixi install && break
           fi
           n=$((n+1))
@@ -115,11 +115,11 @@ jobs:
         until [ "$n" -ge 3 ]
         do
           # Try locked first, then fallback to update if needed
-          if pixi install --locked; then
-            echo "✅ Locked installation successful"
+          if pixi install; then
+            echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
-            echo "⚠️ Locked install failed, trying update mode as fallback"
+            echo "⚠️ Install failed, retrying..."
             pixi install && break
           fi
           n=$((n+1))
@@ -184,11 +184,11 @@ jobs:
         until [ "$n" -ge 3 ]
         do
           # Try locked first, then fallback to update if needed
-          if pixi install --locked; then
-            echo "✅ Locked installation successful"
+          if pixi install; then
+            echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
-            echo "⚠️ Locked install failed, trying update mode as fallback"
+            echo "⚠️ Install failed, retrying..."
             pixi install && break
           fi
           n=$((n+1))
@@ -258,11 +258,11 @@ jobs:
         until [ "$n" -ge 3 ]
         do
           # Try locked first, then fallback to update if needed
-          if pixi install --locked; then
-            echo "✅ Locked installation successful"
+          if pixi install; then
+            echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
-            echo "⚠️ Locked install failed, trying update mode as fallback"
+            echo "⚠️ Install failed, retrying..."
             pixi install && break
           fi
           n=$((n+1))
@@ -377,11 +377,11 @@ jobs:
         until [ "$n" -ge 3 ]
         do
           # Try locked first, then fallback to update if needed
-          if pixi install --locked; then
-            echo "✅ Locked installation successful"
+          if pixi install; then
+            echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
-            echo "⚠️ Locked install failed, trying update mode as fallback"
+            echo "⚠️ Install failed, retrying..."
             pixi install && break
           fi
           n=$((n+1))
@@ -475,11 +475,11 @@ jobs:
         until [ "$n" -ge 3 ]
         do
           # Try locked first, then fallback to update if needed
-          if pixi install --locked; then
-            echo "✅ Locked installation successful"
+          if pixi install; then
+            echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
-            echo "⚠️ Locked install failed, trying update mode as fallback"
+            echo "⚠️ Install failed, retrying..."
             pixi install && break
           fi
           n=$((n+1))

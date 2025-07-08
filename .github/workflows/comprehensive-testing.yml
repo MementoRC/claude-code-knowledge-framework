@@ -74,11 +74,11 @@ jobs:
           n=0
           until [ "$n" -ge 3 ]
           do
-            if pixi install --locked; then
-              echo "✅ Locked installation successful"
+            if pixi install; then
+              echo "✅ Installation successful"
               break
             elif [ "$n" -eq 2 ]; then
-              echo "⚠️ Locked install failed, trying update mode as fallback"
+              echo "⚠️ Install failed, retrying..."
               pixi install && break
             fi
             n=$((n+1))

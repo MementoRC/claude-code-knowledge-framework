@@ -38,11 +38,11 @@ jobs:
         n=0
         until [ "$n" -ge 3 ]
         do
-          if pixi install -e ci --locked; then
-            echo "✅ Locked installation for CI environment successful"
+          if pixi install -e ci; then
+            echo "✅ Installation for CI environment successful"
             break
           elif [ "$n" -eq 2 ]; then
-            echo "⚠️ Locked install for CI environment failed, trying update mode as fallback"
+            echo "⚠️ Install for CI environment failed, retrying..."
             pixi install -e ci && break
           fi
           n=$((n+1))
@@ -197,11 +197,11 @@ jobs:
         n=0
         until [ "$n" -ge 3 ]
         do
-          if pixi install -e ci --locked; then
-            echo "✅ Locked installation for CI environment successful"
+          if pixi install -e ci; then
+            echo "✅ Installation for CI environment successful"
             break
           elif [ "$n" -eq 2 ]; then
-            echo "⚠️ Locked install for CI environment failed, trying update mode as fallback"
+            echo "⚠️ Install for CI environment failed, retrying..."
             pixi install -e ci && break
           fi
           n=$((n+1))
