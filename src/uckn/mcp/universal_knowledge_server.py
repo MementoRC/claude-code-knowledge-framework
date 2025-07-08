@@ -30,9 +30,21 @@ try:
         TextContent,
         Tool,
     )
+    MCP_AVAILABLE = True
 except ImportError as e:
     print(f"MCP library not available: {e}", file=sys.stderr)
-    sys.exit(1)
+    MCP_AVAILABLE = False
+    # Create stub classes for testing when MCP is not available
+    class Server:
+        pass
+    class CallToolResult:
+        pass
+    class TextContent:
+        pass
+    class Tool:
+        pass
+    def stdio_server():
+        pass
 
 # Import UCKN components
 try:
@@ -735,4 +747,8 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    if MCP_AVAILABLE:
+        asyncio.run(main())
+    else:
+        print("MCP library not available. Server cannot start.", file=sys.stderr)
+        sys.exit(1)
