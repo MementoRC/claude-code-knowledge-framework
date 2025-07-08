@@ -211,11 +211,12 @@ class TestUniversalKnowledgeServer:
         )
 
         # Verify the result structure
-        assert hasattr(result, "content")
-        assert len(result.content) > 0
+        assert isinstance(result, dict)
+        assert "content" in result
+        assert len(result["content"]) > 0
 
         # Parse the JSON response
-        response_text = result.content[0].text
+        response_text = result["content"][0].text
         response = json.loads(response_text)
 
         assert response["query"] == "test query"
