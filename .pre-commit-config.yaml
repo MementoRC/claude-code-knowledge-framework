@@ -24,4 +24,4 @@ repos:
     hooks:
       - id: mypy
         additional_dependencies: [pydantic, sqlalchemy, fastapi, types-toml]
-        args: [--ignore-missing-imports]
+        args: [--ignore-missing-imports, --explicit-package-bases]
