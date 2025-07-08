@@ -91,7 +91,7 @@ jobs:
           eval "$(pixi shell --env-hook bash)"
 
       - name: Install dev dependencies
-        run: pixi run -e ci ci-dev
+        run: pixi run -e ci ci-install
 
       - name: Lint
         run: pixi run -e ci lint

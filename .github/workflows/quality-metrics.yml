@@ -53,9 +53,9 @@ jobs:
 
       - name: Run tests with coverage (HTML, XML, JSON, Markdown)
         run: |
-          # The pixi shell is already activated by the previous step
-          pytest tests/ --cov=src/uckn --cov-report=html --cov-report=xml --cov-report=json --cov-report=term --cov-report=term-missing --json-report --json-report-file=pytest-report.json --html=pytest-report.html --self-contained-html
-          coverage markdown
+          # Run tests using pixi to ensure environment is properly set
+          pixi run -e ci pytest tests/ --cov=src/uckn --cov-report=html --cov-report=xml --cov-report=json --cov-report=term --cov-report=term-missing --json-report --json-report-file=pytest-report.json --html=pytest-report.html --self-contained-html
+          pixi run -e ci coverage markdown
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -71,9 +71,9 @@ jobs:
       - name: diff-cover (PR only)
         if: github.event_name == 'pull_request'
         run: |
-          # The pixi shell is already activated by the previous step
+          # Use pixi to run diff-cover
           git fetch origin main:refs/remotes/origin/main
-          diff-cover coverage.xml --compare-branch=origin/main --fail-under=90 --html-report diffcover.html --markdown-report diffcover.md --json-report diffcover.json
+          pixi run -e ci diff-cover coverage.xml --compare-branch=origin/main --fail-under=90 --html-report diffcover.html --markdown-report diffcover.md --json-report diffcover.json
       - name: Upload diff-cover artifacts
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
@@ -90,4 +90,4 @@ jobs:
           path: coverage.md
       - name: Quality Gate
         run: |
-          pixi run quality-gate
+          pixi run -e ci quality-gate

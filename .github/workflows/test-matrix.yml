@@ -73,7 +73,7 @@ jobs:
 
       - name: Install dev dependencies using pixi
         run: |
-          pixi run -e ci ci-dev
+          pixi run -e ci ci-install
 
       - name: Verify pixi environment
         run: |

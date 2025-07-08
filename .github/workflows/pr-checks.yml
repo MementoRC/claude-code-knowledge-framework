@@ -60,7 +60,7 @@ jobs:
 
     - name: Install dev dependencies for CI environment
       run: |
-        pixi run -e ci ci-dev
+        pixi run -e ci ci-install
 
     - name: Verify pixi environment
       run: |
@@ -253,7 +253,7 @@ jobs:
         echo "📚 Checking documentation..."
 
         # Check if significant changes need doc updates
-        CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+        CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
         SRC_CHANGES=$(echo "$CHANGED_FILES" | grep -E '^src/' | wc -l)
         DOC_CHANGES=$(echo "$CHANGED_FILES" | grep -E '\.(md|rst)$' | wc -l)
 
