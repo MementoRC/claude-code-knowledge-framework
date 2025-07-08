@@ -246,7 +246,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
         return "unknown"
 
-    def _get_user_info(self, request: Request) -> Optional[dict[str, Any]]:
+    def _get_user_info(self, request: Request) -> dict[str, Any] | None:
         """Get user information from request state"""
         if hasattr(request.state, "user"):
             user = request.state.user
@@ -267,7 +267,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 filtered[key] = value
         return filtered
 
-    async def _get_request_body(self, request: Request) -> Optional[str]:
+    async def _get_request_body(self, request: Request) -> str | None:
         """Get request body as string"""
         try:
             # Check if body has already been read
