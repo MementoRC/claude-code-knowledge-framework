@@ -136,10 +136,9 @@ ruff = "*"
 # Removed [tool.pixi.feature.ml.dependencies] (pytorch, etc.) as not needed for minimal CI
 
 [tool.pixi.environments]
-default = {features = ["mcp"], solve-group = "default"}
-dev = {features = ["dev", "mcp"], solve-group = "default"}
+default = {solve-group = "default"}
+dev = {features = ["dev"], solve-group = "default"}
 ci = {features = ["ci-deps"], solve-group = "default"}
-docs = {features = ["docs"], solve-group = "default"}
 
 [tool.pixi.tasks]
 # Development tasks
