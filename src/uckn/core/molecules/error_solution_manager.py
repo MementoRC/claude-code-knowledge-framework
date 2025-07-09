@@ -6,7 +6,7 @@ Handles CRUD operations for error solutions
 import logging
 import uuid
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from ...storage import UnifiedDatabase  # Changed from ChromaDBConnector
 from ..atoms.semantic_search import SemanticSearch
@@ -20,7 +20,7 @@ class ErrorSolutionManager:
         self.semantic_search = semantic_search
         self._logger = logging.getLogger(__name__)
 
-    def add_error_solution(self, solution_data: dict[str, Any]) -> Optional[str]:
+    def add_error_solution(self, solution_data: dict[str, Any]) -> str | None:
         """
         Add a new error solution to the 'error_solutions' collection.
 

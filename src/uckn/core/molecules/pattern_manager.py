@@ -6,7 +6,7 @@ Handles CRUD operations for knowledge patterns
 import logging
 import uuid
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from ...storage import UnifiedDatabase  # Changed from ChromaDBConnector
 from ..atoms.semantic_search import SemanticSearch
@@ -20,7 +20,7 @@ class PatternManager:
         self.semantic_search = semantic_search
         self._logger = logging.getLogger(__name__)
 
-    def add_pattern(self, pattern_data: dict[str, Any]) -> Optional[str]:
+    def add_pattern(self, pattern_data: dict[str, Any]) -> str | None:
         """
         Add a new knowledge pattern to the Unified Database.
 

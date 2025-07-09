@@ -6,7 +6,7 @@ import logging
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Assuming TechStackDetector is in the same 'atoms' directory or accessible via relative import
 from src.uckn.core.atoms.tech_stack_detector import TechStackDetector
@@ -36,7 +36,7 @@ class PatternExtractor:
         self.tech_stack_detector = tech_stack_detector
         logger.info("PatternExtractor initialized with TechStackDetector.")
 
-    def _read_file_content(self, file_path: str) -> Optional[str]:
+    def _read_file_content(self, file_path: str) -> str | None:
         """Helper to safely read file content."""
         try:
             path = Path(file_path)
@@ -52,7 +52,7 @@ class PatternExtractor:
         self,
         pattern_content: str,
         project_path: str,
-        source_file: Optional[str] = None,
+        source_file: str | None = None,
         pattern_type: str = "unknown",
     ) -> dict[str, Any]:
         """

@@ -5,7 +5,6 @@ Collaboration endpoints for UCKN API.
 import json
 import logging
 from datetime import datetime, timezone
-from typing import Optional
 
 from fastapi import (
     APIRouter,
@@ -49,7 +48,7 @@ class SharingScope(BaseModel):
     scope_type: str = Field(
         ..., description="Type of sharing scope (public, team, private)"
     )
-    team_id: Optional[str] = None
+    team_id: str | None = None
     users: list[str] | None = None
 
 
@@ -57,7 +56,7 @@ class PatternShareRequest(BaseModel):
     """Request model for pattern sharing."""
 
     scope: SharingScope
-    message: Optional[str] = None
+    message: str | None = None
 
 
 class PatternShareResponse(BaseModel):
@@ -85,7 +84,7 @@ class ConnectionManager:
         self.connection_filters: dict[WebSocket, UpdateFilter] = {}
 
     async def connect(
-        self, websocket: WebSocket, filters: Optional[UpdateFilter] = None
+        self, websocket: WebSocket, filters: UpdateFilter | None = None
     ):
         """Accept WebSocket connection."""
         await websocket.accept()
@@ -107,7 +106,7 @@ class ConnectionManager:
         except Exception as e:
             logger.error(f"Error sending message to WebSocket: {e}")
 
-    async def broadcast(self, message: str, filters: Optional[UpdateFilter] = None):
+    async def broadcast(self, message: str, filters: UpdateFilter | None = None):
         """Broadcast message to all connections matching filters."""
         for connection in self.active_connections:
             # Check if connection matches filter criteria
@@ -215,9 +214,9 @@ async def share_pattern(
 @router.websocket("/updates/subscribe")
 async def subscribe_to_updates(
     websocket: WebSocket,
-    technologies: Optional[str] = None,
-    pattern_types: Optional[str] = None,
-    projects: Optional[str] = None,
+    technologies: str | None = None,
+    pattern_types: str | None = None,
+    projects: str | None = None,
 ):
     """WebSocket endpoint for real-time updates subscription."""
     # Parse query parameters into filters
@@ -349,7 +348,7 @@ async def add_comment(
 @router.get("/patterns/{pattern_id}/comments", response_model=list[CommentResponse])
 async def get_comments(
     pattern_id: str,
-    parent_id: Optional[str] = None,
+    parent_id: str | None = None,
     collab_manager: CollaborationManager = Depends(get_collaboration_manager),
 ):
     """Get comments for a pattern."""
@@ -380,7 +379,7 @@ async def get_comments(
 
 @router.get("/activity/feed", response_model=list[ActivityEventResponse])
 async def get_activity_feed(
-    team_id: Optional[str] = None,
+    team_id: str | None = None,
     limit: int = 50,
     offset: int = 0,
     collab_manager: CollaborationManager = Depends(get_collaboration_manager),

@@ -9,7 +9,7 @@ import logging
 import re
 from collections import defaultdict
 from logging import Logger
-from typing import Any, Optional
+from typing import Any
 
 
 class SearchSuggestionEngine:
@@ -23,7 +23,7 @@ class SearchSuggestionEngine:
     - Technology-aware suggestions
     """
 
-    def __init__(self, logger: Optional[Logger] = None):
+    def __init__(self, logger: Logger | None = None):
         self.logger = logger or logging.getLogger(__name__)
         self.query_history = defaultdict(int)
         self.successful_queries = defaultdict(int)

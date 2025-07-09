@@ -2,7 +2,7 @@ import logging
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Defensive import to handle PyTorch docstring conflicts
 _DISABLE_TORCH = os.environ.get("UCKN_DISABLE_TORCH", "0") == "1"
@@ -85,16 +85,16 @@ class EnhancedSemanticSearchEngine:
         knowledge_dir: str = ".uckn/knowledge",
         model_name: str = "all-MiniLM-L6-v2",
         device: str = "cpu",
-        embedding_atom: Optional[MultiModalEmbeddings] = None,
-        chroma_connector: Optional[ChromaDBConnector] = None,
+        embedding_atom: MultiModalEmbeddings | None = None,
+        chroma_connector: ChromaDBConnector | None = None,
     ):
         self._logger = logging.getLogger(__name__)
         self.knowledge_dir = knowledge_dir
         self.model_name = model_name
         self.device = device
-        self.sentence_model: Optional[SentenceTransformer] = None
-        self.chroma_connector: Optional[ChromaDBConnector] = chroma_connector
-        self.embedding_atom: Optional[MultiModalEmbeddings] = embedding_atom
+        self.sentence_model: SentenceTransformer | None = None
+        self.chroma_connector: ChromaDBConnector | None = chroma_connector
+        self.embedding_atom: MultiModalEmbeddings | None = embedding_atom
         self._is_initialized = False
 
         self._initialize_components()
@@ -563,9 +563,9 @@ class EnhancedSemanticSearchEngine:
 
     def search_multi_modal(
         self,
-        text: Optional[str] = None,
-        code: Optional[str] = None,
-        error: Optional[str] = None,
+        text: str | None = None,
+        code: str | None = None,
+        error: str | None = None,
         tech_stack=None,
         limit: int = 10,
     ) -> list[dict[str, Any]]:

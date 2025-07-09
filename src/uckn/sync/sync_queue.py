@@ -8,7 +8,7 @@ import logging
 from collections import deque
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class QueueOperation(Enum):
@@ -259,7 +259,7 @@ class SyncQueue:
 
         return failed_items
 
-    def retry_failed(self, pattern_id: Optional[str] = None) -> int:
+    def retry_failed(self, pattern_id: str | None = None) -> int:
         """
         Retry failed items by resetting their retry count.
 

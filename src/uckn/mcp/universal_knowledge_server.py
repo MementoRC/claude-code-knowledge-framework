@@ -17,7 +17,7 @@ import json
 import logging
 import os
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Add the src directory to the path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -114,7 +114,7 @@ except ImportError as e:
 class UniversalKnowledgeServer:
     """MCP Server for Universal Knowledge system"""
 
-    def __init__(self, project_root: Optional[str] = None):
+    def __init__(self, project_root: str | None = None):
         """Initialize the Universal Knowledge MCP server."""
         self.server = Server("universal-knowledge")
         self.project_root = project_root or os.getcwd()

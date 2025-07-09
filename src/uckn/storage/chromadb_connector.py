@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 try:
     import chromadb
@@ -109,7 +109,7 @@ class ChromaDBConnector:
         self.db_path = Path(db_path)
         self.db_path.mkdir(parents=True, exist_ok=True)
         self._logger = logging.getLogger(__name__)
-        self.client: Optional[Any] = None
+        self.client: Any | None = None
         self.collections: dict[str, Any] = {}
         self._connect_to_chromadb()
 
@@ -264,7 +264,7 @@ class ChromaDBConnector:
         self,
         collection_name: str,
         doc_id: str,
-        document: Optional[str] = None,
+        document: str | None = None,
         embedding: list[float] | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> bool:

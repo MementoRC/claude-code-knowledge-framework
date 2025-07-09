@@ -8,7 +8,6 @@ Provides comprehensive team management endpoints including:
 - Invitation system
 """
 
-from typing import Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -23,14 +22,14 @@ router = APIRouter()
 # Request/Response Models
 class TeamCreateRequest(BaseModel):
     name: str
-    description: Optional[str] = None
-    settings: Optional[dict] = None
+    description: str | None = None
+    settings: dict | None = None
 
 
 class TeamResponse(BaseModel):
     id: str
     name: str
-    description: Optional[str]
+    description: str | None
     owner_id: str
     settings: dict
     created_at: str

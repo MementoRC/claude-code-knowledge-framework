@@ -9,7 +9,7 @@ import hashlib
 import logging
 import os
 import threading
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -78,7 +78,7 @@ class MultiModalEmbeddings:
     _TEXT_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
     _CACHE_SIZE = 256
 
-    def __init__(self, device: Optional[str] = None):
+    def __init__(self, device: str | None = None):
         self._logger = logging.getLogger(__name__)
         # Defensive: If torch is unavailable, always use cpu
         if (
@@ -349,10 +349,10 @@ class MultiModalEmbeddings:
 
     def multi_modal_embed(
         self,
-        code: Optional[str] = None,
-        text: Optional[str] = None,
-        config: Optional[str] = None,
-        error: Optional[str] = None,
+        code: str | None = None,
+        text: str | None = None,
+        config: str | None = None,
+        error: str | None = None,
         combine_method: str = "mean",
     ) -> list[float] | None:
         """
@@ -379,7 +379,7 @@ class MultiModalEmbeddings:
 
     def search(
         self,
-        query: dict[str, Optional[str]],
+        query: dict[str, str | None],
         collection_name: str,
         chroma_connector: Any,
         limit: int = 10,

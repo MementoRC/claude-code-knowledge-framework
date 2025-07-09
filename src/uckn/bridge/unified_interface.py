@@ -8,7 +8,7 @@ Provides a unified API for knowledge management with feature gating and runtime 
 
 import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Updated to use current UCKN atomic framework
 from ..core.organisms.knowledge_manager import KnowledgeManager
@@ -72,7 +72,7 @@ class UnifiedKnowledgeManager:
         else:
             self._logger.warning(f"Unknown feature flag: {flag_name}")
 
-    def get_flag(self, flag_name: str) -> Optional[bool]:
+    def get_flag(self, flag_name: str) -> bool | None:
         """Get the value of a feature flag."""
         return self._feature_flags.get(flag_name)
 
@@ -83,7 +83,7 @@ class UnifiedKnowledgeManager:
             for cap in self.KNOWN_CAPABILITIES
         }
 
-    def add_knowledge_pattern(self, pattern_data: dict[str, Any]) -> Optional[str]:
+    def add_knowledge_pattern(self, pattern_data: dict[str, Any]) -> str | None:
         """Add a knowledge pattern with feature flag checks."""
         try:
             capabilities = self.get_capabilities()

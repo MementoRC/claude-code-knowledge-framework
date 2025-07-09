@@ -9,7 +9,7 @@ import logging
 from collections import defaultdict
 from datetime import datetime
 from logging import Logger
-from typing import Any, Optional
+from typing import Any
 
 
 class FacetedSearchManager:
@@ -24,7 +24,7 @@ class FacetedSearchManager:
     - Source/origin filters
     """
 
-    def __init__(self, logger: Optional[Logger] = None):
+    def __init__(self, logger: Logger | None = None):
         self.logger = logger or logging.getLogger(__name__)
         self._facet_cache = {}
         self._cache_expiry = {}

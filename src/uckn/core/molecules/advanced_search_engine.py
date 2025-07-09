@@ -8,7 +8,7 @@ including semantic search, query parsing, faceted filtering, and personalized ra
 import logging
 from datetime import datetime
 from logging import Logger
-from typing import Any, Optional
+from typing import Any
 
 from ..atoms.faceted_search_manager import FacetedSearchManager
 from ..atoms.personalized_ranking import PersonalizedRanking
@@ -25,12 +25,12 @@ class AdvancedSearchEngine:
 
     def __init__(
         self,
-        semantic_engine: Optional[SemanticSearchEngine] = None,
-        query_parser: Optional[QueryParser] = None,
-        faceted_manager: Optional[FacetedSearchManager] = None,
-        personalized_ranking: Optional[PersonalizedRanking] = None,
-        suggestion_engine: Optional[SearchSuggestionEngine] = None,
-        logger: Optional[Logger] = None,
+        semantic_engine: SemanticSearchEngine | None = None,
+        query_parser: QueryParser | None = None,
+        faceted_manager: FacetedSearchManager | None = None,
+        personalized_ranking: PersonalizedRanking | None = None,
+        suggestion_engine: SearchSuggestionEngine | None = None,
+        logger: Logger | None = None,
     ):
         self.logger = logger or logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class AdvancedSearchEngine:
     def search(
         self,
         query: str,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
         filters: dict[str, Any] | None = None,
         limit: int = 20,
         enable_personalization: bool = True,
@@ -141,7 +141,7 @@ class AdvancedSearchEngine:
         pattern_id: str,
         interaction_type: str,
         pattern_metadata: dict[str, Any] | None = None,
-        rating: Optional[float] = None,
+        rating: float | None = None,
     ) -> None:
         """Track user interaction for personalization improvement."""
         try:

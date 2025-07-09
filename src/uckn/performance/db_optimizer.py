@@ -8,7 +8,7 @@ UCKN Database Optimization Layer
 """
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 
 class ChromaDBOptimizer:
@@ -58,7 +58,7 @@ class ChromaDBOptimizer:
         # ChromaDB python client is thread-safe, but we could pool if needed.
         return self.chroma_connector
 
-    def list_indexes(self, collection_name: Optional[str] = None) -> list[str]:
+    def list_indexes(self, collection_name: str | None = None) -> list[str]:
         """List indexed fields for a collection."""
         if collection_name:
             return [f for (coll, f) in self.indexed_fields if coll == collection_name]

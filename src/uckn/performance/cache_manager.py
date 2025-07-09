@@ -10,7 +10,7 @@ import logging
 import threading
 import time
 from collections.abc import Callable
-from typing import Any, Optional
+from typing import Any
 
 try:
     import redis
@@ -158,7 +158,7 @@ class PerformanceCacheManager:
         )
         self.logger = logging.getLogger(__name__)
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None):
+    def set(self, key: str, value: Any, ttl: int | None = None):
         self.redis_cache.set(key, value, ttl)
 
     def get(self, key: str) -> Any:
@@ -171,7 +171,7 @@ class PerformanceCacheManager:
         self.redis_cache.clear()
 
     def cache_warm(
-        self, keys: list, fetch_fn: Callable[[str], Any], ttl: Optional[int] = None
+        self, keys: list, fetch_fn: Callable[[str], Any], ttl: int | None = None
     ):
         """Pre-populate cache for a list of keys using fetch_fn."""
         for key in keys:

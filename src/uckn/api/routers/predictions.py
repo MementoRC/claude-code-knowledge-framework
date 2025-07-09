@@ -6,7 +6,7 @@ Provides REST API endpoints for predictive issue detection.
 
 import logging
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
@@ -24,13 +24,13 @@ class PredictionRequest(BaseModel):
     """Request model for issue prediction."""
 
     project_path: str = Field(..., description="File system path to the project root.")
-    code_snippet: Optional[str] = Field(
+    code_snippet: str | None = Field(
         None, description="Optional code snippet for analysis."
     )
-    context_description: Optional[str] = Field(
+    context_description: str | None = Field(
         None, description="Optional natural language description of the context."
     )
-    project_id: Optional[str] = Field(
+    project_id: str | None = Field(
         None, description="Optional ID of the project in UCKN."
     )
 
@@ -80,17 +80,17 @@ class FeedbackRequest(BaseModel):
     issue_id: str = Field(
         ..., description="Unique identifier for the detected issue instance."
     )
-    project_id: Optional[str] = Field(
+    project_id: str | None = Field(
         None, description="Optional ID of the project this feedback relates to."
     )
     outcome: str = Field(
         ...,
         description="Actual outcome of the issue (e.g., 'resolved', 'false_positive', 'ignored', 'still_active').",
     )
-    resolution_details: Optional[str] = Field(
+    resolution_details: str | None = Field(
         None, description="Optional details about how the issue was resolved."
     )
-    time_to_resolve_minutes: Optional[float] = Field(
+    time_to_resolve_minutes: float | None = Field(
         None, description="Optional time taken to resolve the issue."
     )
     feedback_data: dict[str, Any] | None = Field(

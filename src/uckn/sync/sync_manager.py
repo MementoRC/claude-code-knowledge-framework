@@ -8,7 +8,7 @@ import logging
 from collections.abc import Callable
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from ..storage.unified_database import UnifiedDatabase
 from .conflict_resolver import ConflictResolver
@@ -57,7 +57,7 @@ class SyncManager:
         local_db: UnifiedDatabase,
         server_url: str,
         websocket_url: str,
-        auth_token: Optional[str] = None,
+        auth_token: str | None = None,
     ):
         self.local_db = local_db
         self.server_url = server_url
@@ -70,7 +70,7 @@ class SyncManager:
 
         # Sync state
         self.status = SyncStatus.IDLE
-        self.last_sync_time: Optional[datetime] = None
+        self.last_sync_time: datetime | None = None
         self.sync_progress = 0.0
         self.is_online = False
 

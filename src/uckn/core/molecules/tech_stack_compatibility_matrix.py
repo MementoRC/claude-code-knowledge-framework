@@ -2,7 +2,7 @@ import hashlib
 import json
 import logging
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from ...storage import ChromaDBConnector
 
@@ -88,7 +88,7 @@ class TechStackCompatibilityMatrix:
 
     def add_tech_stack_combo(
         self, ts_a: list[str], ts_b: list[str], score: float, description: str = ""
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Adds a new technology stack compatibility combination to the matrix.
 
@@ -150,7 +150,7 @@ class TechStackCompatibilityMatrix:
 
     def get_compatibility_score(
         self, ts_a: list[str], ts_b: list[str]
-    ) -> Optional[float]:
+    ) -> float | None:
         """
         Retrieves the compatibility score between two technology stacks.
 
@@ -206,8 +206,8 @@ class TechStackCompatibilityMatrix:
         self,
         ts_a: list[str],
         ts_b: list[str],
-        new_score: Optional[float] = None,
-        new_description: Optional[str] = None,
+        new_score: float | None = None,
+        new_description: str | None = None,
     ) -> bool:
         """
         Updates an existing technology stack compatibility combination.

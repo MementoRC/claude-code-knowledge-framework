@@ -6,7 +6,7 @@ Handles conflict detection and resolution for pattern synchronization.
 import logging
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class ConflictType(Enum):
@@ -115,7 +115,7 @@ class ConflictResolver:
         return ConflictType.VERSION_MISMATCH
 
     def resolve_conflict(
-        self, conflict: dict[str, Any], strategy: Optional[ResolutionStrategy] = None
+        self, conflict: dict[str, Any], strategy: ResolutionStrategy | None = None
     ) -> dict[str, Any]:
         """
         Resolve a conflict using the specified strategy.

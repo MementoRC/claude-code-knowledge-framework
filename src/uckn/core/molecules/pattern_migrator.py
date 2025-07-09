@@ -10,7 +10,7 @@ import traceback
 from datetime import datetime
 from logging import Logger
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from ...storage.chromadb_connector import ChromaDBConnector
 from ...storage.unified_database import UnifiedDatabase
@@ -113,11 +113,11 @@ class PatternMigrator:
     def __init__(
         self,
         source_dir: str | Path,
-        target_dir: str | Optional[Path] = None,
+        target_dir: str | Path | None = None,
         dry_run: bool = False,
         validate_only: bool = False,
         report_only: bool = False,
-        logger: Optional[Logger] = None,
+        logger: Logger | None = None,
         console=None,
     ):
         self.source_dir = Path(source_dir)
@@ -141,7 +141,7 @@ class PatternMigrator:
             )
             self.unified_db = UnifiedDatabase(
                 pg_db_url="postgresql://user:pass@localhost/test_db",
-                chroma_db_path=str(self.target_dir or ".uckn/knowledge/chroma_db")
+                chroma_db_path=str(self.target_dir or ".uckn/knowledge/chroma_db"),
             )
             self.semantic_search = SemanticSearch()
             self.pattern_manager = PatternManager(
@@ -303,7 +303,7 @@ class PatternMigrator:
                     files.append(Path(root) / fname)
         return files
 
-    def _load_json(self, file_path: Path) -> Optional[Any]:
+    def _load_json(self, file_path: Path) -> Any | None:
         """
         Load JSON file, return None if invalid.
         """
@@ -317,7 +317,7 @@ class PatternMigrator:
 
     def _detect_type_and_extract(
         self, data: Any, file_path: Path
-    ) -> (Optional[str], list[dict[str, Any]] | None):
+    ) -> (str | None, list[dict[str, Any]] | None):
         """
         Detect if the file contains code_patterns or error_solutions, and extract as a list.
         Supports legacy and modern formats.

@@ -4,7 +4,7 @@ import datetime
 import hashlib
 import json
 import logging
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from pydantic import ValidationError
 
@@ -81,7 +81,7 @@ class WorkflowManager:
         self.knowledge_manager = knowledge_manager
         self.connection_manager = connection_manager
 
-    async def _get_pattern(self, pattern_id: str) -> Optional[Pattern]:  # noqa: F821
+    async def _get_pattern(self, pattern_id: str) -> Pattern | None:  # noqa: F821
         """Helper to retrieve a pattern and convert it to Pydantic model."""
         # Lazy imports
         from ...api.models.patterns import Pattern, PatternMetadata
@@ -511,7 +511,7 @@ class WorkflowManager:
         }
 
     async def get_patterns_awaiting_review(
-        self, reviewer_id: Optional[str] = None
+        self, reviewer_id: str | None = None
     ) -> list[dict[str, Any]]:
         """
         Retrieves patterns that are in IN_REVIEW state and optionally assigned to a specific reviewer.

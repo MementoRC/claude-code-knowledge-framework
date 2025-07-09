@@ -9,7 +9,7 @@ import logging
 from collections import defaultdict
 from datetime import datetime
 from logging import Logger
-from typing import Any, Optional
+from typing import Any
 
 
 class PersonalizedRanking:
@@ -23,7 +23,7 @@ class PersonalizedRanking:
     - Temporal decay of preferences
     """
 
-    def __init__(self, logger: Optional[Logger] = None):
+    def __init__(self, logger: Logger | None = None):
         self.logger = logger or logging.getLogger(__name__)
         self.user_profiles = {}
         self.interaction_weights = {
@@ -41,7 +41,7 @@ class PersonalizedRanking:
         pattern_id: str,
         interaction_type: str,
         pattern_metadata: dict[str, Any] | None = None,
-        rating: Optional[float] = None,
+        rating: float | None = None,
     ) -> None:
         """
         Track user interaction with a pattern.

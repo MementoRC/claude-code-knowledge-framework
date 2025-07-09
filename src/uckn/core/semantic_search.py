@@ -13,7 +13,7 @@ import logging
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -111,7 +111,7 @@ class SemanticSearchEngine:
 
     def generate_session_embedding(
         self, session_data: dict[str, Any]
-    ) -> Optional[np.ndarray]:
+    ) -> np.ndarray | None:
         """Generate embedding for a session."""
         if not self.sentence_model:
             return None

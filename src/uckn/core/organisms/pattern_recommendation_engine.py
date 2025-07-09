@@ -8,7 +8,7 @@ Integrates multiple components to deliver personalized, context-aware suggestion
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from ..atoms.project_dna_fingerprinter import ProjectDNAFingerprinter
 from ..atoms.semantic_search_engine import SemanticSearchEngine
@@ -268,7 +268,7 @@ class PatternRecommendationEngine:
     def get_comprehensive_recommendations(
         self,
         project_path: str,
-        error_context: Optional[str] = None,
+        error_context: str | None = None,
         user_history: list[str] | None = None,
     ) -> dict[str, list[Recommendation]]:
         """
