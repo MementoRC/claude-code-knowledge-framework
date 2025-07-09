@@ -6,6 +6,7 @@ based on project configuration, dependencies, and common patterns.
 """
 
 import logging
+from pathlib import Path
 from typing import Any
 
 from ..atoms.tech_stack_detector import TechStackDetector
@@ -59,7 +60,7 @@ class IssueDetectionRules:
             # Similar logic for package.json/package-lock.json
             if not (
                 project_stack.get("project_path")
-                and (project_stack["project_path"] / "package-lock.json").exists()
+                and (Path(project_stack["project_path"]) / "package-lock.json").exists()
             ):
                 issues.append(
                     {

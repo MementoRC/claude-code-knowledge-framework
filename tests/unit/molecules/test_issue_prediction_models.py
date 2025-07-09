@@ -49,8 +49,8 @@ def test_predict_returns_mock_prediction_if_not_trained(issue_prediction_models)
 
 
 @patch(
-    "random.random", side_effect=[0.3, 0.7]
-)  # First call triggers issue, second call for confidence
+    "random.random", side_effect=[0.3, 0.7, 0.5]
+)  # First call triggers issue, second call for confidence, third as buffer
 @patch("random.choice", return_value="ml_performance_issue")
 def test_predict_returns_ml_issue_if_trained_and_random_allows(
     mock_choice, mock_random, issue_prediction_models

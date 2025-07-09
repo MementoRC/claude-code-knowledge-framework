@@ -139,7 +139,10 @@ class PatternMigrator:
             self.chroma_connector = ChromaDBConnector(
                 db_path=str(self.target_dir or ".uckn/knowledge/chroma_db")
             )
-            self.unified_db = UnifiedDatabase()
+            self.unified_db = UnifiedDatabase(
+                pg_db_url="postgresql://user:pass@localhost/test_db",
+                chroma_db_path=str(self.target_dir or ".uckn/knowledge/chroma_db")
+            )
             self.semantic_search = SemanticSearch()
             self.pattern_manager = PatternManager(
                 unified_db=self.unified_db,
