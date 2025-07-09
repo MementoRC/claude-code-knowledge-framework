@@ -8,7 +8,7 @@ Test metrics utilities for UCKN.
 
 import json
 import os
-from typing import Any, Dict, List
+from typing import Any
 
 PYTEST_JSON = os.environ.get("UCKN_PYTEST_JSON", "pytest-report.json")
 

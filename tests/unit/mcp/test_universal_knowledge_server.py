@@ -97,7 +97,7 @@ def teardown_mcp_mocks():
 setup_mcp_mocks()
 
 # Now import the server. It will use the mocked MCP components.
-from src.uckn.mcp.universal_knowledge_server import UniversalKnowledgeServer
+from src.uckn.mcp.universal_knowledge_server import UniversalKnowledgeServer  # noqa: E402
 
 
 # The `teardown_module` function will be called by pytest after all tests in the module.
