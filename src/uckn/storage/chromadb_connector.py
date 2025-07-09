@@ -109,7 +109,7 @@ class ChromaDBConnector:
         self.db_path = Path(db_path)
         self.db_path.mkdir(parents=True, exist_ok=True)
         self._logger = logging.getLogger(__name__)
-        self.client: chromadb.Optional[PersistentClient] = None
+        self.client: Optional[Any] = None
         self.collections: dict[str, Any] = {}
         self._connect_to_chromadb()
 
