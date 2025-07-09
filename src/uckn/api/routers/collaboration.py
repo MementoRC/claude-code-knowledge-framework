@@ -207,7 +207,9 @@ async def share_pattern(
         raise
     except Exception as e:
         logger.error(f"Error sharing pattern: {e}")
-        raise HTTPException(status_code=500, detail=f"Pattern sharing failed: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Pattern sharing failed: {str(e)}"
+        ) from e
 
 
 @router.websocket("/updates/subscribe")
