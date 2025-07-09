@@ -317,9 +317,12 @@ jobs:
       run: |
         echo "🔧 Testing UCKN framework integration..."
         python << 'EOF'
+        import sys
+        sys.path.insert(0, 'src')
+        
         # Test main imports
         try:
-            from src.uckn import KnowledgeManager, SemanticSearch, UnifiedKnowledgeManager
+            from uckn import KnowledgeManager, SemanticSearch, UnifiedKnowledgeManager
             print("✅ Main imports working")
         except ImportError as e:
             print(f"❌ Import error: {e}")
