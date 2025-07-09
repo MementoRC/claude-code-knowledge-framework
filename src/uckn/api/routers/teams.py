@@ -94,7 +94,7 @@ async def create_team(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create team: {str(e)}",
-        )
+        ) from e
 
 
 @router.get("/teams", response_model=list[TeamResponse])
@@ -120,7 +120,7 @@ async def list_teams(km: KnowledgeManager = Depends(get_knowledge_manager)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to list teams: {str(e)}",
-        )
+        ) from e
 
 
 @router.get("/teams/{team_id}", response_model=TeamResponse)
@@ -150,7 +150,7 @@ async def get_team(team_id: str, km: KnowledgeManager = Depends(get_knowledge_ma
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get team: {str(e)}",
-        )
+        ) from e
 
 
 @router.get("/teams/{team_id}/members", response_model=list[TeamMemberResponse])
@@ -175,4 +175,4 @@ async def list_team_members(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to list team members: {str(e)}",
-        )
+        ) from e

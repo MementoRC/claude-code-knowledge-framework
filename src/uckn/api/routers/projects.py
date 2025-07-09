@@ -131,7 +131,7 @@ async def analyze_project(
         logger.error(f"Error analyzing project: {e}")
         raise HTTPException(
             status_code=500, detail=f"Project analysis failed: {str(e)}"
-        )
+        ) from e
 
 
 @router.post("/projects/recommend-setup", response_model=SetupRecommendationResponse)
@@ -188,7 +188,7 @@ async def recommend_setup(
         logger.error(f"Error generating setup recommendations: {e}")
         raise HTTPException(
             status_code=500, detail=f"Setup recommendation failed: {str(e)}"
-        )
+        ) from e
 
 
 @router.post("/projects/predict-issues", response_model=IssuesPredictionResponse)
@@ -269,4 +269,4 @@ async def predict_issues(
         logger.error(f"Error predicting issues: {e}")
         raise HTTPException(
             status_code=500, detail=f"Issue prediction failed: {str(e)}"
-        )
+        ) from e

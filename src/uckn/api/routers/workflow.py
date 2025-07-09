@@ -75,7 +75,7 @@ async def initiate_pattern_review(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to initiate review: {str(e)}",
-        )
+        ) from e
 
 
 @router.post(
@@ -112,7 +112,7 @@ async def submit_pattern_review_feedback(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to submit feedback: {str(e)}",
-        )
+        ) from e
 
 
 @router.post(
@@ -156,7 +156,7 @@ async def transition_pattern_state(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to transition state: {str(e)}",
-        )
+        ) from e
 
 
 @router.get(
@@ -180,7 +180,7 @@ async def get_pattern_workflow_status(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to retrieve workflow status: {str(e)}",
-        )
+        ) from e
 
 
 @router.get(
@@ -191,9 +191,7 @@ async def get_pattern_workflow_status(
     summary="Get patterns awaiting review",
 )
 async def get_patterns_awaiting_review_endpoint(
-    reviewer_id: str | None = Depends(
-        get_current_user_id
-    ),  # Default to current user
+    reviewer_id: str | None = Depends(get_current_user_id),  # Default to current user
     workflow_manager: WorkflowManager = Depends(get_workflow_manager),
     user_roles: list[str] = Depends(get_current_user_roles),
 ):
@@ -218,4 +216,4 @@ async def get_patterns_awaiting_review_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to retrieve pending reviews: {str(e)}",
-        )
+        ) from e
