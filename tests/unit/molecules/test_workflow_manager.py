@@ -122,13 +122,13 @@ async def test_initiate_review_success(
     # The update_pattern method receives a Pydantic Pattern object
     updated_pattern_obj = mock_knowledge_manager.update_pattern.call_args[0][1]
     assert updated_pattern_obj["status"] == WorkflowState.IN_REVIEW
-    assert updated_pattern_obj.current_version == "0.2.0"
-    assert len(updated_pattern_obj.reviews) == 2
-    assert updated_pattern_obj.reviews[0].reviewer_id == "reviewer1"
+    assert updated_pattern_obj["current_version"] == "0.2.0"
+    assert len(updated_pattern_obj["reviews"]) == 2
+    assert updated_pattern_obj["reviews"][0]["reviewer_id"] == "reviewer1"
     assert updated_pattern_obj["reviews"][0]["status"] == ReviewStatus.PENDING
-    assert updated_pattern_obj.reviews[0].version == "0.2.0"
-    assert len(updated_pattern_obj.versions) == 2  # Original + new version
-    assert updated_pattern_obj.versions[-1].version_number == "0.2.0"
+    assert updated_pattern_obj["reviews"][0]["version"] == "0.2.0"
+    assert len(updated_pattern_obj["versions"]) == 2  # Original + new version
+    assert updated_pattern_obj["versions"][-1]["version_number"] == "0.2.0"
 
     mock_connection_manager.broadcast.assert_called_once()
     broadcast_message = json.loads(mock_connection_manager.broadcast.call_args[0][0])
