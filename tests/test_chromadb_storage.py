@@ -23,7 +23,7 @@ from uckn.storage.chromadb_connector import ChromaDBConnector
 # This is crucial because SemanticSearchEngine tries to load a model.
 @pytest.fixture(autouse=True)
 def mock_semantic_search_engine():
-    with patch("uckn.core.SemanticSearchEngine") as MockEngine:
+    with patch("uckn.core.atoms.semantic_search_engine.SemanticSearchEngine") as MockEngine:
         mock_instance = MagicMock()
         mock_instance.is_available.return_value = True
         mock_instance.sentence_model = MagicMock()
