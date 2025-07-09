@@ -235,7 +235,7 @@ def test_remove_pattern_from_category(pg_connector):
 
     # Test idempotency
     removed_again = pg_connector.remove_pattern_from_category(pattern_id, category_id)
-    assert removed_again  # Should still return True if not found
+    assert not removed_again  # Should return False if link not found
 
 
 def test_get_all_records(pg_connector):

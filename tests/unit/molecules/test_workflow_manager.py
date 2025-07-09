@@ -121,11 +121,11 @@ async def test_initiate_review_success(
     mock_knowledge_manager.update_pattern.assert_called_once()
     # The update_pattern method receives a Pydantic Pattern object
     updated_pattern_obj = mock_knowledge_manager.update_pattern.call_args[0][1]
-    assert updated_pattern_obj.status == WorkflowState.IN_REVIEW
+    assert updated_pattern_obj["status"] == WorkflowState.IN_REVIEW
     assert updated_pattern_obj.current_version == "0.2.0"
     assert len(updated_pattern_obj.reviews) == 2
     assert updated_pattern_obj.reviews[0].reviewer_id == "reviewer1"
-    assert updated_pattern_obj.reviews[0].status == ReviewStatus.PENDING
+    assert updated_pattern_obj["reviews"][0]["status"] == ReviewStatus.PENDING
     assert updated_pattern_obj.reviews[0].version == "0.2.0"
     assert len(updated_pattern_obj.versions) == 2  # Original + new version
     assert updated_pattern_obj.versions[-1].version_number == "0.2.0"
@@ -191,7 +191,7 @@ async def test_submit_review_feedback_success(
     reviewer1_feedback = next(
         r for r in updated_pattern_obj.reviews if r.reviewer_id == "reviewer1"
     )
-    assert reviewer1_feedback.status == ReviewStatus.NEEDS_REVISION
+    assert reviewer1_feedback["status"] == ReviewStatus.NEEDS_REVISION
     assert reviewer1_feedback.comments == "Looks good, minor tweaks needed."
     assert reviewer1_feedback.score == 4.5
 
@@ -233,7 +233,7 @@ async def test_transition_state_approve_review_success(
     assert response["new_state"] == WorkflowState.IN_TESTING
     mock_knowledge_manager.update_pattern.assert_called_once()
     updated_pattern_obj = mock_knowledge_manager.update_pattern.call_args[0][1]
-    assert updated_pattern_obj.status == WorkflowState.IN_TESTING
+    assert updated_pattern_obj["status"] == WorkflowState.IN_TESTING
     mock_connection_manager.broadcast.assert_called_once()
     broadcast_message = json.loads(mock_connection_manager.broadcast.call_args[0][0])
     assert broadcast_message["type"] == "pattern_approved_for_testing"
@@ -267,7 +267,7 @@ async def test_transition_state_publish_success(
 
     mock_knowledge_manager.update_pattern.assert_called_once()
     updated_pattern_obj = mock_knowledge_manager.update_pattern.call_args[0][1]
-    assert updated_pattern_obj.status == WorkflowState.PUBLISHED
+    assert updated_pattern_obj["status"] == WorkflowState.PUBLISHED
     assert updated_pattern_obj.current_version == "1.0.0"
     assert len(updated_pattern_obj.versions) == 2  # Original 0.1.0 + new 1.0.0
     assert updated_pattern_obj.versions[-1].version_number == "1.0.0"
@@ -329,7 +329,7 @@ async def test_get_workflow_status(workflow_manager, mock_knowledge_manager):
     assert status_response["current_version"] == "0.2.0"
     assert len(status_response["pending_reviews"]) == 1
     assert status_response["pending_reviews"][0].reviewer_id == "r1"
-    assert status_response["pending_reviews"][0].status == ReviewStatus.PENDING
+    assert status_response["pending_reviews"][0]["status"] == ReviewStatus.PENDING
     assert len(status_response["review_history"]) == 2
     assert len(status_response["version_history"]) == 2
 

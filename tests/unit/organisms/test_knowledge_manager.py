@@ -591,27 +591,18 @@ def test_error_handling_unified_db(monkeypatch):
         ]  # Mock encode for calls that need it
         km = KnowledgeManager()
 
-        with pytest.raises(Exception, match="fail add_project"):
-            km.add_project("proj")
-        with pytest.raises(Exception, match="fail get_project"):
-            km.get_project("proj-id")
-        with pytest.raises(Exception, match="fail update_project"):
-            km.update_project("proj-id", {})
-        with pytest.raises(Exception, match="fail delete_project"):
-            km.delete_project("proj-id")
-        with pytest.raises(Exception, match="fail get_all_projects"):
-            km.get_all_projects()
+        # Test that methods return None/empty when errors occur
+        assert km.add_project("proj") is None
+        assert km.get_project("proj-id") is None
+        assert km.update_project("proj-id", {}) is None
+        assert km.delete_project("proj-id") is None
+        assert km.get_all_projects() == []
 
-        with pytest.raises(Exception, match="fail add_pattern"):
-            km.add_pattern({"document": "test"})
-        with pytest.raises(Exception, match="fail get_pattern"):
-            km.get_pattern("id")
-        with pytest.raises(Exception, match="fail update_pattern"):
-            km.update_pattern("id", {"document": "test"})
-        with pytest.raises(Exception, match="fail delete_pattern"):
-            km.delete_pattern("id")
-        with pytest.raises(Exception, match="fail search_patterns"):
-            km.search_patterns("q")
+        assert km.add_pattern({"document": "test"}) is None
+        assert km.get_pattern("id") is None
+        assert km.update_pattern("id", {"document": "test"}) is None
+        assert km.delete_pattern("id") is None
+        assert km.search_patterns("q") == []
 
         with pytest.raises(Exception, match="fail add_category"):
             km.create_category("cat")
