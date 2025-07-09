@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, validator
 
@@ -61,9 +61,9 @@ class PatternMetadata(BaseModel):
         description="Technology stack information"
     )
     tags: list[str] = Field(default_factory=list, description="Pattern tags")
-    author: Optional[str] = Field(default=None, description="Pattern author")
+    author: str | None = Field(default=None, description="Pattern author")
     version: str = Field(default="1.0.0", description="Pattern version")
-    success_rate: Optional[float] = Field(
+    success_rate: float | None = Field(
         default=None, ge=0.0, le=1.0, description="Success rate"
     )
     usage_count: int = Field(default=0, ge=0, description="Number of times used")
@@ -73,7 +73,7 @@ class PatternMetadata(BaseModel):
     complexity: int = Field(
         default=1, ge=1, le=10, description="Pattern complexity (1-10)"
     )
-    estimated_time: Optional[int] = Field(
+    estimated_time: int | None = Field(
         default=None, description="Estimated implementation time in minutes"
     )
     prerequisites: list[str] = Field(default_factory=list, description="Prerequisites")
@@ -98,7 +98,7 @@ class PatternSubmission(BaseModel):
         min_length=10, max_length=50000, description="Pattern content/code"
     )
     metadata: PatternMetadata = Field(description="Pattern metadata")
-    project_id: Optional[str] = Field(default=None, description="Associated project ID")
+    project_id: str | None = Field(default=None, description="Associated project ID")
     sharing_scope: SharingScope = Field(
         default=SharingScope.PRIVATE, description="Sharing scope"
     )
@@ -116,7 +116,7 @@ class Pattern(BaseModel):
     id: str = Field(description="Pattern unique identifier")
     document: str = Field(description="Pattern content/code")
     metadata: PatternMetadata = Field(description="Pattern metadata")
-    project_id: Optional[str] = Field(default=None, description="Associated project ID")
+    project_id: str | None = Field(default=None, description="Associated project ID")
     sharing_scope: SharingScope = Field(
         default=SharingScope.PRIVATE, description="Sharing scope"
     )
@@ -125,8 +125,8 @@ class Pattern(BaseModel):
     )
     created_at: datetime = Field(description="Creation timestamp")
     updated_at: datetime = Field(description="Last update timestamp")
-    created_by: Optional[str] = Field(default=None, description="Creator user ID")
-    updated_by: Optional[str] = Field(default=None, description="Last updater user ID")
+    created_by: str | None = Field(default=None, description="Creator user ID")
+    updated_by: str | None = Field(default=None, description="Last updater user ID")
     embedding: list[float] | None = Field(
         default=None, description="Semantic embedding vector"
     )
@@ -174,10 +174,10 @@ class PatternSearchRequest(BaseModel):
         default=None, description="Pattern types to search"
     )
     tags: list[str] | None = Field(default=None, description="Tags to filter by")
-    min_success_rate: Optional[float] = Field(
+    min_success_rate: float | None = Field(
         default=None, ge=0.0, le=1.0, description="Minimum success rate"
     )
-    max_complexity: Optional[int] = Field(
+    max_complexity: int | None = Field(
         default=None, ge=1, le=10, description="Maximum complexity"
     )
     limit: int = Field(default=10, ge=1, le=100, description="Maximum results")
@@ -187,7 +187,7 @@ class PatternSearchRequest(BaseModel):
     include_deprecated: bool = Field(
         default=False, description="Include deprecated patterns"
     )
-    project_id: Optional[str] = Field(default=None, description="Filter by project ID")
+    project_id: str | None = Field(default=None, description="Filter by project ID")
 
     def to_metadata_filter(self) -> dict[str, Any]:
         """Convert search request to metadata filter"""
@@ -260,14 +260,14 @@ class PatternCreateResponse(BaseResponse):
 class PatternUpdateRequest(BaseModel):
     """Pattern update request model"""
 
-    document: Optional[str] = Field(default=None, description="Updated pattern content")
-    metadata: Optional[PatternMetadata] = Field(
+    document: str | None = Field(default=None, description="Updated pattern content")
+    metadata: PatternMetadata | None = Field(
         default=None, description="Updated metadata"
     )
-    sharing_scope: Optional[SharingScope] = Field(
+    sharing_scope: SharingScope | None = Field(
         default=None, description="Updated sharing scope"
     )
-    status: Optional[PatternStatus] = Field(default=None, description="Updated status")
+    status: PatternStatus | None = Field(default=None, description="Updated status")
 
 
 class PatternBulkOperationRequest(BaseModel):
@@ -290,11 +290,11 @@ class PatternAnalytics(BaseModel):
     pattern_id: str = Field(description="Pattern ID")
     usage_count: int = Field(description="Number of times used")
     success_rate: float = Field(ge=0.0, le=1.0, description="Success rate")
-    avg_rating: Optional[float] = Field(
+    avg_rating: float | None = Field(
         default=None, ge=0.0, le=5.0, description="Average user rating"
     )
     feedback_count: int = Field(default=0, description="Number of feedback entries")
-    last_used: Optional[datetime] = Field(
+    last_used: datetime | None = Field(
         default=None, description="Last usage timestamp"
     )
     trending_score: float = Field(default=0.0, description="Trending score")
