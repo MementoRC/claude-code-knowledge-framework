@@ -1,6 +1,5 @@
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -34,8 +33,8 @@ class ReviewFeedback(BaseModel):
     timestamp: datetime = Field(
         default_factory=datetime.now, description="Timestamp of the review"
     )
-    comments: Optional[str] = Field(default=None, description="Review comments")
-    score: Optional[float] = Field(
+    comments: str | None = Field(default=None, description="Review comments")
+    score: float | None = Field(
         default=None, ge=0.0, le=5.0, description="Overall review score (0-5)"
     )
     status: ReviewStatus = Field(
@@ -66,13 +65,13 @@ class WorkflowTransitionRequest(BaseModel):
     """Request model for transitioning a pattern's workflow state."""
 
     target_state: WorkflowState = Field(description="The target workflow state")
-    comments: Optional[str] = Field(
+    comments: str | None = Field(
         default=None, description="Comments for the state transition"
     )
     user_id: str = Field(
         description="ID of the user performing the transition"
     )  # Will be overridden by authenticated user_id in router
-    version: Optional[str] = Field(
+    version: str | None = Field(
         default=None, description="Specific version to transition, if applicable"
     )
 
@@ -94,10 +93,10 @@ class WorkflowStatusResponse(BaseModel):
     version_history: list[PatternVersion] = Field(
         default_factory=list, description="History of all pattern versions"
     )
-    last_transition_at: Optional[datetime] = Field(
+    last_transition_at: datetime | None = Field(
         default=None, description="Timestamp of the last state transition"
     )
-    last_transition_by: Optional[str] = Field(
+    last_transition_by: str | None = Field(
         default=None, description="User who performed the last transition"
     )
 
@@ -106,8 +105,8 @@ class SubmitReviewFeedbackRequest(BaseModel):
     """Request model for submitting review feedback."""
 
     reviewer_id: str = Field(description="ID of the reviewer submitting feedback")
-    comments: Optional[str] = Field(default=None, description="Review comments")
-    score: Optional[float] = Field(
+    comments: str | None = Field(default=None, description="Review comments")
+    score: float | None = Field(
         default=None, ge=0.0, le=5.0, description="Overall review score (0-5)"
     )
     status: ReviewStatus = Field(
@@ -122,10 +121,10 @@ class InitiateReviewRequest(BaseModel):
     reviewer_ids: list[str] = Field(
         description="List of user IDs to assign as reviewers"
     )
-    message: Optional[str] = Field(
+    message: str | None = Field(
         default=None, description="Optional message for reviewers"
     )
-    version: Optional[str] = Field(
+    version: str | None = Field(
         default=None, description="Specific version to review, defaults to current"
     )
 
@@ -136,5 +135,5 @@ class WorkflowActionResponse(BaseModel):
     pattern_id: str
     status: str
     message: str
-    new_state: Optional[WorkflowState] = None
-    new_version: Optional[str] = None
+    new_state: WorkflowState | None = None
+    new_version: str | None = None
