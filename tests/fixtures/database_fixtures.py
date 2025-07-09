@@ -141,7 +141,7 @@ class DummyPostgreSQLConnector:
     def is_available(self):
         return True
 
-    def add_record(self, model_class: Any, data: dict[str, Any]) -> Optional[str]:
+    def add_record(self, model_class: Any, data: dict[str, Any]) -> str | None:
         table_name = model_class.__tablename__
         record_id = data.get("id", str(uuid.uuid4()))
         record = data.copy()
@@ -152,7 +152,7 @@ class DummyPostgreSQLConnector:
         self._logger.debug(f"Dummy PG: Added {table_name} {record_id}")
         return record_id
 
-    def get_record(self, model_class: Any, record_id: str) -> Optional[dict[str, Any]]:
+    def get_record(self, model_class: Any, record_id: str) -> dict[str, Any] | None:
         table_name = model_class.__tablename__
         return self.tables[table_name].get(record_id)
 
@@ -192,14 +192,14 @@ class DummyPostgreSQLConnector:
         return False
 
     def get_all_records(
-        self, model_class: Any, limit: Optional[int] = None
+        self, model_class: Any, limit: int | None = None
     ) -> list[dict[str, Any]]:
         table_name = model_class.__tablename__
         records = list(self.tables[table_name].values())
         return records[:limit] if limit else records
 
     def filter_records(
-        self, model_class: Any, filters: dict[str, Any], limit: Optional[int] = None
+        self, model_class: Any, filters: dict[str, Any], limit: int | None = None
     ) -> list[dict[str, Any]]:
         table_name = model_class.__tablename__
         results = []
@@ -310,9 +310,9 @@ class DummyUnifiedDatabase:
         document_text: str,
         embedding: list[float],
         metadata: dict[str, Any],
-        pattern_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-    ) -> Optional[str]:
+        pattern_id: str | None = None,
+        project_id: str | None = None,
+    ) -> str | None:
         pattern_id = pattern_id or str(uuid.uuid4())
         pg_metadata = metadata.copy()
         pg_metadata.update(
@@ -334,7 +334,7 @@ class DummyUnifiedDatabase:
             return None
         return pattern_id
 
-    def get_pattern(self, pattern_id: str) -> Optional[dict[str, Any]]:
+    def get_pattern(self, pattern_id: str) -> dict[str, Any] | None:
         pg_data = self.pg_connector.get_record(MockPattern, pattern_id)
         if not pg_data:
             return None
@@ -355,10 +355,10 @@ class DummyUnifiedDatabase:
     def update_pattern(
         self,
         pattern_id: str,
-        document_text: Optional[str] = None,
-        embedding: Optional[list[float]] = None,
-        metadata: Optional[dict[str, Any]] = None,
-        project_id: Optional[str] = None,
+        document_text: str | None = None,
+        embedding: list[float] | None = None,
+        metadata: dict[str, Any] | None = None,
+        project_id: str | None = None,
     ) -> bool:
         pg_updates = {"updated_at": datetime.utcnow()}
         if document_text is not None:
@@ -397,7 +397,7 @@ class DummyUnifiedDatabase:
         query_embedding: list[float],
         n_results: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[dict[str, Any]] = None,
+        metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         chroma_results = self.chroma_connector.search_documents(
             "code_patterns", query_embedding, n_results, min_similarity, metadata_filter
@@ -422,9 +422,9 @@ class DummyUnifiedDatabase:
     def add_project(
         self,
         name: str,
-        description: Optional[str] = None,
-        project_id: Optional[str] = None,
-    ) -> Optional[str]:
+        description: str | None = None,
+        project_id: str | None = None,
+    ) -> str | None:
         return self.pg_connector.add_record(
             MockProject,
             {
@@ -434,7 +434,7 @@ class DummyUnifiedDatabase:
             },
         )
 
-    def get_project(self, project_id: str) -> Optional[dict[str, Any]]:
+    def get_project(self, project_id: str) -> dict[str, Any] | None:
         return self.pg_connector.get_record(MockProject, project_id)
 
     def update_project(self, project_id: str, updates: dict[str, Any]) -> bool:
@@ -447,8 +447,8 @@ class DummyUnifiedDatabase:
         return self.pg_connector.get_all_records(MockProject)
 
     def add_category(
-        self, name: str, description: str = "", category_id: Optional[str] = None
-    ) -> Optional[str]:
+        self, name: str, description: str = "", category_id: str | None = None
+    ) -> str | None:
         return self.pg_connector.add_record(
             MockPatternCategory,
             {
@@ -458,7 +458,7 @@ class DummyUnifiedDatabase:
             },
         )
 
-    def get_category(self, category_id: str) -> Optional[dict[str, Any]]:
+    def get_category(self, category_id: str) -> dict[str, Any] | None:
         return self.pg_connector.get_record(MockPatternCategory, category_id)
 
     def update_category(self, category_id: str, updates: dict[str, Any]) -> bool:
@@ -487,9 +487,9 @@ class DummyUnifiedDatabase:
         document_text: str,
         embedding: list[float],
         metadata: dict[str, Any],
-        solution_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-    ) -> Optional[str]:
+        solution_id: str | None = None,
+        project_id: str | None = None,
+    ) -> str | None:
         solution_id = solution_id or str(uuid.uuid4())
         pg_metadata = metadata.copy()
         pg_metadata.update(
@@ -515,7 +515,7 @@ class DummyUnifiedDatabase:
             return None
         return solution_id
 
-    def get_error_solution(self, solution_id: str) -> Optional[dict[str, Any]]:
+    def get_error_solution(self, solution_id: str) -> dict[str, Any] | None:
         pg_data = self.pg_connector.get_record(MockErrorSolution, solution_id)
         if not pg_data:
             return None
@@ -537,7 +537,7 @@ class DummyUnifiedDatabase:
         query_embedding: list[float],
         n_results: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[dict[str, Any]] = None,
+        metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         chroma_results = self.chroma_connector.search_documents(
             "error_solutions",
@@ -563,8 +563,8 @@ class DummyUnifiedDatabase:
         return final_results
 
     def add_team_access(
-        self, user_id: str, project_id: str, role: str, access_id: Optional[str] = None
-    ) -> Optional[str]:
+        self, user_id: str, project_id: str, role: str, access_id: str | None = None
+    ) -> str | None:
         return self.pg_connector.add_record(
             MockTeamAccess,
             {
@@ -575,7 +575,7 @@ class DummyUnifiedDatabase:
             },
         )
 
-    def get_team_access(self, access_id: str) -> Optional[dict[str, Any]]:
+    def get_team_access(self, access_id: str) -> dict[str, Any] | None:
         return self.pg_connector.get_record(MockTeamAccess, access_id)
 
     def update_team_access(self, access_id: str, updates: dict[str, Any]) -> bool:
@@ -594,9 +594,9 @@ class DummyUnifiedDatabase:
         source_tech: str,
         target_tech: str,
         compatibility_score: float,
-        notes: Optional[str] = None,
-        entry_id: Optional[str] = None,
-    ) -> Optional[str]:
+        notes: str | None = None,
+        entry_id: str | None = None,
+    ) -> str | None:
         return self.pg_connector.add_record(
             MockCompatibilityMatrix,
             {
@@ -608,7 +608,7 @@ class DummyUnifiedDatabase:
             },
         )
 
-    def get_compatibility_entry(self, entry_id: str) -> Optional[dict[str, Any]]:
+    def get_compatibility_entry(self, entry_id: str) -> dict[str, Any] | None:
         return self.pg_connector.get_record(MockCompatibilityMatrix, entry_id)
 
     def update_compatibility_entry(
@@ -623,10 +623,10 @@ class DummyUnifiedDatabase:
 
     def search_compatibility_entries(
         self,
-        source_tech: Optional[str] = None,
-        target_tech: Optional[str] = None,
-        min_score: Optional[float] = None,
-        max_score: Optional[float] = None,
+        source_tech: str | None = None,
+        target_tech: str | None = None,
+        min_score: float | None = None,
+        max_score: float | None = None,
     ) -> list[dict[str, Any]]:
         filters = {}
         if source_tech:
