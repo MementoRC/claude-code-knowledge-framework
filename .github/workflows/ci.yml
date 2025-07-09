@@ -313,7 +313,7 @@ jobs:
             print("⚠️ File size warnings (target: 500 lines):")
             for warning in warnings:
                 print(f"  {warning}")
-                
+
         if violations:
             print("❌ File size violations (max: 800 lines):")
             for violation in violations:
@@ -331,7 +331,7 @@ jobs:
         python << 'EOF'
         import sys
         sys.path.insert(0, 'src')
-        
+
         # Test main imports
         try:
             from uckn import KnowledgeManager, SemanticSearch, UnifiedKnowledgeManager
