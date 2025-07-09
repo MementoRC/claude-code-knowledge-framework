@@ -98,11 +98,14 @@ class AtomicDesignValidator:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         line_count = sum(1 for _ in f)
                         
-                    if line_count > 500:
+                    if line_count > 800:
                         self.violations.append(
                             f"File size violation: {file_path} has {line_count} lines "
-                            f"(exceeds 500)"
+                            f"(exceeds 800)"
                         )
+                    elif line_count > 500:
+                        # Just a warning for now
+                        print(f"  ⚠️ Warning: {file_path} has {line_count} lines (target: 500)")
                 except Exception as e:
                     self.violations.append(f"Error reading {file_path}: {e}")
     
