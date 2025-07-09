@@ -186,7 +186,7 @@ class SyncQueue:
         # Find the item in queues
         for priority in QueuePriority:
             queue = self.queues[priority]
-            for i, item in enumerate(queue):
+            for _i, item in enumerate(queue):
                 if item["pattern_id"] == pattern_id:
                     item["retry_count"] += 1
                     item["last_error"] = error

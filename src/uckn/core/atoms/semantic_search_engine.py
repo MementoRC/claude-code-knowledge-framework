@@ -34,8 +34,8 @@ def _tech_stack_match(
     """
     if not query_stack or not doc_stack:
         return 0.5  # Neutral if unknown
-    set_query = set([s.lower() for s in query_stack])
-    set_doc = set([s.lower() for s in doc_stack])
+    set_query = {s.lower() for s in query_stack}
+    set_doc = {s.lower() for s in doc_stack}
     if not set_query or not set_doc:
         return 0.5
     intersection = set_query & set_doc
@@ -165,7 +165,7 @@ class SemanticSearchEngine:
                 filtered.append(r)
         return filtered
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=128)  # noqa: B019
     def _cached_embed(self, data: str, data_type: str) -> list[float] | None:
         # Use MultiModalEmbeddings for embedding
         return self.embedding_atom.embed(data, data_type=data_type)

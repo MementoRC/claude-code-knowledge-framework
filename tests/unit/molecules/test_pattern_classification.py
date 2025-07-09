@@ -263,7 +263,7 @@ class PatternClassification:
             self.pattern_category_links_collection_name,
             where={"category_id": category_id},
         )
-        return sorted(list(set([link["metadata"]["pattern_id"] for link in links])))
+        return sorted(list({link["metadata"]["pattern_id"] for link in links}))
 
     def get_categories_for_pattern(self, pattern_id: str) -> list[str]:
         """Retrieves all categories a specific pattern is assigned to."""
@@ -271,7 +271,7 @@ class PatternClassification:
             self.pattern_category_links_collection_name,
             where={"pattern_id": pattern_id},
         )
-        return sorted(list(set([link["metadata"]["category_id"] for link in links])))
+        return sorted(list({link["metadata"]["category_id"] for link in links}))
 
 
 # --- Test Class ---

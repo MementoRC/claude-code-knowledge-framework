@@ -57,7 +57,7 @@ class PerformanceAnalytics:
         self.records.append((event, value))
 
     def summary(self):
-        return {event: value for event, value in self.records}
+        return dict(self.records)
 
 
 class SemanticSearchEngineOptimized:

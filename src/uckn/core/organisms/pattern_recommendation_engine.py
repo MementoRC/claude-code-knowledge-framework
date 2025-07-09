@@ -431,8 +431,8 @@ class PatternRecommendationEngine:
                 return 0.5  # Neutral score if no tech stack info
 
             # Calculate intersection over union
-            set_pattern = set(t.lower() for t in pattern_technologies)
-            set_project = set(t.lower() for t in tech_stack)
+            set_pattern = {t.lower() for t in pattern_technologies}
+            set_project = {t.lower() for t in tech_stack}
 
             intersection = set_pattern & set_project
             union = set_pattern | set_project

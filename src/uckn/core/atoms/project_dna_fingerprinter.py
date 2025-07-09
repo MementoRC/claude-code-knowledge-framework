@@ -121,7 +121,7 @@ class ProjectDNAFingerprinter:
             if feature.lower() in key.lower():
                 return weight
         # Default: try to infer from known mappings
-        for (a, b), compat in self.COMPATIBILITY_MATRIX.items():
+        for (a, b), _compat in self.COMPATIBILITY_MATRIX.items():
             if feature in (a, b):
                 return 2.0
         return 1.0

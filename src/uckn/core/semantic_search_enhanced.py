@@ -61,8 +61,8 @@ def _tech_stack_match(
     """
     if not query_stack or not doc_stack:
         return 0.5  # Neutral if unknown
-    set_query = set([s.lower() for s in query_stack])
-    set_doc = set([s.lower() for s in doc_stack])
+    set_query = {s.lower() for s in query_stack}
+    set_doc = {s.lower() for s in doc_stack}
     if not set_query or not set_doc:
         return 0.5
     intersection = set_query & set_doc
@@ -187,7 +187,7 @@ class EnhancedSemanticSearchEngine:
         """Check if the engine and its underlying components are fully available."""
         return self._is_initialized
 
-    @lru_cache(maxsize=128)  # Cache for single text encodings
+    @lru_cache(maxsize=128)  # Cache for single text encodings  # noqa: B019
     def encode(self, text: str) -> Optional[list[float]]:
         """
         Generate embeddings for a single text using the underlying sentence transformer model.
@@ -385,7 +385,7 @@ class EnhancedSemanticSearchEngine:
 
         return filtered
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=128)  # noqa: B019
     def _cached_embed(self, data: str, data_type: str) -> Optional[list[float]]:
         """Use MultiModalEmbeddings for embedding generation with caching."""
         if self.embedding_atom:
