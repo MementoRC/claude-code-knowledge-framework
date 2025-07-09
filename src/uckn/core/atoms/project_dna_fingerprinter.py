@@ -7,7 +7,7 @@ similarity scoring, and compatibility matrix generation.
 
 import json
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 

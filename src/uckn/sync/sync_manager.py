@@ -57,7 +57,7 @@ class SyncManager:
         local_db: UnifiedDatabase,
         server_url: str,
         websocket_url: str,
-        auth_token: str | None = None,
+        auth_token: Optional[str] = None,
     ):
         self.local_db = local_db
         self.server_url = server_url
@@ -70,7 +70,7 @@ class SyncManager:
 
         # Sync state
         self.status = SyncStatus.IDLE
-        self.last_sync_time: datetime | None = None
+        self.last_sync_time: Optional[datetime] = None
         self.sync_progress = 0.0
         self.is_online = False
 
@@ -363,9 +363,7 @@ class SyncManager:
         await asyncio.sleep(0.1)  # Simulate network delay
         return []
 
-    async def _get_pattern_from_server(
-        self, pattern_id: str
-    ) -> dict[str, Any] | None:
+    async def _get_pattern_from_server(self, pattern_id: str) -> dict[str, Any] | None:
         """Get a specific pattern from server."""
         # Placeholder for actual HTTP request
         await asyncio.sleep(0.1)  # Simulate network delay

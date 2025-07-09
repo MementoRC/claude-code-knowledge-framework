@@ -25,7 +25,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         "/api/v1/info",
     }
 
-    def __init__(self, app, exclude_patterns: list | None = None):
+    def __init__(self, app, exclude_patterns: Optional[list] = None):
         super().__init__(app)
         self.settings = get_settings()
         self.exclude_patterns = exclude_patterns or []
@@ -85,7 +85,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 return True
         return False
 
-    def _extract_api_key(self, request: Request) -> str | None:
+    def _extract_api_key(self, request: Request) -> Optional[str]:
         """Extract API key from request headers"""
         # Try different header formats
         api_key = (

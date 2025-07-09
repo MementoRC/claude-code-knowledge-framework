@@ -11,7 +11,7 @@ import logging
 import threading
 import time
 from collections.abc import Callable
-from typing import Any, Optional
+from typing import Any
 
 try:
     import psutil

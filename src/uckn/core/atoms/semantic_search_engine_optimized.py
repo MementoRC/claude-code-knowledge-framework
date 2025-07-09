@@ -10,6 +10,7 @@ import asyncio
 import logging
 import time
 from functools import wraps
+from logging import Logger
 from typing import Any, Optional
 
 from src.uckn.core.atoms.multi_modal_embeddings_optimized import (
@@ -66,9 +67,9 @@ class SemanticSearchEngineOptimized:
 
     def __init__(
         self,
-        chroma_connector: Any | None = None,
-        embedding_atom: Any | None = None,
-        logger: logging.Logger | None = None,
+        chroma_connector: Optional[Any] = None,
+        embedding_atom: Optional[Any] = None,
+        logger: Optional[Logger] = None,
         cache_size: int = 256,
         performance_mode: bool = True,
         enable_async: bool = True,
@@ -126,7 +127,7 @@ class SemanticSearchEngineOptimized:
 
     def search(
         self,
-        query: dict[str, str | None],
+        query: dict[str, Optional[str]],
         collection_name: str,
         limit: int = 10,
         min_similarity: float = 0.7,
@@ -156,7 +157,7 @@ class SemanticSearchEngineOptimized:
 
     def batch_search(
         self,
-        queries: list[dict[str, str | None]],
+        queries: list[dict[str, Optional[str]]],
         collection_name: str,
         limit: int = 10,
         min_similarity: float = 0.7,

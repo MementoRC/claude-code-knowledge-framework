@@ -8,6 +8,7 @@ import logging
 import os
 import traceback
 from datetime import datetime
+from logging import Logger
 from pathlib import Path
 from typing import Any, Optional
 
@@ -112,11 +113,11 @@ class PatternMigrator:
     def __init__(
         self,
         source_dir: str | Path,
-        target_dir: str | Path | None = None,
+        target_dir: str | Optional[Path] = None,
         dry_run: bool = False,
         validate_only: bool = False,
         report_only: bool = False,
-        logger: logging.Logger | None = None,
+        logger: Optional[Logger] = None,
         console=None,
     ):
         self.source_dir = Path(source_dir)
@@ -299,7 +300,7 @@ class PatternMigrator:
                     files.append(Path(root) / fname)
         return files
 
-    def _load_json(self, file_path: Path) -> Any | None:
+    def _load_json(self, file_path: Path) -> Optional[Any]:
         """
         Load JSON file, return None if invalid.
         """
@@ -313,7 +314,7 @@ class PatternMigrator:
 
     def _detect_type_and_extract(
         self, data: Any, file_path: Path
-    ) -> (str | None, list[dict[str, Any]] | None):
+    ) -> (Optional[str], list[dict[str, Any]] | None):
         """
         Detect if the file contains code_patterns or error_solutions, and extract as a list.
         Supports legacy and modern formats.

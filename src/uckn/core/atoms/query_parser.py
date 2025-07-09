@@ -8,7 +8,7 @@ basic stemming, and synonym expansion.
 import logging
 import re
 from collections import deque
-from typing import Any, Optional
+from typing import Any
 
 try:
     import nltk

@@ -49,7 +49,7 @@ class SharingScope(BaseModel):
     scope_type: str = Field(
         ..., description="Type of sharing scope (public, team, private)"
     )
-    team_id: str | None = None
+    team_id: Optional[str] = None
     users: list[str] | None = None
 
 
@@ -57,7 +57,7 @@ class PatternShareRequest(BaseModel):
     """Request model for pattern sharing."""
 
     scope: SharingScope
-    message: str | None = None
+    message: Optional[str] = None
 
 
 class PatternShareResponse(BaseModel):
@@ -85,7 +85,7 @@ class ConnectionManager:
         self.connection_filters: dict[WebSocket, UpdateFilter] = {}
 
     async def connect(
-        self, websocket: WebSocket, filters: UpdateFilter | None = None
+        self, websocket: WebSocket, filters: Optional[UpdateFilter] = None
     ):
         """Accept WebSocket connection."""
         await websocket.accept()
@@ -107,7 +107,7 @@ class ConnectionManager:
         except Exception as e:
             logger.error(f"Error sending message to WebSocket: {e}")
 
-    async def broadcast(self, message: str, filters: UpdateFilter | None = None):
+    async def broadcast(self, message: str, filters: Optional[UpdateFilter] = None):
         """Broadcast message to all connections matching filters."""
         for connection in self.active_connections:
             # Check if connection matches filter criteria
@@ -207,15 +207,15 @@ async def share_pattern(
         raise
     except Exception as e:
         logger.error(f"Error sharing pattern: {e}")
-        raise HTTPException(status_code=500, detail=f"Pattern sharing failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Pattern sharing failed: {str(e)}") from e
 
 
 @router.websocket("/updates/subscribe")
 async def subscribe_to_updates(
     websocket: WebSocket,
-    technologies: str | None = None,
-    pattern_types: str | None = None,
-    projects: str | None = None,
+    technologies: Optional[str] = None,
+    pattern_types: Optional[str] = None,
+    projects: Optional[str] = None,
 ):
     """WebSocket endpoint for real-time updates subscription."""
     # Parse query parameters into filters
@@ -335,19 +335,19 @@ async def add_comment(
         )
 
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Error adding comment: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to add comment",
-        )
+        ) from e
 
 
 @router.get("/patterns/{pattern_id}/comments", response_model=list[CommentResponse])
 async def get_comments(
     pattern_id: str,
-    parent_id: str | None = None,
+    parent_id: Optional[str] = None,
     collab_manager: CollaborationManager = Depends(get_collaboration_manager),
 ):
     """Get comments for a pattern."""
@@ -373,12 +373,12 @@ async def get_comments(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get comments",
-        )
+        ) from e
 
 
 @router.get("/activity/feed", response_model=list[ActivityEventResponse])
 async def get_activity_feed(
-    team_id: str | None = None,
+    team_id: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
     collab_manager: CollaborationManager = Depends(get_collaboration_manager),
@@ -412,7 +412,7 @@ async def get_activity_feed(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to get activity feed",
-        )
+        ) from e
 
 
 @router.post(
@@ -452,7 +452,7 @@ async def set_notification_preference(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to set notification preference",
-        )
+        ) from e
 
 
 @router.post(
@@ -495,7 +495,7 @@ async def add_webhook(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to add webhook",
-        )
+        ) from e
 
 
 @router.post(
@@ -527,7 +527,7 @@ async def create_pattern_library(team_id: str, request: PatternLibraryRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create pattern library",
-        )
+        ) from e
 
 
 @router.get("/teams/{team_id}/libraries", response_model=list[PatternLibraryResponse])
@@ -553,7 +553,7 @@ async def list_pattern_libraries(team_id: str):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to list pattern libraries",
-        )
+        ) from e
 
 
 @router.websocket("/patterns/{pattern_id}/collaborate")

@@ -3,7 +3,7 @@ API models for collaboration features.
 """
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -12,7 +12,7 @@ class CommentRequest(BaseModel):
     """Request model for adding a comment."""
 
     content: str = Field(..., min_length=1, max_length=2000)
-    parent_id: str | None = None
+    parent_id: Optional[str] = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -22,18 +22,18 @@ class CommentResponse(BaseModel):
     id: str
     pattern_id: str
     user_id: str
-    parent_id: str | None
+    parent_id: Optional[str]
     content: str
     metadata: dict[str, Any]
     created_at: datetime
-    updated_at: datetime | None
+    updated_at: Optional[datetime]
     replies: list["CommentResponse"] | None = None
 
 
 class ActivityFeedRequest(BaseModel):
     """Request model for activity feed."""
 
-    team_id: str | None = None
+    team_id: Optional[str] = None
     limit: int = Field(default=50, ge=1, le=100)
     offset: int = Field(default=0, ge=0)
     event_types: list[str] | None = None
@@ -45,9 +45,9 @@ class ActivityEventResponse(BaseModel):
     id: str
     type: str
     user_id: str
-    team_id: str | None
-    resource_id: str | None
-    resource_type: str | None
+    team_id: Optional[str]
+    resource_id: Optional[str]
+    resource_type: Optional[str]
     action: str
     metadata: dict[str, Any]
     timestamp: datetime
@@ -77,7 +77,7 @@ class WebhookConfigRequest(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=100)
     url: str = Field(..., pattern="^https?://")
-    secret: str | None = None
+    secret: Optional[str] = None
     event_types: list[str] = Field(..., min_length=1)
     enabled: bool = True
     settings: dict[str, Any] = Field(default_factory=dict)
@@ -100,7 +100,7 @@ class PatternLibraryRequest(BaseModel):
     """Request model for team-scoped pattern library."""
 
     name: str = Field(..., min_length=1, max_length=100)
-    description: str | None = None
+    description: Optional[str] = None
     pattern_ids: list[str] = Field(default_factory=list)
     settings: dict[str, Any] = Field(default_factory=dict)
 
@@ -111,7 +111,7 @@ class PatternLibraryResponse(BaseModel):
     id: str
     team_id: str
     name: str
-    description: str | None
+    description: Optional[str]
     pattern_ids: list[str]
     settings: dict[str, Any]
     created_at: datetime
@@ -123,8 +123,8 @@ class CollaborativeEditRequest(BaseModel):
 
     operation_type: str = Field(..., pattern="^(insert|delete|retain)$")
     position: int = Field(..., ge=0)
-    content: str | None = None
-    length: int | None = None
+    content: Optional[str] = None
+    length: Optional[int] = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -136,8 +136,8 @@ class CollaborativeEditResponse(BaseModel):
     user_id: str
     operation_type: str
     position: int
-    content: str | None
-    length: int | None
+    content: Optional[str]
+    length: Optional[int]
     timestamp: datetime
     applied: bool
 

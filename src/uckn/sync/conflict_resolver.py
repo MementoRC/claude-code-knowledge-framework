@@ -115,7 +115,7 @@ class ConflictResolver:
         return ConflictType.VERSION_MISMATCH
 
     def resolve_conflict(
-        self, conflict: dict[str, Any], strategy: ResolutionStrategy | None = None
+        self, conflict: dict[str, Any], strategy: Optional[ResolutionStrategy] = None
     ) -> dict[str, Any]:
         """
         Resolve a conflict using the specified strategy.

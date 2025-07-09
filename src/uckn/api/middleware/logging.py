@@ -4,7 +4,7 @@ import json
 import logging
 import time
 import uuid
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -267,7 +267,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 filtered[key] = value
         return filtered
 
-    async def _get_request_body(self, request: Request) -> str | None:
+    async def _get_request_body(self, request: Request) -> Optional[str]:
         """Get request body as string"""
         try:
             # Check if body has already been read

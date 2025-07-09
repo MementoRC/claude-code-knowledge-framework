@@ -88,7 +88,7 @@ class TechStackCompatibilityMatrix:
 
     def add_tech_stack_combo(
         self, ts_a: list[str], ts_b: list[str], score: float, description: str = ""
-    ) -> str | None:
+    ) -> Optional[str]:
         """
         Adds a new technology stack compatibility combination to the matrix.
 
@@ -150,7 +150,7 @@ class TechStackCompatibilityMatrix:
 
     def get_compatibility_score(
         self, ts_a: list[str], ts_b: list[str]
-    ) -> float | None:
+    ) -> Optional[float]:
         """
         Retrieves the compatibility score between two technology stacks.
 
@@ -206,8 +206,8 @@ class TechStackCompatibilityMatrix:
         self,
         ts_a: list[str],
         ts_b: list[str],
-        new_score: float | None = None,
-        new_description: str | None = None,
+        new_score: Optional[float] = None,
+        new_description: Optional[str] = None,
     ) -> bool:
         """
         Updates an existing technology stack compatibility combination.

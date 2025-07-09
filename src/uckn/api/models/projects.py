@@ -97,23 +97,23 @@ class ProjectMetrics(BaseModel):
 
     patterns_count: int = Field(default=0, description="Number of patterns in project")
     active_patterns: int = Field(default=0, description="Number of active patterns")
-    total_lines_of_code: int | None = Field(
+    total_lines_of_code: Optional[int] = Field(
         default=None, description="Total lines of code"
     )
-    files_count: int | None = Field(default=None, description="Number of files")
-    last_analysis: datetime | None = Field(
+    files_count: Optional[int] = Field(default=None, description="Number of files")
+    last_analysis: Optional[datetime] = Field(
         default=None, description="Last analysis timestamp"
     )
-    health_score: float | None = Field(
+    health_score: Optional[float] = Field(
         default=None, ge=0.0, le=1.0, description="Project health score"
     )
-    complexity_score: float | None = Field(
+    complexity_score: Optional[float] = Field(
         default=None, ge=0.0, le=10.0, description="Project complexity score"
     )
-    maintainability_score: float | None = Field(
+    maintainability_score: Optional[float] = Field(
         default=None, ge=0.0, le=1.0, description="Maintainability score"
     )
-    test_coverage: float | None = Field(
+    test_coverage: Optional[float] = Field(
         default=None, ge=0.0, le=1.0, description="Test coverage percentage"
     )
 
@@ -122,7 +122,7 @@ class ProjectCreate(BaseModel):
     """Project creation model"""
 
     name: str = Field(min_length=1, max_length=100, description="Project name")
-    description: str | None = Field(
+    description: Optional[str] = Field(
         default=None, max_length=2000, description="Project description"
     )
     project_type: ProjectType = Field(
@@ -131,10 +131,10 @@ class ProjectCreate(BaseModel):
     visibility: ProjectVisibility = Field(
         default=ProjectVisibility.PRIVATE, description="Project visibility"
     )
-    repository_url: str | None = Field(
+    repository_url: Optional[str] = Field(
         default=None, description="Git repository URL"
     )
-    project_path: str | None = Field(default=None, description="Local project path")
+    project_path: Optional[str] = Field(default=None, description="Local project path")
     tags: list[str] = Field(default_factory=list, description="Project tags")
     settings: ProjectSettings = Field(
         default_factory=ProjectSettings, description="Project settings"
@@ -158,18 +158,18 @@ class Project(BaseModel):
 
     id: str = Field(description="Project unique identifier")
     name: str = Field(description="Project name")
-    description: str | None = Field(default=None, description="Project description")
+    description: Optional[str] = Field(default=None, description="Project description")
     project_type: ProjectType = Field(description="Type of project")
     visibility: ProjectVisibility = Field(description="Project visibility")
     status: ProjectStatus = Field(
         default=ProjectStatus.ACTIVE, description="Project status"
     )
-    repository_url: str | None = Field(
+    repository_url: Optional[str] = Field(
         default=None, description="Git repository URL"
     )
-    project_path: str | None = Field(default=None, description="Local project path")
+    project_path: Optional[str] = Field(default=None, description="Local project path")
     tags: list[str] = Field(default_factory=list, description="Project tags")
-    technology_stack: TechnologyStackDNA | None = Field(
+    technology_stack: Optional[TechnologyStackDNA] = Field(
         default=None, description="Detected technology stack"
     )
     settings: ProjectSettings = Field(description="Project settings")
@@ -189,27 +189,27 @@ class Project(BaseModel):
 class ProjectUpdate(BaseModel):
     """Project update model"""
 
-    name: str | None = Field(
+    name: Optional[str] = Field(
         default=None, min_length=1, max_length=100, description="Updated name"
     )
-    description: str | None = Field(
+    description: Optional[str] = Field(
         default=None, max_length=2000, description="Updated description"
     )
-    project_type: ProjectType | None = Field(
+    project_type: Optional[ProjectType] = Field(
         default=None, description="Updated project type"
     )
-    visibility: ProjectVisibility | None = Field(
+    visibility: Optional[ProjectVisibility] = Field(
         default=None, description="Updated visibility"
     )
-    status: ProjectStatus | None = Field(default=None, description="Updated status")
-    repository_url: str | None = Field(
+    status: Optional[ProjectStatus] = Field(default=None, description="Updated status")
+    repository_url: Optional[str] = Field(
         default=None, description="Updated repository URL"
     )
-    project_path: str | None = Field(
+    project_path: Optional[str] = Field(
         default=None, description="Updated project path"
     )
     tags: list[str] | None = Field(default=None, description="Updated tags")
-    settings: ProjectSettings | None = Field(
+    settings: Optional[ProjectSettings] = Field(
         default=None, description="Updated settings"
     )
 
@@ -246,7 +246,7 @@ class ProjectAnalysisRequest(BaseModel):
 class ProjectAnalysisResponse(BaseResponse):
     """Project analysis response model"""
 
-    project_id: str | None = Field(default=None, description="Associated project ID")
+    project_id: Optional[str] = Field(default=None, description="Associated project ID")
     technology_stack: TechnologyStackDNA = Field(
         description="Detected technology stack"
     )
@@ -256,7 +256,7 @@ class ProjectAnalysisResponse(BaseResponse):
     issue_warnings: list[IssueWarning] = Field(description="Predicted issues")
     patterns_found: int = Field(description="Number of patterns found")
     analysis_duration_ms: float = Field(description="Analysis duration in milliseconds")
-    health_score: float | None = Field(
+    health_score: Optional[float] = Field(
         default=None, description="Project health score"
     )
     complexity_metrics: dict[str, Any] | None = Field(
@@ -267,28 +267,28 @@ class ProjectAnalysisResponse(BaseResponse):
 class ProjectSearchRequest(BaseModel):
     """Project search request model"""
 
-    query: str | None = Field(default=None, description="Search query")
-    project_type: ProjectType | None = Field(
+    query: Optional[str] = Field(default=None, description="Search query")
+    project_type: Optional[ProjectType] = Field(
         default=None, description="Filter by project type"
     )
-    visibility: ProjectVisibility | None = Field(
+    visibility: Optional[ProjectVisibility] = Field(
         default=None, description="Filter by visibility"
     )
-    status: ProjectStatus | None = Field(
+    status: Optional[ProjectStatus] = Field(
         default=None, description="Filter by status"
     )
     tags: list[str] | None = Field(default=None, description="Filter by tags")
     technologies: list[str] | None = Field(
         default=None, description="Filter by technologies"
     )
-    created_after: datetime | None = Field(
+    created_after: Optional[datetime] = Field(
         default=None, description="Filter by creation date"
     )
-    created_before: datetime | None = Field(
+    created_before: Optional[datetime] = Field(
         default=None, description="Filter by creation date"
     )
-    owner_id: str | None = Field(default=None, description="Filter by owner")
-    member_id: str | None = Field(default=None, description="Filter by member")
+    owner_id: Optional[str] = Field(default=None, description="Filter by owner")
+    member_id: Optional[str] = Field(default=None, description="Filter by member")
     limit: int = Field(default=20, ge=1, le=100, description="Maximum results")
     offset: int = Field(default=0, ge=0, description="Results offset")
 
@@ -296,13 +296,13 @@ class ProjectSearchRequest(BaseModel):
 class ProjectMemberInvite(BaseModel):
     """Project member invite model"""
 
-    user_id: str | None = Field(default=None, description="User ID to invite")
-    email: str | None = Field(default=None, description="Email to invite")
+    user_id: Optional[str] = Field(default=None, description="User ID to invite")
+    email: Optional[str] = Field(default=None, description="Email to invite")
     role: UserRole = Field(description="Role to assign")
     permissions: list[str] | None = Field(
         default=None, description="Specific permissions"
     )
-    message: str | None = Field(default=None, description="Invitation message")
+    message: Optional[str] = Field(default=None, description="Invitation message")
 
     @validator("user_id", "email")
     def validate_user_identifier(cls, v, values):
@@ -314,11 +314,11 @@ class ProjectMemberInvite(BaseModel):
 class ProjectMemberUpdate(BaseModel):
     """Project member update model"""
 
-    role: UserRole | None = Field(default=None, description="Updated role")
+    role: Optional[UserRole] = Field(default=None, description="Updated role")
     permissions: list[str] | None = Field(
         default=None, description="Updated permissions"
     )
-    is_active: bool | None = Field(default=None, description="Updated active status")
+    is_active: Optional[bool] = Field(default=None, description="Updated active status")
 
 
 class ProjectCreateResponse(BaseResponse):
@@ -337,7 +337,7 @@ class ProjectStatsResponse(BaseResponse):
     projects_by_visibility: dict[str, int] = Field(
         description="Projects grouped by visibility"
     )
-    avg_health_score: float | None = Field(
+    avg_health_score: Optional[float] = Field(
         default=None, description="Average health score"
     )
     total_patterns: int = Field(description="Total patterns across all projects")

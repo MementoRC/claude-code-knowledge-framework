@@ -8,6 +8,7 @@ and behavioral patterns to improve search relevance for individual users.
 import logging
 from collections import defaultdict
 from datetime import datetime
+from logging import Logger
 from typing import Any, Optional
 
 
@@ -22,7 +23,7 @@ class PersonalizedRanking:
     - Temporal decay of preferences
     """
 
-    def __init__(self, logger: logging.Logger | None = None):
+    def __init__(self, logger: Optional[Logger] = None):
         self.logger = logger or logging.getLogger(__name__)
         self.user_profiles = {}
         self.interaction_weights = {
@@ -40,7 +41,7 @@ class PersonalizedRanking:
         pattern_id: str,
         interaction_type: str,
         pattern_metadata: dict[str, Any] | None = None,
-        rating: float | None = None,
+        rating: Optional[float] = None,
     ) -> None:
         """
         Track user interaction with a pattern.

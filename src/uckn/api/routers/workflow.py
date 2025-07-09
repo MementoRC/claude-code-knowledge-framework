@@ -67,7 +67,7 @@ async def initiate_pattern_review(
         response = await workflow_manager.initiate_review(pattern_id, request, user_id)
         return WorkflowActionResponse(**response)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Error initiating review for pattern {pattern_id}: {e}")
         raise HTTPException(
@@ -102,7 +102,7 @@ async def submit_pattern_review_feedback(
         response = await workflow_manager.submit_review_feedback(pattern_id, request)
         return WorkflowActionResponse(**response)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Error submitting feedback for pattern {pattern_id}: {e}")
         raise HTTPException(
@@ -144,7 +144,7 @@ async def transition_pattern_state(
         response = await workflow_manager.transition_state(pattern_id, request)
         return WorkflowActionResponse(**response)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Error transitioning state for pattern {pattern_id}: {e}")
         raise HTTPException(
@@ -168,7 +168,7 @@ async def get_pattern_workflow_status(
         status_data = await workflow_manager.get_workflow_status(pattern_id)
         return WorkflowStatusResponse(**status_data)
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
     except Exception as e:
         logger.error(f"Error getting workflow status for pattern {pattern_id}: {e}")
         raise HTTPException(
@@ -185,7 +185,7 @@ async def get_pattern_workflow_status(
     summary="Get patterns awaiting review",
 )
 async def get_patterns_awaiting_review_endpoint(
-    reviewer_id: str | None = Depends(
+    reviewer_id: Optional[str] = Depends(
         get_current_user_id
     ),  # Default to current user
     workflow_manager: WorkflowManager = Depends(get_workflow_manager),

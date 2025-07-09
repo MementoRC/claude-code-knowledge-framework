@@ -8,6 +8,7 @@ Provides authentication and authorization endpoints including:
 - Permission management
 """
 
+from typing import Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -26,7 +27,7 @@ class LoginRequest(BaseModel):
 
 class OAuthRequest(BaseModel):
     code: str
-    state: str | None = None
+    state: Optional[str] = None
 
 
 class TokenResponse(BaseModel):
@@ -39,17 +40,17 @@ class UserResponse(BaseModel):
     id: str
     email: str
     name: str
-    oauth_provider: str | None
+    oauth_provider: Optional[str]
     roles: list[str]
     permissions: list[str]
     created_at: str
-    last_login: str | None
+    last_login: Optional[str]
 
 
 class APIKeyCreateRequest(BaseModel):
     name: str
     permissions: list[str] | None = []
-    expires_at: str | None = None
+    expires_at: Optional[str] = None
 
 
 class APIKeyResponse(BaseModel):
@@ -57,9 +58,9 @@ class APIKeyResponse(BaseModel):
     name: str
     key: str
     permissions: list[str]
-    expires_at: str | None
+    expires_at: Optional[str]
     created_at: str
-    last_used: str | None
+    last_used: Optional[str]
 
 
 class PermissionResponse(BaseModel):

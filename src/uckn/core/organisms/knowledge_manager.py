@@ -57,8 +57,8 @@ class KnowledgeManager:
 
     # Project management methods (new)
     def add_project(
-        self, name: str, description: str | None = None
-    ) -> str | None:
+        self, name: str, description: Optional[str] = None
+    ) -> Optional[str]:
         """Add a new project."""
         try:
             project_id = self.unified_db.add_project(name, description)
@@ -108,7 +108,7 @@ class KnowledgeManager:
             return []
 
     # Pattern management methods
-    def add_pattern(self, pattern_data: dict[str, Any]) -> str | None:
+    def add_pattern(self, pattern_data: dict[str, Any]) -> Optional[str]:
         """Add a new knowledge pattern."""
         # pattern_data should now include 'document', 'metadata', and optionally 'project_id'
         document_text = pattern_data.get("document")
@@ -197,8 +197,8 @@ class KnowledgeManager:
 
     # Pattern classification methods
     def create_category(
-        self, name: str, description: str = "", category_id: str | None = None
-    ) -> str | None:
+        self, name: str, description: str = "", category_id: Optional[str] = None
+    ) -> Optional[str]:
         """Create a new pattern category."""
         return self.unified_db.add_category(name, description, category_id)
 
@@ -209,8 +209,8 @@ class KnowledgeManager:
     def update_category(
         self,
         category_id: str,
-        name: str | None = None,
-        description: str | None = None,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
     ) -> bool:
         """Update an existing category."""
         updates = {}
@@ -243,7 +243,7 @@ class KnowledgeManager:
         return self.unified_db.get_pattern_categories(pattern_id)
 
     # Error solution management methods
-    def add_error_solution(self, solution_data: dict[str, Any]) -> str | None:
+    def add_error_solution(self, solution_data: dict[str, Any]) -> Optional[str]:
         """Add a new error solution."""
         try:
             document_text = solution_data.get("document")
@@ -322,7 +322,7 @@ class KnowledgeManager:
     # Team Access Management (new)
     def add_team_access(
         self, user_id: str, project_id: str, role: str
-    ) -> str | None:
+    ) -> Optional[str]:
         """Add team access for a user to a project."""
         return self.unified_db.add_team_access(user_id, project_id, role)
 
@@ -348,8 +348,8 @@ class KnowledgeManager:
         source_tech: str,
         target_tech: str,
         compatibility_score: float,
-        notes: str | None = None,
-    ) -> str | None:
+        notes: Optional[str] = None,
+    ) -> Optional[str]:
         """Add a new compatibility matrix entry."""
         try:
             entry_id = self.unified_db.add_compatibility_entry(
@@ -396,10 +396,10 @@ class KnowledgeManager:
 
     def search_compatibility_entries(
         self,
-        source_tech: str | None = None,
-        target_tech: str | None = None,
-        min_score: float | None = None,
-        max_score: float | None = None,
+        source_tech: Optional[str] = None,
+        target_tech: Optional[str] = None,
+        min_score: Optional[float] = None,
+        max_score: Optional[float] = None,
     ) -> list[dict[str, Any]]:
         """Search compatibility entries."""
         try:

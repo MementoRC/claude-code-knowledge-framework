@@ -20,7 +20,7 @@ class PatternManager:
         self.semantic_search = semantic_search
         self._logger = logging.getLogger(__name__)
 
-    def add_pattern(self, pattern_data: dict[str, Any]) -> str | None:
+    def add_pattern(self, pattern_data: dict[str, Any]) -> Optional[str]:
         """
         Add a new knowledge pattern to the Unified Database.
 

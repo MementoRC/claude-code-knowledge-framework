@@ -8,6 +8,7 @@ based on user behavior, popular searches, and content analysis.
 import logging
 import re
 from collections import defaultdict
+from logging import Logger
 from typing import Any, Optional
 
 
@@ -22,7 +23,7 @@ class SearchSuggestionEngine:
     - Technology-aware suggestions
     """
 
-    def __init__(self, logger: logging.Logger | None = None):
+    def __init__(self, logger: Optional[Logger] = None):
         self.logger = logger or logging.getLogger(__name__)
         self.query_history = defaultdict(int)
         self.successful_queries = defaultdict(int)

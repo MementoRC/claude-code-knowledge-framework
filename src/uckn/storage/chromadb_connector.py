@@ -109,7 +109,7 @@ class ChromaDBConnector:
         self.db_path = Path(db_path)
         self.db_path.mkdir(parents=True, exist_ok=True)
         self._logger = logging.getLogger(__name__)
-        self.client: chromadb.PersistentClient | None = None
+        self.client: chromadb.Optional[PersistentClient] = None
         self.collections: dict[str, Any] = {}
         self._connect_to_chromadb()
 
@@ -222,9 +222,7 @@ class ChromaDBConnector:
             )
             return False
 
-    def get_document(
-        self, collection_name: str, doc_id: str
-    ) -> dict[str, Any] | None:
+    def get_document(self, collection_name: str, doc_id: str) -> dict[str, Any] | None:
         """
         Retrieves a document from the specified ChromaDB collection by ID.
 
@@ -266,7 +264,7 @@ class ChromaDBConnector:
         self,
         collection_name: str,
         doc_id: str,
-        document: str | None = None,
+        document: Optional[str] = None,
         embedding: list[float] | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> bool:

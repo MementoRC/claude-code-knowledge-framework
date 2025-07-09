@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from enum import Enum
 from typing import Optional
 
@@ -31,11 +31,11 @@ class ReviewFeedback(BaseModel):
     """Model for a single review feedback entry."""
 
     reviewer_id: str = Field(description="ID of the reviewer")
-    timestamp: datetime.datetime = Field(
-        default_factory=datetime.datetime.now, description="Timestamp of the review"
+    timestamp: datetime = Field(
+        default_factory=datetime.now, description="Timestamp of the review"
     )
-    comments: str | None = Field(default=None, description="Review comments")
-    score: float | None = Field(
+    comments: Optional[str] = Field(default=None, description="Review comments")
+    score: Optional[float] = Field(
         default=None, ge=0.0, le=5.0, description="Overall review score (0-5)"
     )
     status: ReviewStatus = Field(
@@ -49,8 +49,8 @@ class PatternVersion(BaseModel):
 
     version_number: str = Field(description="Semantic version number (e.g., 1.0.0)")
     changes: str = Field(description="Description of changes in this version")
-    timestamp: datetime.datetime = Field(
-        default_factory=datetime.datetime.now,
+    timestamp: datetime = Field(
+        default_factory=datetime.now,
         description="Timestamp of this version creation",
     )
     author_id: str = Field(description="ID of the user who created this version")
@@ -66,13 +66,13 @@ class WorkflowTransitionRequest(BaseModel):
     """Request model for transitioning a pattern's workflow state."""
 
     target_state: WorkflowState = Field(description="The target workflow state")
-    comments: str | None = Field(
+    comments: Optional[str] = Field(
         default=None, description="Comments for the state transition"
     )
     user_id: str = Field(
         description="ID of the user performing the transition"
     )  # Will be overridden by authenticated user_id in router
-    version: str | None = Field(
+    version: Optional[str] = Field(
         default=None, description="Specific version to transition, if applicable"
     )
 
@@ -94,10 +94,10 @@ class WorkflowStatusResponse(BaseModel):
     version_history: list[PatternVersion] = Field(
         default_factory=list, description="History of all pattern versions"
     )
-    last_transition_at: datetime.datetime | None = Field(
+    last_transition_at: Optional[datetime] = Field(
         default=None, description="Timestamp of the last state transition"
     )
-    last_transition_by: str | None = Field(
+    last_transition_by: Optional[str] = Field(
         default=None, description="User who performed the last transition"
     )
 
@@ -106,8 +106,8 @@ class SubmitReviewFeedbackRequest(BaseModel):
     """Request model for submitting review feedback."""
 
     reviewer_id: str = Field(description="ID of the reviewer submitting feedback")
-    comments: str | None = Field(default=None, description="Review comments")
-    score: float | None = Field(
+    comments: Optional[str] = Field(default=None, description="Review comments")
+    score: Optional[float] = Field(
         default=None, ge=0.0, le=5.0, description="Overall review score (0-5)"
     )
     status: ReviewStatus = Field(
@@ -122,10 +122,10 @@ class InitiateReviewRequest(BaseModel):
     reviewer_ids: list[str] = Field(
         description="List of user IDs to assign as reviewers"
     )
-    message: str | None = Field(
+    message: Optional[str] = Field(
         default=None, description="Optional message for reviewers"
     )
-    version: str | None = Field(
+    version: Optional[str] = Field(
         default=None, description="Specific version to review, defaults to current"
     )
 
@@ -136,5 +136,5 @@ class WorkflowActionResponse(BaseModel):
     pattern_id: str
     status: str
     message: str
-    new_state: WorkflowState | None = None
-    new_version: str | None = None
+    new_state: Optional[WorkflowState] = None
+    new_version: Optional[str] = None

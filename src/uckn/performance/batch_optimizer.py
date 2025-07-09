@@ -10,7 +10,7 @@ UCKN Batch Processing Optimizer
 import logging
 import threading
 from collections.abc import Callable, Iterator
-from typing import Any, Optional
+from typing import Any
 
 
 class BatchProcessor:

@@ -8,6 +8,7 @@ temporal filters, quality metrics, and other dynamic filters based on document m
 import logging
 from collections import defaultdict
 from datetime import datetime
+from logging import Logger
 from typing import Any, Optional
 
 
@@ -23,7 +24,7 @@ class FacetedSearchManager:
     - Source/origin filters
     """
 
-    def __init__(self, logger: logging.Logger | None = None):
+    def __init__(self, logger: Optional[Logger] = None):
         self.logger = logger or logging.getLogger(__name__)
         self._facet_cache = {}
         self._cache_expiry = {}

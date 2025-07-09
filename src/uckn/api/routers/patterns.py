@@ -23,15 +23,15 @@ class TechStackFilter(BaseModel):
     """Technology stack filter for pattern search."""
 
     technologies: list[str] | None = None
-    project_type: str | None = None
-    complexity: str | None = None
+    project_type: Optional[str] = None
+    complexity: Optional[str] = None
 
 
 class PatternSearchRequest(BaseModel):
     """Request model for pattern search."""
 
     query: str = Field(..., description="Search query string")
-    filters: TechStackFilter | None = None
+    filters: Optional[TechStackFilter] = None
     limit: int = Field(default=10, ge=1, le=100)
     min_similarity: float = Field(default=0.7, ge=0.0, le=1.0)
 
@@ -65,8 +65,8 @@ class ValidationResult(BaseModel):
     """Model for pattern validation result."""
 
     success: bool
-    feedback: str | None = None
-    score: float | None = None
+    feedback: Optional[str] = None
+    score: Optional[float] = None
 
 
 class ValidationResponse(BaseModel):
@@ -117,7 +117,7 @@ async def search_patterns(
 
     except Exception as e:
         logger.error(f"Error searching patterns: {e}")
-        raise HTTPException(status_code=500, detail=f"Pattern search failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Pattern search failed: {str(e)}") from e
 
 
 @router.post("/patterns/contribute", response_model=PatternContributionResponse)

@@ -11,7 +11,7 @@ class BaseResponse(BaseModel):
     """Base response model with common fields"""
 
     success: bool = True
-    message: str | None = None
+    message: Optional[str] = None
     timestamp: datetime = Field(default_factory=datetime.now)
 
 
@@ -19,7 +19,7 @@ class ErrorResponse(BaseResponse):
     """Error response model"""
 
     success: bool = False
-    error_code: str | None = None
+    error_code: Optional[str] = None
     details: dict[str, Any] | None = None
 
 
@@ -152,14 +152,14 @@ class ValidationResult(BaseModel):
 
     is_valid: bool = Field(description="Whether the pattern is valid")
     score: float = Field(ge=0.0, le=1.0, description="Validation score")
-    feedback: str | None = Field(default=None, description="Validation feedback")
+    feedback: Optional[str] = Field(default=None, description="Validation feedback")
     issues: list[str] = Field(
         default_factory=list, description="List of validation issues"
     )
     suggestions: list[str] = Field(
         default_factory=list, description="List of improvement suggestions"
     )
-    validator_id: str | None = Field(default=None, description="ID of the validator")
+    validator_id: Optional[str] = Field(default=None, description="ID of the validator")
     validation_timestamp: datetime = Field(default_factory=datetime.now)
 
 
@@ -175,13 +175,13 @@ class HealthStatus(BaseModel):
     )
     knowledge_dir: str = Field(description="Knowledge directory path")
     components: dict[str, str] = Field(description="Component health status")
-    uptime: float | None = Field(
+    uptime: Optional[float] = Field(
         default=None, description="System uptime in seconds"
     )
-    memory_usage: float | None = Field(
+    memory_usage: Optional[float] = Field(
         default=None, description="Memory usage percentage"
     )
-    disk_usage: float | None = Field(
+    disk_usage: Optional[float] = Field(
         default=None, description="Disk usage percentage"
     )
     timestamp: datetime = Field(default_factory=datetime.now)
@@ -202,7 +202,7 @@ class UpdateFilter(BaseModel):
     user_ids: list[str] | None = Field(
         default=None, description="User IDs to subscribe to"
     )
-    min_score: float | None = Field(
+    min_score: Optional[float] = Field(
         default=None, ge=0.0, le=1.0, description="Minimum pattern score"
     )
 
@@ -215,9 +215,7 @@ class SetupRecommendation(BaseModel):
     description: str = Field(description="Detailed description")
     priority: str = Field(description="Priority level (high, medium, low)")
     effort: str = Field(description="Estimated effort (high, medium, low)")
-    commands: list[str] | None = Field(
-        default=None, description="Commands to execute"
-    )
+    commands: list[str] | None = Field(default=None, description="Commands to execute")
     files_to_create: list[str] | None = Field(
         default=None, description="Files to create"
     )

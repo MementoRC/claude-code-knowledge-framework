@@ -72,7 +72,7 @@ class UnifiedKnowledgeManager:
         else:
             self._logger.warning(f"Unknown feature flag: {flag_name}")
 
-    def get_flag(self, flag_name: str) -> bool | None:
+    def get_flag(self, flag_name: str) -> Optional[bool]:
         """Get the value of a feature flag."""
         return self._feature_flags.get(flag_name)
 
@@ -83,7 +83,7 @@ class UnifiedKnowledgeManager:
             for cap in self.KNOWN_CAPABILITIES
         }
 
-    def add_knowledge_pattern(self, pattern_data: dict[str, Any]) -> str | None:
+    def add_knowledge_pattern(self, pattern_data: dict[str, Any]) -> Optional[str]:
         """Add a knowledge pattern with feature flag checks."""
         try:
             capabilities = self.get_capabilities()

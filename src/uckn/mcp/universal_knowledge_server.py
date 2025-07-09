@@ -114,7 +114,7 @@ except ImportError as e:
 class UniversalKnowledgeServer:
     """MCP Server for Universal Knowledge system"""
 
-    def __init__(self, project_root: str | None = None):
+    def __init__(self, project_root: Optional[str] = None):
         """Initialize the Universal Knowledge MCP server."""
         self.server = Server("universal-knowledge")
         self.project_root = project_root or os.getcwd()

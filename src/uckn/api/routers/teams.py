@@ -23,14 +23,14 @@ router = APIRouter()
 # Request/Response Models
 class TeamCreateRequest(BaseModel):
     name: str
-    description: str | None = None
-    settings: dict | None = None
+    description: Optional[str] = None
+    settings: Optional[dict] = None
 
 
 class TeamResponse(BaseModel):
     id: str
     name: str
-    description: str | None
+    description: Optional[str]
     owner_id: str
     settings: dict
     created_at: str

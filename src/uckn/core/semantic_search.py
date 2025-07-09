@@ -111,7 +111,7 @@ class SemanticSearchEngine:
 
     def generate_session_embedding(
         self, session_data: dict[str, Any]
-    ) -> np.ndarray | None:
+    ) -> Optional[np.ndarray]:
         """Generate embedding for a session."""
         if not self.sentence_model:
             return None

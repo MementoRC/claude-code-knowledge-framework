@@ -21,8 +21,8 @@ class PatternClassification:
         self._logger = logging.getLogger(__name__)
 
     def add_category(
-        self, name: str, description: str = "", category_id: str | None = None
-    ) -> str | None:
+        self, name: str, description: str = "", category_id: Optional[str] = None
+    ) -> Optional[str]:
         """
         Adds a new pattern category to the database.
 
@@ -67,8 +67,8 @@ class PatternClassification:
     def update_category(
         self,
         category_id: str,
-        name: str | None = None,
-        description: str | None = None,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
     ) -> bool:
         """
         Updates an existing pattern category.

@@ -14,6 +14,7 @@ Author: UCKN Team
 
 import logging
 from functools import lru_cache
+from logging import Logger
 from typing import Any, Optional
 
 from .multi_modal_embeddings import MultiModalEmbeddings
@@ -60,9 +61,9 @@ class SemanticSearchEngine:
 
     def __init__(
         self,
-        chroma_connector: Any | None = None,
-        embedding_atom: MultiModalEmbeddings | None = None,
-        logger: logging.Logger | None = None,
+        chroma_connector: Optional[Any] = None,
+        embedding_atom: Optional[MultiModalEmbeddings] = None,
+        logger: Optional[Logger] = None,
         cache_size: int = 128,
     ):
         self.logger = logger or logging.getLogger(__name__)
@@ -323,9 +324,9 @@ class SemanticSearchEngine:
 
     def search_multi_modal(
         self,
-        text: str | None = None,
-        code: str | None = None,
-        error: str | None = None,
+        text: Optional[str] = None,
+        code: Optional[str] = None,
+        error: Optional[str] = None,
         tech_stack=None,
         limit: int = 10,
     ) -> list[dict[str, Any]]:

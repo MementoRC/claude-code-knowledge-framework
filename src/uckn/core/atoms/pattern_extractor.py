@@ -36,7 +36,7 @@ class PatternExtractor:
         self.tech_stack_detector = tech_stack_detector
         logger.info("PatternExtractor initialized with TechStackDetector.")
 
-    def _read_file_content(self, file_path: str) -> str | None:
+    def _read_file_content(self, file_path: str) -> Optional[str]:
         """Helper to safely read file content."""
         try:
             path = Path(file_path)
@@ -52,7 +52,7 @@ class PatternExtractor:
         self,
         pattern_content: str,
         project_path: str,
-        source_file: str | None = None,
+        source_file: Optional[str] = None,
         pattern_type: str = "unknown",
     ) -> dict[str, Any]:
         """

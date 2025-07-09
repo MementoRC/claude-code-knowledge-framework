@@ -54,9 +54,9 @@ class UnifiedDatabase:
     def add_project(
         self,
         name: str,
-        description: str | None = None,
-        project_id: str | None = None,
-    ) -> str | None:
+        description: Optional[str] = None,
+        project_id: Optional[str] = None,
+    ) -> Optional[str]:
         """Adds a new project."""
         project_id = project_id or str(uuid.uuid4())
         data = {"id": project_id, "name": name, "description": description}
@@ -84,9 +84,9 @@ class UnifiedDatabase:
         document_text: str,
         embedding: list[float],
         metadata: dict[str, Any],
-        pattern_id: str | None = None,
-        project_id: str | None = None,
-    ) -> str | None:
+        pattern_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Adds a new pattern, storing metadata in PostgreSQL and document/embedding in ChromaDB.
         """
@@ -175,10 +175,10 @@ class UnifiedDatabase:
     def update_pattern(
         self,
         pattern_id: str,
-        document_text: str | None = None,
+        document_text: Optional[str] = None,
         embedding: list[float] | None = None,
         metadata: dict[str, Any] | None = None,
-        project_id: str | None = None,
+        project_id: Optional[str] = None,
     ) -> bool:
         """
         Updates an existing pattern in both PostgreSQL and ChromaDB.
@@ -341,9 +341,9 @@ class UnifiedDatabase:
         document_text: str,
         embedding: list[float],
         metadata: dict[str, Any],
-        solution_id: str | None = None,
-        project_id: str | None = None,
-    ) -> str | None:
+        solution_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+    ) -> Optional[str]:
         """
         Adds a new error solution, storing metadata in PostgreSQL and document/embedding in ChromaDB.
         """
@@ -416,10 +416,10 @@ class UnifiedDatabase:
     def update_error_solution(
         self,
         solution_id: str,
-        document_text: str | None = None,
+        document_text: Optional[str] = None,
         embedding: list[float] | None = None,
         metadata: dict[str, Any] | None = None,
-        project_id: str | None = None,
+        project_id: Optional[str] = None,
     ) -> bool:
         """
         Updates an existing error solution in both PostgreSQL and ChromaDB.
@@ -535,9 +535,9 @@ class UnifiedDatabase:
     def add_category(
         self,
         name: str,
-        description: str | None = None,
-        category_id: str | None = None,
-    ) -> str | None:
+        description: Optional[str] = None,
+        category_id: Optional[str] = None,
+    ) -> Optional[str]:
         """Adds a new pattern category."""
         category_id = category_id or str(uuid.uuid4())
         data = {"id": category_id, "name": name, "description": description}
@@ -573,8 +573,8 @@ class UnifiedDatabase:
 
     # --- Team Access Management (PostgreSQL only) ---
     def add_team_access(
-        self, user_id: str, project_id: str, role: str, access_id: str | None = None
-    ) -> str | None:
+        self, user_id: str, project_id: str, role: str, access_id: Optional[str] = None
+    ) -> Optional[str]:
         """Adds team access for a user to a project."""
         access_id = access_id or str(uuid.uuid4())
         data = {
@@ -607,9 +607,9 @@ class UnifiedDatabase:
         source_tech: str,
         target_tech: str,
         compatibility_score: float,
-        notes: str | None = None,
-        entry_id: str | None = None,
-    ) -> str | None:
+        notes: Optional[str] = None,
+        entry_id: Optional[str] = None,
+    ) -> Optional[str]:
         """Adds a new compatibility matrix entry."""
         entry_id = entry_id or str(uuid.uuid4())
         data = {
@@ -637,10 +637,10 @@ class UnifiedDatabase:
 
     def search_compatibility_entries(
         self,
-        source_tech: str | None = None,
-        target_tech: str | None = None,
-        min_score: float | None = None,
-        max_score: float | None = None,
+        source_tech: Optional[str] = None,
+        target_tech: Optional[str] = None,
+        min_score: Optional[float] = None,
+        max_score: Optional[float] = None,
     ) -> list[dict[str, Any]]:
         """Searches compatibility entries by source/target tech and score range."""
         filters = {}

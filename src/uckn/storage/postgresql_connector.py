@@ -250,7 +250,7 @@ class PostgreSQLConnector:
             self._logger.error(f"PostgreSQL connection check failed: {e}")
             return False
 
-    def add_record(self, model: Base, data: dict[str, Any]) -> str | None:
+    def add_record(self, model: Base, data: dict[str, Any]) -> Optional[str]:
         """Adds a new record to the database."""
         try:
             with self.get_db_session() as session:
@@ -318,7 +318,7 @@ class PostgreSQLConnector:
             return False
 
     def get_all_records(
-        self, model: Base, limit: int | None = None
+        self, model: Base, limit: Optional[int] = None
     ) -> list[dict[str, Any]]:
         """Retrieves all records for a given model."""
         try:
@@ -339,7 +339,7 @@ class PostgreSQLConnector:
             return []
 
     def filter_records(
-        self, model: Base, filters: dict[str, Any], limit: int | None = None
+        self, model: Base, filters: dict[str, Any], limit: Optional[int] = None
     ) -> list[dict[str, Any]]:
         """Filters records based on provided criteria."""
         try:
@@ -363,7 +363,7 @@ class PostgreSQLConnector:
             return []
 
     def search_records_by_metadata(
-        self, model: Base, metadata_filter: dict[str, Any], limit: int | None = None
+        self, model: Base, metadata_filter: dict[str, Any], limit: Optional[int] = None
     ) -> list[dict[str, Any]]:
         """Search records by JSONB/JSON metadata fields using cross-database compatible operators."""
         try:

@@ -3,7 +3,6 @@ UCKN Semantic Search Atom
 """
 
 import logging
-from typing import Optional
 
 try:
     from ..semantic_search import SemanticSearchEngine

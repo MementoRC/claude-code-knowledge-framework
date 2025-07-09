@@ -259,7 +259,7 @@ class SyncQueue:
 
         return failed_items
 
-    def retry_failed(self, pattern_id: str | None = None) -> int:
+    def retry_failed(self, pattern_id: Optional[str] = None) -> int:
         """
         Retry failed items by resetting their retry count.
 
