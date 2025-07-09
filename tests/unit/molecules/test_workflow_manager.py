@@ -189,11 +189,11 @@ async def test_submit_review_feedback_success(
     updated_pattern_obj = mock_knowledge_manager.update_pattern.call_args[0][1]
 
     reviewer1_feedback = next(
-        r for r in updated_pattern_obj.reviews if r.reviewer_id == "reviewer1"
+        r for r in updated_pattern_obj["reviews"] if r["reviewer_id"] == "reviewer1"
     )
     assert reviewer1_feedback["status"] == ReviewStatus.NEEDS_REVISION
-    assert reviewer1_feedback.comments == "Looks good, minor tweaks needed."
-    assert reviewer1_feedback.score == 4.5
+    assert reviewer1_feedback["comments"] == "Looks good, minor tweaks needed."
+    assert reviewer1_feedback["score"] == 4.5
 
     mock_connection_manager.broadcast.assert_called_once()
     broadcast_message = json.loads(mock_connection_manager.broadcast.call_args[0][0])
@@ -329,7 +329,7 @@ async def test_get_workflow_status(workflow_manager, mock_knowledge_manager):
     assert status_response["current_version"] == "0.2.0"
     assert len(status_response["pending_reviews"]) == 1
     assert status_response["pending_reviews"][0].reviewer_id == "r1"
-    assert status_response["pending_reviews"][0]["status"] == ReviewStatus.PENDING
+    assert status_response["pending_reviews"][0].status == ReviewStatus.PENDING
     assert len(status_response["review_history"]) == 2
     assert len(status_response["version_history"]) == 2
 

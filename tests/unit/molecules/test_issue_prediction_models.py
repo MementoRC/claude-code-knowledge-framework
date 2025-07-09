@@ -63,7 +63,7 @@ def test_predict_returns_ml_issue_if_trained_and_random_allows(
     assert 0.6 <= predictions[0]["confidence"] <= 0.95
 
 
-@patch("random.random", return_value=0.8)  # High random value, no issue predicted
+@patch("random.random", side_effect=[0.8, 0.5])  # High random value, no issue predicted, buffer
 def test_predict_returns_no_issue_if_trained_and_random_disallows(
     mock_random, issue_prediction_models
 ):
