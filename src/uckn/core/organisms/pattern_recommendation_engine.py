@@ -268,8 +268,8 @@ class PatternRecommendationEngine:
     def get_comprehensive_recommendations(
         self,
         project_path: str,
-        error_context: Optional[str] = None,
-        user_history: Optional[list[str]] = None,
+        error_context: str | None = None,
+        user_history: list[str] | None = None,
     ) -> dict[str, list[Recommendation]]:
         """
         Get comprehensive recommendations across all types.

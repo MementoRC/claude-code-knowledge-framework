@@ -45,7 +45,7 @@ class FlagConfigurationTemplate:
         """Add an atomic component to the template."""
         self._components[component.name] = component
 
-    def get_component(self, name: str) -> Optional[AtomicComponent]:
+    def get_component(self, name: str) -> AtomicComponent | None:
         """Get a component by name."""
         return self._components.get(name)
 

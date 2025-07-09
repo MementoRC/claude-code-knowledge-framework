@@ -66,9 +66,9 @@ class SemanticSearchEngineOptimized:
 
     def __init__(
         self,
-        chroma_connector: Optional[Any] = None,
-        embedding_atom: Optional[Any] = None,
-        logger: Optional[logging.Logger] = None,
+        chroma_connector: Any | None = None,
+        embedding_atom: Any | None = None,
+        logger: logging.Logger | None = None,
         cache_size: int = 256,
         performance_mode: bool = True,
         enable_async: bool = True,
@@ -126,7 +126,7 @@ class SemanticSearchEngineOptimized:
 
     def search(
         self,
-        query: dict[str, Optional[str]],
+        query: dict[str, str | None],
         collection_name: str,
         limit: int = 10,
         min_similarity: float = 0.7,
@@ -156,7 +156,7 @@ class SemanticSearchEngineOptimized:
 
     def batch_search(
         self,
-        queries: list[dict[str, Optional[str]]],
+        queries: list[dict[str, str | None]],
         collection_name: str,
         limit: int = 10,
         min_similarity: float = 0.7,

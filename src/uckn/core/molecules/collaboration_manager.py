@@ -30,9 +30,9 @@ class ActivityEvent(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
     type: str
     user_id: str
-    team_id: Optional[str] = None
-    resource_id: Optional[str] = None
-    resource_type: Optional[str] = None
+    team_id: str | None = None
+    resource_id: str | None = None
+    resource_type: str | None = None
     action: str
     metadata: dict[str, Any] = Field(default_factory=dict)
     timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -44,11 +44,11 @@ class Comment(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
     pattern_id: str
     user_id: str
-    parent_id: Optional[str] = None  # For threaded comments
+    parent_id: str | None = None  # For threaded comments
     content: str
     metadata: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: Optional[datetime] = None
+    updated_at: datetime | None = None
 
 
 class NotificationPreference(BaseModel):
@@ -68,7 +68,7 @@ class WebhookConfig(BaseModel):
     team_id: str
     name: str
     url: str
-    secret: Optional[str] = None
+    secret: str | None = None
     event_types: list[str]
     enabled: bool = True
     settings: dict[str, Any] = Field(default_factory=dict)
@@ -136,7 +136,7 @@ class CollaborationManager:
             raise
 
     async def get_comments(
-        self, pattern_id: str, parent_id: Optional[str] = None
+        self, pattern_id: str, parent_id: str | None = None
     ) -> list[Comment]:
         """Get comments for a pattern (optionally filtered by parent)."""
         try:
@@ -159,7 +159,7 @@ class CollaborationManager:
             return []
 
     async def get_activity_feed(
-        self, team_id: Optional[str] = None, limit: int = 50
+        self, team_id: str | None = None, limit: int = 50
     ) -> list[ActivityEvent]:
         """Get activity feed for a team or user."""
         try:

@@ -65,7 +65,7 @@ class SyncQueue:
         pattern_id: str,
         operation: QueueOperation = QueueOperation.SYNC,
         priority: QueuePriority = QueuePriority.NORMAL,
-        data: Optional[dict[str, Any]] = None,
+        data: dict[str, Any] | None = None,
     ) -> bool:
         """
         Add a pattern operation to the sync queue.
@@ -259,7 +259,7 @@ class SyncQueue:
 
         return failed_items
 
-    def retry_failed(self, pattern_id: Optional[str] = None) -> int:
+    def retry_failed(self, pattern_id: str | None = None) -> int:
         """
         Retry failed items by resetting their retry count.
 

@@ -45,7 +45,7 @@ class ConflictResolver:
 
     def detect_conflict(
         self, local_pattern: dict[str, Any], server_pattern: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Detect conflicts between local and server patterns.
 
@@ -115,7 +115,7 @@ class ConflictResolver:
         return ConflictType.VERSION_MISMATCH
 
     def resolve_conflict(
-        self, conflict: dict[str, Any], strategy: Optional[ResolutionStrategy] = None
+        self, conflict: dict[str, Any], strategy: ResolutionStrategy | None = None
     ) -> dict[str, Any]:
         """
         Resolve a conflict using the specified strategy.

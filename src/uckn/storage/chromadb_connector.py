@@ -109,7 +109,7 @@ class ChromaDBConnector:
         self.db_path = Path(db_path)
         self.db_path.mkdir(parents=True, exist_ok=True)
         self._logger = logging.getLogger(__name__)
-        self.client: Optional[chromadb.PersistentClient] = None
+        self.client: chromadb.PersistentClient | None = None
         self.collections: dict[str, Any] = {}
         self._connect_to_chromadb()
 
@@ -224,7 +224,7 @@ class ChromaDBConnector:
 
     def get_document(
         self, collection_name: str, doc_id: str
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Retrieves a document from the specified ChromaDB collection by ID.
 
@@ -266,9 +266,9 @@ class ChromaDBConnector:
         self,
         collection_name: str,
         doc_id: str,
-        document: Optional[str] = None,
-        embedding: Optional[list[float]] = None,
-        metadata: Optional[dict[str, Any]] = None,
+        document: str | None = None,
+        embedding: list[float] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> bool:
         """
         Updates an existing document in the specified ChromaDB collection.
@@ -349,7 +349,7 @@ class ChromaDBConnector:
         query_embedding: list[float],
         n_results: int = 10,
         min_similarity: float = 0.7,
-        where_clause: Optional[dict[str, Any]] = None,
+        where_clause: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """
         Searches for similar documents in the specified ChromaDB collection.

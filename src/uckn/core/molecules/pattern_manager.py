@@ -20,7 +20,7 @@ class PatternManager:
         self.semantic_search = semantic_search
         self._logger = logging.getLogger(__name__)
 
-    def add_pattern(self, pattern_data: dict[str, Any]) -> Optional[str]:
+    def add_pattern(self, pattern_data: dict[str, Any]) -> str | None:
         """
         Add a new knowledge pattern to the Unified Database.
 
@@ -77,7 +77,7 @@ class PatternManager:
         )
         return pattern_id if success else None
 
-    def get_pattern(self, pattern_id: str) -> Optional[dict[str, Any]]:
+    def get_pattern(self, pattern_id: str) -> dict[str, Any] | None:
         """
         Retrieve a specific pattern from the Unified Database.
 
@@ -164,7 +164,7 @@ class PatternManager:
         query: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[dict[str, Any]] = None,
+        metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """
         Search for knowledge patterns using semantic similarity.

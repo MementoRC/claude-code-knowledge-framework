@@ -57,8 +57,8 @@ class KnowledgeManager:
 
     # Project management methods (new)
     def add_project(
-        self, name: str, description: Optional[str] = None
-    ) -> Optional[str]:
+        self, name: str, description: str | None = None
+    ) -> str | None:
         """Add a new project."""
         try:
             project_id = self.unified_db.add_project(name, description)
@@ -75,7 +75,7 @@ class KnowledgeManager:
             self._logger.error(f"Failed to add project: {e}")
             return None
 
-    def get_project(self, project_id: str) -> Optional[dict[str, Any]]:
+    def get_project(self, project_id: str) -> dict[str, Any] | None:
         """Retrieve a specific project."""
         try:
             return self.unified_db.get_project(project_id)
@@ -108,7 +108,7 @@ class KnowledgeManager:
             return []
 
     # Pattern management methods
-    def add_pattern(self, pattern_data: dict[str, Any]) -> Optional[str]:
+    def add_pattern(self, pattern_data: dict[str, Any]) -> str | None:
         """Add a new knowledge pattern."""
         # pattern_data should now include 'document', 'metadata', and optionally 'project_id'
         document_text = pattern_data.get("document")
@@ -139,7 +139,7 @@ class KnowledgeManager:
             project_id=project_id,
         )
 
-    def get_pattern(self, pattern_id: str) -> Optional[dict[str, Any]]:
+    def get_pattern(self, pattern_id: str) -> dict[str, Any] | None:
         """Retrieve a specific pattern."""
         return self.unified_db.get_pattern(pattern_id)
 
@@ -179,7 +179,7 @@ class KnowledgeManager:
         query: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[dict[str, Any]] = None,
+        metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Search for knowledge patterns using semantic similarity."""
         if not self.semantic_search.is_available():
@@ -197,20 +197,20 @@ class KnowledgeManager:
 
     # Pattern classification methods
     def create_category(
-        self, name: str, description: str = "", category_id: Optional[str] = None
-    ) -> Optional[str]:
+        self, name: str, description: str = "", category_id: str | None = None
+    ) -> str | None:
         """Create a new pattern category."""
         return self.unified_db.add_category(name, description, category_id)
 
-    def get_category(self, category_id: str) -> Optional[dict[str, Any]]:
+    def get_category(self, category_id: str) -> dict[str, Any] | None:
         """Retrieve a specific category."""
         return self.unified_db.get_category(category_id)
 
     def update_category(
         self,
         category_id: str,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
+        name: str | None = None,
+        description: str | None = None,
     ) -> bool:
         """Update an existing category."""
         updates = {}
@@ -243,7 +243,7 @@ class KnowledgeManager:
         return self.unified_db.get_pattern_categories(pattern_id)
 
     # Error solution management methods
-    def add_error_solution(self, solution_data: dict[str, Any]) -> Optional[str]:
+    def add_error_solution(self, solution_data: dict[str, Any]) -> str | None:
         """Add a new error solution."""
         try:
             document_text = solution_data.get("document")
@@ -290,7 +290,7 @@ class KnowledgeManager:
             self._logger.error(f"Failed to add error solution: {e}")
             return None
 
-    def get_error_solution(self, solution_id: str) -> Optional[dict[str, Any]]:
+    def get_error_solution(self, solution_id: str) -> dict[str, Any] | None:
         """Retrieve a specific error solution."""
         try:
             return self.unified_db.get_error_solution(solution_id)
@@ -303,7 +303,7 @@ class KnowledgeManager:
         error_query: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[dict[str, Any]] = None,
+        metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Search for error solutions using semantic similarity."""
         if not self.semantic_search.is_available():
@@ -322,11 +322,11 @@ class KnowledgeManager:
     # Team Access Management (new)
     def add_team_access(
         self, user_id: str, project_id: str, role: str
-    ) -> Optional[str]:
+    ) -> str | None:
         """Add team access for a user to a project."""
         return self.unified_db.add_team_access(user_id, project_id, role)
 
-    def get_team_access(self, access_id: str) -> Optional[dict[str, Any]]:
+    def get_team_access(self, access_id: str) -> dict[str, Any] | None:
         """Retrieve specific team access."""
         return self.unified_db.get_team_access(access_id)
 
@@ -348,8 +348,8 @@ class KnowledgeManager:
         source_tech: str,
         target_tech: str,
         compatibility_score: float,
-        notes: Optional[str] = None,
-    ) -> Optional[str]:
+        notes: str | None = None,
+    ) -> str | None:
         """Add a new compatibility matrix entry."""
         try:
             entry_id = self.unified_db.add_compatibility_entry(
@@ -368,7 +368,7 @@ class KnowledgeManager:
             self._logger.error(f"Failed to add compatibility entry: {e}")
             return None
 
-    def get_compatibility_entry(self, entry_id: str) -> Optional[dict[str, Any]]:
+    def get_compatibility_entry(self, entry_id: str) -> dict[str, Any] | None:
         """Retrieve a specific compatibility matrix entry."""
         try:
             return self.unified_db.get_compatibility_entry(entry_id)
@@ -396,10 +396,10 @@ class KnowledgeManager:
 
     def search_compatibility_entries(
         self,
-        source_tech: Optional[str] = None,
-        target_tech: Optional[str] = None,
-        min_score: Optional[float] = None,
-        max_score: Optional[float] = None,
+        source_tech: str | None = None,
+        target_tech: str | None = None,
+        min_score: float | None = None,
+        max_score: float | None = None,
     ) -> list[dict[str, Any]]:
         """Search compatibility entries."""
         try:

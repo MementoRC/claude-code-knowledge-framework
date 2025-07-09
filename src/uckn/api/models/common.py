@@ -11,7 +11,7 @@ class BaseResponse(BaseModel):
     """Base response model with common fields"""
 
     success: bool = True
-    message: Optional[str] = None
+    message: str | None = None
     timestamp: datetime = Field(default_factory=datetime.now)
 
 
@@ -19,8 +19,8 @@ class ErrorResponse(BaseResponse):
     """Error response model"""
 
     success: bool = False
-    error_code: Optional[str] = None
-    details: Optional[dict[str, Any]] = None
+    error_code: str | None = None
+    details: dict[str, Any] | None = None
 
 
 class PaginationParams(BaseModel):
@@ -64,13 +64,13 @@ class PaginatedResponse(BaseResponse):
 class TechStackFilter(BaseModel):
     """Technology stack filter model"""
 
-    languages: Optional[list[str]] = Field(
+    languages: list[str] | None = Field(
         default=None, description="Programming languages"
     )
-    frameworks: Optional[list[str]] = Field(default=None, description="Frameworks")
-    libraries: Optional[list[str]] = Field(default=None, description="Libraries")
-    tools: Optional[list[str]] = Field(default=None, description="Development tools")
-    platforms: Optional[list[str]] = Field(default=None, description="Platforms")
+    frameworks: list[str] | None = Field(default=None, description="Frameworks")
+    libraries: list[str] | None = Field(default=None, description="Libraries")
+    tools: list[str] | None = Field(default=None, description="Development tools")
+    platforms: list[str] | None = Field(default=None, description="Platforms")
 
     def to_metadata_filter(self) -> dict[str, Any]:
         """Convert to metadata filter dictionary"""
@@ -124,7 +124,7 @@ class SearchParams(BaseModel):
     min_similarity: float = Field(
         default=0.7, ge=0.0, le=1.0, description="Minimum similarity score"
     )
-    metadata_filter: Optional[dict[str, Any]] = Field(
+    metadata_filter: dict[str, Any] | None = Field(
         default=None, description="Metadata filter"
     )
 
@@ -152,14 +152,14 @@ class ValidationResult(BaseModel):
 
     is_valid: bool = Field(description="Whether the pattern is valid")
     score: float = Field(ge=0.0, le=1.0, description="Validation score")
-    feedback: Optional[str] = Field(default=None, description="Validation feedback")
+    feedback: str | None = Field(default=None, description="Validation feedback")
     issues: list[str] = Field(
         default_factory=list, description="List of validation issues"
     )
     suggestions: list[str] = Field(
         default_factory=list, description="List of improvement suggestions"
     )
-    validator_id: Optional[str] = Field(default=None, description="ID of the validator")
+    validator_id: str | None = Field(default=None, description="ID of the validator")
     validation_timestamp: datetime = Field(default_factory=datetime.now)
 
 
@@ -175,13 +175,13 @@ class HealthStatus(BaseModel):
     )
     knowledge_dir: str = Field(description="Knowledge directory path")
     components: dict[str, str] = Field(description="Component health status")
-    uptime: Optional[float] = Field(
+    uptime: float | None = Field(
         default=None, description="System uptime in seconds"
     )
-    memory_usage: Optional[float] = Field(
+    memory_usage: float | None = Field(
         default=None, description="Memory usage percentage"
     )
-    disk_usage: Optional[float] = Field(
+    disk_usage: float | None = Field(
         default=None, description="Disk usage percentage"
     )
     timestamp: datetime = Field(default_factory=datetime.now)
@@ -190,19 +190,19 @@ class HealthStatus(BaseModel):
 class UpdateFilter(BaseModel):
     """Filter for subscription updates"""
 
-    pattern_types: Optional[list[str]] = Field(
+    pattern_types: list[str] | None = Field(
         default=None, description="Pattern types to subscribe to"
     )
-    technologies: Optional[list[str]] = Field(
+    technologies: list[str] | None = Field(
         default=None, description="Technologies to subscribe to"
     )
-    project_ids: Optional[list[str]] = Field(
+    project_ids: list[str] | None = Field(
         default=None, description="Project IDs to subscribe to"
     )
-    user_ids: Optional[list[str]] = Field(
+    user_ids: list[str] | None = Field(
         default=None, description="User IDs to subscribe to"
     )
-    min_score: Optional[float] = Field(
+    min_score: float | None = Field(
         default=None, ge=0.0, le=1.0, description="Minimum pattern score"
     )
 
@@ -215,19 +215,19 @@ class SetupRecommendation(BaseModel):
     description: str = Field(description="Detailed description")
     priority: str = Field(description="Priority level (high, medium, low)")
     effort: str = Field(description="Estimated effort (high, medium, low)")
-    commands: Optional[list[str]] = Field(
+    commands: list[str] | None = Field(
         default=None, description="Commands to execute"
     )
-    files_to_create: Optional[list[str]] = Field(
+    files_to_create: list[str] | None = Field(
         default=None, description="Files to create"
     )
-    files_to_modify: Optional[list[str]] = Field(
+    files_to_modify: list[str] | None = Field(
         default=None, description="Files to modify"
     )
-    dependencies: Optional[list[str]] = Field(
+    dependencies: list[str] | None = Field(
         default=None, description="Dependencies to install"
     )
-    references: Optional[list[str]] = Field(default=None, description="Reference links")
+    references: list[str] | None = Field(default=None, description="Reference links")
     confidence_score: float = Field(
         ge=0.0, le=1.0, description="Confidence in recommendation"
     )
@@ -248,6 +248,6 @@ class IssueWarning(BaseModel):
     estimated_probability: float = Field(
         ge=0.0, le=1.0, description="Estimated probability of occurrence"
     )
-    related_patterns: Optional[list[str]] = Field(
+    related_patterns: list[str] | None = Field(
         default=None, description="Related pattern IDs"
     )

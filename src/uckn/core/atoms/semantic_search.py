@@ -36,7 +36,7 @@ class SemanticSearch:
         """Check if the underlying semantic search engine is available."""
         return self.engine is not None and self.engine.is_available()
 
-    def encode(self, text: str) -> Optional[list[float]]:
+    def encode(self, text: str) -> list[float] | None:
         """
         Generate embeddings for text using the underlying sentence transformer model.
         """

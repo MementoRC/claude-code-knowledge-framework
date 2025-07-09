@@ -185,7 +185,7 @@ async def get_pattern_workflow_status(
     summary="Get patterns awaiting review",
 )
 async def get_patterns_awaiting_review_endpoint(
-    reviewer_id: Optional[str] = Depends(
+    reviewer_id: str | None = Depends(
         get_current_user_id
     ),  # Default to current user
     workflow_manager: WorkflowManager = Depends(get_workflow_manager),

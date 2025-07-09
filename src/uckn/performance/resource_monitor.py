@@ -35,7 +35,7 @@ class ResourceMonitor:
         self.metrics = []
         self._stop_event = threading.Event()
         self._thread = None
-        self._throttle_callback: Optional[Callable[[], None]] = None
+        self._throttle_callback: Callable[[], None] | None = None
 
     def start(self):
         if self._thread and self._thread.is_alive():

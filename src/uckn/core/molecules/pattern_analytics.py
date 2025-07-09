@@ -54,10 +54,10 @@ class PatternAnalytics:
     def record_application(
         self,
         pattern_id: str,
-        context: Optional[dict[str, Any]] = None,
-        application_id: Optional[str] = None,
-        timestamp: Optional[str] = None,
-    ) -> Optional[str]:
+        context: dict[str, Any] | None = None,
+        application_id: str | None = None,
+        timestamp: str | None = None,
+    ) -> str | None:
         """
         Record a pattern application attempt (pending outcome).
 
@@ -98,8 +98,8 @@ class PatternAnalytics:
         self,
         application_id: str,
         outcome: str,
-        resolution_time_minutes: Optional[float] = None,
-        failure_reason: Optional[str] = None,
+        resolution_time_minutes: float | None = None,
+        failure_reason: str | None = None,
     ) -> bool:
         """
         Record the outcome (success/failure) and timing for a pattern application.
@@ -165,8 +165,8 @@ class PatternAnalytics:
         }
 
     def calculate_success_rate(
-        self, applications: Optional[list[dict[str, Any]]] = None
-    ) -> tuple[Optional[float], Optional[tuple[float, float]]]:
+        self, applications: list[dict[str, Any]] | None = None
+    ) -> tuple[float | None, tuple[float, float] | None]:
         """
         Calculate success rate and 95% confidence interval using Wilson score interval.
         """
@@ -193,7 +193,7 @@ class PatternAnalytics:
 
     def _calculate_average_resolution_time(
         self, applications: list[dict[str, Any]]
-    ) -> Optional[float]:
+    ) -> float | None:
         """
         Calculate weighted average resolution time for successful applications.
         """
@@ -209,7 +209,7 @@ class PatternAnalytics:
 
     def calculate_quality_score(
         self, applications: list[dict[str, Any]]
-    ) -> Optional[float]:
+    ) -> float | None:
         """
         Composite quality score: (success_rate * 0.4) + (time_score * 0.3) + (usage_score * 0.3)
         """

@@ -33,7 +33,7 @@ class QueryParser:
     applying boolean logic, stemming, and synonym expansion.
     """
 
-    def __init__(self, synonym_map: Optional[dict[str, list[str]]] = None):
+    def __init__(self, synonym_map: dict[str, list[str]] | None = None):
         self._logger = logging.getLogger(__name__)
         self.stemmer = PorterStemmer() if NLTK_AVAILABLE else None
         self.synonym_map = synonym_map or self._default_synonym_map()

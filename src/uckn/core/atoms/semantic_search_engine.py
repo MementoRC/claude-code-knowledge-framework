@@ -25,7 +25,7 @@ except ImportError:
 
 
 def _tech_stack_match(
-    query_stack: Optional[list[str]], doc_stack: Optional[list[str]]
+    query_stack: list[str] | None, doc_stack: list[str] | None
 ) -> float:
     """
     Compute a tech stack compatibility score between two stacks.
@@ -60,9 +60,9 @@ class SemanticSearchEngine:
 
     def __init__(
         self,
-        chroma_connector: Optional[Any] = None,
-        embedding_atom: Optional[MultiModalEmbeddings] = None,
-        logger: Optional[logging.Logger] = None,
+        chroma_connector: Any | None = None,
+        embedding_atom: MultiModalEmbeddings | None = None,
+        logger: logging.Logger | None = None,
         cache_size: int = 128,
     ):
         self.logger = logger or logging.getLogger(__name__)
@@ -120,7 +120,7 @@ class SemanticSearchEngine:
     def _rank_results(
         self,
         results: list[dict[str, Any]],
-        query_tech_stack: Optional[list[str]] = None,
+        query_tech_stack: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """
         Rank results by a weighted combination of similarity, success_rate, and tech_stack_match.
@@ -150,7 +150,7 @@ class SemanticSearchEngine:
         return ranked
 
     def _filter_by_tech_stack(
-        self, results: list[dict[str, Any]], query_tech_stack: Optional[list[str]]
+        self, results: list[dict[str, Any]], query_tech_stack: list[str] | None
     ) -> list[dict[str, Any]]:
         """
         Optionally filter results by technology stack compatibility.
@@ -165,11 +165,11 @@ class SemanticSearchEngine:
         return filtered
 
     @lru_cache(maxsize=128)
-    def _cached_embed(self, data: str, data_type: str) -> Optional[list[float]]:
+    def _cached_embed(self, data: str, data_type: str) -> list[float] | None:
         # Use MultiModalEmbeddings for embedding
         return self.embedding_atom.embed(data, data_type=data_type)
 
-    def _embed_query(self, text=None, code=None, error=None) -> Optional[list[float]]:
+    def _embed_query(self, text=None, code=None, error=None) -> list[float] | None:
         # Use multi-modal embedding if more than one modality is present
         if sum(x is not None for x in [text, code, error]) > 1:
             return self.embedding_atom.multi_modal_embed(
@@ -190,8 +190,8 @@ class SemanticSearchEngine:
         collection_type: str,
         limit: int,
         min_similarity: float,
-        tech_stack: Optional[list[str]] = None,
-        metadata_filter: Optional[dict[str, Any]] = None,
+        tech_stack: list[str] | None = None,
+        metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """
         Perform vector search in the specified collection.
@@ -214,7 +214,7 @@ class SemanticSearchEngine:
         results = self._filter_by_tech_stack(results, tech_stack)
         return results[:limit]
 
-    def _parse_tech_stack(self, tech_stack) -> Optional[list[str]]:
+    def _parse_tech_stack(self, tech_stack) -> list[str] | None:
         if tech_stack is None:
             return None
         if isinstance(tech_stack, str):
@@ -323,9 +323,9 @@ class SemanticSearchEngine:
 
     def search_multi_modal(
         self,
-        text: Optional[str] = None,
-        code: Optional[str] = None,
-        error: Optional[str] = None,
+        text: str | None = None,
+        code: str | None = None,
+        error: str | None = None,
         tech_stack=None,
         limit: int = 10,
     ) -> list[dict[str, Any]]:

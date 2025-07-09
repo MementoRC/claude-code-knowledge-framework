@@ -24,12 +24,12 @@ class AdvancedSearchEngine:
 
     def __init__(
         self,
-        semantic_engine: Optional[SemanticSearchEngine] = None,
-        query_parser: Optional[QueryParser] = None,
-        faceted_manager: Optional[FacetedSearchManager] = None,
-        personalized_ranking: Optional[PersonalizedRanking] = None,
-        suggestion_engine: Optional[SearchSuggestionEngine] = None,
-        logger: Optional[logging.Logger] = None,
+        semantic_engine: SemanticSearchEngine | None = None,
+        query_parser: QueryParser | None = None,
+        faceted_manager: FacetedSearchManager | None = None,
+        personalized_ranking: PersonalizedRanking | None = None,
+        suggestion_engine: SearchSuggestionEngine | None = None,
+        logger: logging.Logger | None = None,
     ):
         self.logger = logger or logging.getLogger(__name__)
 
@@ -43,8 +43,8 @@ class AdvancedSearchEngine:
     def search(
         self,
         query: str,
-        user_id: Optional[str] = None,
-        filters: Optional[dict[str, Any]] = None,
+        user_id: str | None = None,
+        filters: dict[str, Any] | None = None,
         limit: int = 20,
         enable_personalization: bool = True,
     ) -> dict[str, Any]:
@@ -139,8 +139,8 @@ class AdvancedSearchEngine:
         user_id: str,
         pattern_id: str,
         interaction_type: str,
-        pattern_metadata: Optional[dict[str, Any]] = None,
-        rating: Optional[float] = None,
+        pattern_metadata: dict[str, Any] | None = None,
+        rating: float | None = None,
     ) -> None:
         """Track user interaction for personalization improvement."""
         try:

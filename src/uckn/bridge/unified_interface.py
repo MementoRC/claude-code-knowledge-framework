@@ -72,7 +72,7 @@ class UnifiedKnowledgeManager:
         else:
             self._logger.warning(f"Unknown feature flag: {flag_name}")
 
-    def get_flag(self, flag_name: str) -> Optional[bool]:
+    def get_flag(self, flag_name: str) -> bool | None:
         """Get the value of a feature flag."""
         return self._feature_flags.get(flag_name)
 
@@ -83,7 +83,7 @@ class UnifiedKnowledgeManager:
             for cap in self.KNOWN_CAPABILITIES
         }
 
-    def add_knowledge_pattern(self, pattern_data: dict[str, Any]) -> Optional[str]:
+    def add_knowledge_pattern(self, pattern_data: dict[str, Any]) -> str | None:
         """Add a knowledge pattern with feature flag checks."""
         try:
             capabilities = self.get_capabilities()
@@ -100,7 +100,7 @@ class UnifiedKnowledgeManager:
         query: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[dict[str, Any]] = None,
+        metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Search knowledge patterns with feature-controlled capabilities."""
         try:
@@ -115,7 +115,7 @@ class UnifiedKnowledgeManager:
             self._logger.error(f"Pattern search failed: {e}")
             return []
 
-    def get_pattern(self, pattern_id: str) -> Optional[dict[str, Any]]:
+    def get_pattern(self, pattern_id: str) -> dict[str, Any] | None:
         """Get a specific pattern with feature flag control."""
         capabilities = self.get_capabilities()
         if not capabilities.get("pattern_extraction", True):

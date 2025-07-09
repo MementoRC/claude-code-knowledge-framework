@@ -23,7 +23,7 @@ class FacetedSearchManager:
     - Source/origin filters
     """
 
-    def __init__(self, logger: Optional[logging.Logger] = None):
+    def __init__(self, logger: logging.Logger | None = None):
         self.logger = logger or logging.getLogger(__name__)
         self._facet_cache = {}
         self._cache_expiry = {}

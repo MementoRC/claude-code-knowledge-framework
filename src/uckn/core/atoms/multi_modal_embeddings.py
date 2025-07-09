@@ -78,7 +78,7 @@ class MultiModalEmbeddings:
     _TEXT_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
     _CACHE_SIZE = 256
 
-    def __init__(self, device: Optional[str] = None):
+    def __init__(self, device: str | None = None):
         self._logger = logging.getLogger(__name__)
         # Defensive: If torch is unavailable, always use cpu
         if (
@@ -172,7 +172,7 @@ class MultiModalEmbeddings:
         """Hash input for caching."""
         return hashlib.sha256(str(data).encode("utf-8")).hexdigest()
 
-    def _get_cached_embedding(self, key: str) -> Optional[list[float]]:
+    def _get_cached_embedding(self, key: str) -> list[float] | None:
         return self._embedding_cache.get(key)
 
     def _set_cached_embedding(self, key: str, embedding: list[float]):
@@ -181,7 +181,7 @@ class MultiModalEmbeddings:
             self._embedding_cache.pop(next(iter(self._embedding_cache)))
         self._embedding_cache[key] = embedding
 
-    def _embed_code(self, code: str) -> Optional[list[float]]:
+    def _embed_code(self, code: str) -> list[float] | None:
         key = f"code:{self._hash_input(code)}"
         cached = self._get_cached_embedding(key)
         if cached:
@@ -207,7 +207,7 @@ class MultiModalEmbeddings:
         # Fallback to text embedding
         return self._embed_text(code)
 
-    def _embed_text(self, text: str) -> Optional[list[float]]:
+    def _embed_text(self, text: str) -> list[float] | None:
         key = f"text:{self._hash_input(text)}"
         cached = self._get_cached_embedding(key)
         if cached:
@@ -224,7 +224,7 @@ class MultiModalEmbeddings:
                 self._logger.error(f"Text embedding failed: {e}")
         return None
 
-    def _embed_config(self, config: str) -> Optional[list[float]]:
+    def _embed_config(self, config: str) -> list[float] | None:
         # Simple tokenization: split on newlines, colons, equals, etc.
         tokens = []
         for line in config.splitlines():
@@ -235,7 +235,7 @@ class MultiModalEmbeddings:
         token_str = " ".join(tokens)
         return self._embed_text(token_str)
 
-    def _embed_error(self, error_msg: str) -> Optional[list[float]]:
+    def _embed_error(self, error_msg: str) -> list[float] | None:
         # Preprocess: remove file paths, line numbers, stack traces, etc.
         import re
 
@@ -247,7 +247,7 @@ class MultiModalEmbeddings:
 
     def embed(
         self, data: str | dict[str, Any], data_type: str = "auto"
-    ) -> Optional[list[float]]:
+    ) -> list[float] | None:
         """
         Generate embedding for a single data item.
         data_type: 'code', 'text', 'config', 'error', or 'auto'
@@ -286,7 +286,7 @@ class MultiModalEmbeddings:
 
     def embed_batch(
         self, items: list[str | dict[str, Any]], data_type: str = "auto"
-    ) -> list[Optional[list[float]]]:
+    ) -> list[list[float] | None]:
         """
         Batch embedding for a list of items.
         Returns list of embeddings (None if failed).
@@ -298,7 +298,7 @@ class MultiModalEmbeddings:
 
     def combine_embeddings(
         self, embeddings: list[list[float]], method: str = "mean"
-    ) -> Optional[list[float]]:
+    ) -> list[float] | None:
         """
         Combine multiple embeddings into a single vector.
         method: 'mean' (default), 'concat'
@@ -349,12 +349,12 @@ class MultiModalEmbeddings:
 
     def multi_modal_embed(
         self,
-        code: Optional[str] = None,
-        text: Optional[str] = None,
-        config: Optional[str] = None,
-        error: Optional[str] = None,
+        code: str | None = None,
+        text: str | None = None,
+        config: str | None = None,
+        error: str | None = None,
         combine_method: str = "mean",
-    ) -> Optional[list[float]]:
+    ) -> list[float] | None:
         """
         Generate a multi-modal embedding from any combination of code, text, config, and error.
         """
@@ -379,13 +379,13 @@ class MultiModalEmbeddings:
 
     def search(
         self,
-        query: dict[str, Optional[str]],
+        query: dict[str, str | None],
         collection_name: str,
         chroma_connector: Any,
         limit: int = 10,
         min_similarity: float = 0.7,
         combine_method: str = "mean",
-        metadata_filter: Optional[dict[str, Any]] = None,
+        metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """
         Multi-modal search: embed query, search ChromaDB, return results.

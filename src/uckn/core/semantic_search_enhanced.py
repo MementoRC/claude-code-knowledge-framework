@@ -53,7 +53,7 @@ except ImportError:
 
 
 def _tech_stack_match(
-    query_stack: Optional[list[str]], doc_stack: Optional[list[str]]
+    query_stack: list[str] | None, doc_stack: list[str] | None
 ) -> float:
     """
     Compute a tech stack compatibility score between two stacks.
@@ -85,16 +85,16 @@ class EnhancedSemanticSearchEngine:
         knowledge_dir: str = ".uckn/knowledge",
         model_name: str = "all-MiniLM-L6-v2",
         device: str = "cpu",
-        embedding_atom: Optional[MultiModalEmbeddings] = None,
-        chroma_connector: Optional[ChromaDBConnector] = None,
+        embedding_atom: MultiModalEmbeddings | None = None,
+        chroma_connector: ChromaDBConnector | None = None,
     ):
         self._logger = logging.getLogger(__name__)
         self.knowledge_dir = knowledge_dir
         self.model_name = model_name
         self.device = device
-        self.sentence_model: Optional[SentenceTransformer] = None
-        self.chroma_connector: Optional[ChromaDBConnector] = chroma_connector
-        self.embedding_atom: Optional[MultiModalEmbeddings] = embedding_atom
+        self.sentence_model: SentenceTransformer | None = None
+        self.chroma_connector: ChromaDBConnector | None = chroma_connector
+        self.embedding_atom: MultiModalEmbeddings | None = embedding_atom
         self._is_initialized = False
 
         self._initialize_components()
@@ -188,7 +188,7 @@ class EnhancedSemanticSearchEngine:
         return self._is_initialized
 
     @lru_cache(maxsize=128)  # Cache for single text encodings
-    def encode(self, text: str) -> Optional[list[float]]:
+    def encode(self, text: str) -> list[float] | None:
         """
         Generate embeddings for a single text using the underlying sentence transformer model.
         Results are cached using LRU.
@@ -212,7 +212,7 @@ class EnhancedSemanticSearchEngine:
 
     def batch_encode(
         self, texts: list[str], batch_size: int = 32
-    ) -> Optional[list[list[float]]]:
+    ) -> list[list[float]] | None:
         """
         Generate embeddings for a list of texts in batches.
         This method does not use LRU cache directly, but individual encodes might if called separately.
@@ -244,7 +244,7 @@ class EnhancedSemanticSearchEngine:
         collection_name: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[dict[str, Any]] = None,
+        metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict]:
         """
         Perform semantic search in a specified ChromaDB collection.
@@ -325,7 +325,7 @@ class EnhancedSemanticSearchEngine:
     def _rank_results(
         self,
         results: list[dict[str, Any]],
-        query_tech_stack: Optional[list[str]] = None,
+        query_tech_stack: list[str] | None = None,
     ) -> list[dict[str, Any]]:
         """
         Advanced ranking of search results considering:
@@ -366,7 +366,7 @@ class EnhancedSemanticSearchEngine:
     def _filter_by_tech_stack(
         self,
         results: list[dict[str, Any]],
-        tech_stack: Optional[list[str]],
+        tech_stack: list[str] | None,
         min_compatibility: float = 0.3,
     ) -> list[dict[str, Any]]:
         """Filter results by technology stack compatibility."""
@@ -386,7 +386,7 @@ class EnhancedSemanticSearchEngine:
         return filtered
 
     @lru_cache(maxsize=128)
-    def _cached_embed(self, data: str, data_type: str) -> Optional[list[float]]:
+    def _cached_embed(self, data: str, data_type: str) -> list[float] | None:
         """Use MultiModalEmbeddings for embedding generation with caching."""
         if self.embedding_atom:
             return self.embedding_atom.embed(data, data_type=data_type)
@@ -395,7 +395,7 @@ class EnhancedSemanticSearchEngine:
             return self.sentence_model.encode(data).tolist()
         return None
 
-    def _embed_query(self, text=None, code=None, error=None) -> Optional[list[float]]:
+    def _embed_query(self, text=None, code=None, error=None) -> list[float] | None:
         """Generate embeddings for multi-modal queries."""
         if not self.embedding_atom:
             # Fallback: use text embedding if available
@@ -417,7 +417,7 @@ class EnhancedSemanticSearchEngine:
         else:
             return None
 
-    def _parse_tech_stack(self, tech_stack) -> Optional[list[str]]:
+    def _parse_tech_stack(self, tech_stack) -> list[str] | None:
         """Parse technology stack from various input formats."""
         if tech_stack is None:
             return None
@@ -563,9 +563,9 @@ class EnhancedSemanticSearchEngine:
 
     def search_multi_modal(
         self,
-        text: Optional[str] = None,
-        code: Optional[str] = None,
-        error: Optional[str] = None,
+        text: str | None = None,
+        code: str | None = None,
+        error: str | None = None,
         tech_stack=None,
         limit: int = 10,
     ) -> list[dict[str, Any]]:

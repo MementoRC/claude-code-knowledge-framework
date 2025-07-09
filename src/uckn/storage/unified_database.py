@@ -54,15 +54,15 @@ class UnifiedDatabase:
     def add_project(
         self,
         name: str,
-        description: Optional[str] = None,
-        project_id: Optional[str] = None,
-    ) -> Optional[str]:
+        description: str | None = None,
+        project_id: str | None = None,
+    ) -> str | None:
         """Adds a new project."""
         project_id = project_id or str(uuid.uuid4())
         data = {"id": project_id, "name": name, "description": description}
         return self.pg_connector.add_record(Project, data)
 
-    def get_project(self, project_id: str) -> Optional[dict[str, Any]]:
+    def get_project(self, project_id: str) -> dict[str, Any] | None:
         """Retrieves a project by ID."""
         return self.pg_connector.get_record(Project, project_id)
 
@@ -84,9 +84,9 @@ class UnifiedDatabase:
         document_text: str,
         embedding: list[float],
         metadata: dict[str, Any],
-        pattern_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-    ) -> Optional[str]:
+        pattern_id: str | None = None,
+        project_id: str | None = None,
+    ) -> str | None:
         """
         Adds a new pattern, storing metadata in PostgreSQL and document/embedding in ChromaDB.
         """
@@ -145,7 +145,7 @@ class UnifiedDatabase:
         )
         return pattern_id
 
-    def get_pattern(self, pattern_id: str) -> Optional[dict[str, Any]]:
+    def get_pattern(self, pattern_id: str) -> dict[str, Any] | None:
         """
         Retrieves a pattern by ID, combining data from PostgreSQL and ChromaDB.
         """
@@ -175,10 +175,10 @@ class UnifiedDatabase:
     def update_pattern(
         self,
         pattern_id: str,
-        document_text: Optional[str] = None,
-        embedding: Optional[list[float]] = None,
-        metadata: Optional[dict[str, Any]] = None,
-        project_id: Optional[str] = None,
+        document_text: str | None = None,
+        embedding: list[float] | None = None,
+        metadata: dict[str, Any] | None = None,
+        project_id: str | None = None,
     ) -> bool:
         """
         Updates an existing pattern in both PostgreSQL and ChromaDB.
@@ -261,7 +261,7 @@ class UnifiedDatabase:
         query_embedding: list[float],
         n_results: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[dict[str, Any]] = None,
+        metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """
         Searches for patterns using ChromaDB, then retrieves full metadata from PostgreSQL.
@@ -341,9 +341,9 @@ class UnifiedDatabase:
         document_text: str,
         embedding: list[float],
         metadata: dict[str, Any],
-        solution_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-    ) -> Optional[str]:
+        solution_id: str | None = None,
+        project_id: str | None = None,
+    ) -> str | None:
         """
         Adds a new error solution, storing metadata in PostgreSQL and document/embedding in ChromaDB.
         """
@@ -388,7 +388,7 @@ class UnifiedDatabase:
         )
         return solution_id
 
-    def get_error_solution(self, solution_id: str) -> Optional[dict[str, Any]]:
+    def get_error_solution(self, solution_id: str) -> dict[str, Any] | None:
         """
         Retrieves an error solution by ID, combining data from PostgreSQL and ChromaDB.
         """
@@ -416,10 +416,10 @@ class UnifiedDatabase:
     def update_error_solution(
         self,
         solution_id: str,
-        document_text: Optional[str] = None,
-        embedding: Optional[list[float]] = None,
-        metadata: Optional[dict[str, Any]] = None,
-        project_id: Optional[str] = None,
+        document_text: str | None = None,
+        embedding: list[float] | None = None,
+        metadata: dict[str, Any] | None = None,
+        project_id: str | None = None,
     ) -> bool:
         """
         Updates an existing error solution in both PostgreSQL and ChromaDB.
@@ -501,7 +501,7 @@ class UnifiedDatabase:
         query_embedding: list[float],
         n_results: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[dict[str, Any]] = None,
+        metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """
         Searches for error solutions using ChromaDB, then retrieves full metadata from PostgreSQL.
@@ -535,15 +535,15 @@ class UnifiedDatabase:
     def add_category(
         self,
         name: str,
-        description: Optional[str] = None,
-        category_id: Optional[str] = None,
-    ) -> Optional[str]:
+        description: str | None = None,
+        category_id: str | None = None,
+    ) -> str | None:
         """Adds a new pattern category."""
         category_id = category_id or str(uuid.uuid4())
         data = {"id": category_id, "name": name, "description": description}
         return self.pg_connector.add_record(PatternCategory, data)
 
-    def get_category(self, category_id: str) -> Optional[dict[str, Any]]:
+    def get_category(self, category_id: str) -> dict[str, Any] | None:
         """Retrieves a pattern category by ID."""
         return self.pg_connector.get_record(PatternCategory, category_id)
 
@@ -573,8 +573,8 @@ class UnifiedDatabase:
 
     # --- Team Access Management (PostgreSQL only) ---
     def add_team_access(
-        self, user_id: str, project_id: str, role: str, access_id: Optional[str] = None
-    ) -> Optional[str]:
+        self, user_id: str, project_id: str, role: str, access_id: str | None = None
+    ) -> str | None:
         """Adds team access for a user to a project."""
         access_id = access_id or str(uuid.uuid4())
         data = {
@@ -585,7 +585,7 @@ class UnifiedDatabase:
         }
         return self.pg_connector.add_record(TeamAccess, data)
 
-    def get_team_access(self, access_id: str) -> Optional[dict[str, Any]]:
+    def get_team_access(self, access_id: str) -> dict[str, Any] | None:
         """Retrieves team access by ID."""
         return self.pg_connector.get_record(TeamAccess, access_id)
 
@@ -607,9 +607,9 @@ class UnifiedDatabase:
         source_tech: str,
         target_tech: str,
         compatibility_score: float,
-        notes: Optional[str] = None,
-        entry_id: Optional[str] = None,
-    ) -> Optional[str]:
+        notes: str | None = None,
+        entry_id: str | None = None,
+    ) -> str | None:
         """Adds a new compatibility matrix entry."""
         entry_id = entry_id or str(uuid.uuid4())
         data = {
@@ -621,7 +621,7 @@ class UnifiedDatabase:
         }
         return self.pg_connector.add_record(CompatibilityMatrix, data)
 
-    def get_compatibility_entry(self, entry_id: str) -> Optional[dict[str, Any]]:
+    def get_compatibility_entry(self, entry_id: str) -> dict[str, Any] | None:
         """Retrieves a compatibility matrix entry by ID."""
         return self.pg_connector.get_record(CompatibilityMatrix, entry_id)
 
@@ -637,10 +637,10 @@ class UnifiedDatabase:
 
     def search_compatibility_entries(
         self,
-        source_tech: Optional[str] = None,
-        target_tech: Optional[str] = None,
-        min_score: Optional[float] = None,
-        max_score: Optional[float] = None,
+        source_tech: str | None = None,
+        target_tech: str | None = None,
+        min_score: float | None = None,
+        max_score: float | None = None,
     ) -> list[dict[str, Any]]:
         """Searches compatibility entries by source/target tech and score range."""
         filters = {}

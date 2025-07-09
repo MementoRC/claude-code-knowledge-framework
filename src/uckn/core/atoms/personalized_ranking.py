@@ -22,7 +22,7 @@ class PersonalizedRanking:
     - Temporal decay of preferences
     """
 
-    def __init__(self, logger: Optional[logging.Logger] = None):
+    def __init__(self, logger: logging.Logger | None = None):
         self.logger = logger or logging.getLogger(__name__)
         self.user_profiles = {}
         self.interaction_weights = {
@@ -39,8 +39,8 @@ class PersonalizedRanking:
         user_id: str,
         pattern_id: str,
         interaction_type: str,
-        pattern_metadata: Optional[dict[str, Any]] = None,
-        rating: Optional[float] = None,
+        pattern_metadata: dict[str, Any] | None = None,
+        rating: float | None = None,
     ) -> None:
         """
         Track user interaction with a pattern.

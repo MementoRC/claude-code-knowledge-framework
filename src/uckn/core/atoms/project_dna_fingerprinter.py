@@ -50,7 +50,7 @@ class ProjectDNAFingerprinter:
         self.tech_detector = TechStackDetector()
 
     def generate_fingerprint(
-        self, project_path: str, extra_metadata: Optional[dict[str, Any]] = None
+        self, project_path: str, extra_metadata: dict[str, Any] | None = None
     ) -> dict[str, Any]:
         """
         Generate a DNA fingerprint for a project at the given path.

@@ -22,16 +22,16 @@ router = APIRouter()
 class TechStackFilter(BaseModel):
     """Technology stack filter for pattern search."""
 
-    technologies: Optional[list[str]] = None
-    project_type: Optional[str] = None
-    complexity: Optional[str] = None
+    technologies: list[str] | None = None
+    project_type: str | None = None
+    complexity: str | None = None
 
 
 class PatternSearchRequest(BaseModel):
     """Request model for pattern search."""
 
     query: str = Field(..., description="Search query string")
-    filters: Optional[TechStackFilter] = None
+    filters: TechStackFilter | None = None
     limit: int = Field(default=10, ge=1, le=100)
     min_similarity: float = Field(default=0.7, ge=0.0, le=1.0)
 
@@ -65,8 +65,8 @@ class ValidationResult(BaseModel):
     """Model for pattern validation result."""
 
     success: bool
-    feedback: Optional[str] = None
-    score: Optional[float] = None
+    feedback: str | None = None
+    score: float | None = None
 
 
 class ValidationResponse(BaseModel):

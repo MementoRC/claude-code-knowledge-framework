@@ -36,7 +36,7 @@ class BatchProcessor:
         self,
         items: list[Any],
         process_fn: Callable[[list[Any]], Any],
-        progress_callback: Optional[Callable[[int, int], None]] = None,
+        progress_callback: Callable[[int, int], None] | None = None,
     ) -> list[Any]:
         """Process items in batches, with optional progress callback."""
         results = []

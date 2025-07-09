@@ -57,7 +57,7 @@ class SyncManager:
         local_db: UnifiedDatabase,
         server_url: str,
         websocket_url: str,
-        auth_token: Optional[str] = None,
+        auth_token: str | None = None,
     ):
         self.local_db = local_db
         self.server_url = server_url
@@ -70,7 +70,7 @@ class SyncManager:
 
         # Sync state
         self.status = SyncStatus.IDLE
-        self.last_sync_time: Optional[datetime] = None
+        self.last_sync_time: datetime | None = None
         self.sync_progress = 0.0
         self.is_online = False
 
@@ -114,7 +114,7 @@ class SyncManager:
         self,
         mode: SyncMode = SyncMode.INCREMENTAL,
         direction: SyncDirection = SyncDirection.BIDIRECTIONAL,
-        pattern_ids: Optional[list[str]] = None,
+        pattern_ids: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Perform synchronization between local and server stores.
@@ -162,7 +162,7 @@ class SyncManager:
             return {"error": str(e)}
 
     async def _perform_sync(
-        self, mode: SyncMode, direction: SyncDirection, pattern_ids: Optional[list[str]]
+        self, mode: SyncMode, direction: SyncDirection, pattern_ids: list[str] | None
     ) -> dict[str, Any]:
         """Internal sync implementation."""
         conflicts = []
@@ -296,7 +296,7 @@ class SyncManager:
 
     async def _check_upload_conflict(
         self, pattern: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Check for conflicts when uploading a pattern."""
         # Get server version of pattern
         server_pattern = await self._get_pattern_from_server(pattern["id"])
@@ -319,7 +319,7 @@ class SyncManager:
 
     async def _check_download_conflict(
         self, pattern: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Check for conflicts when downloading a pattern."""
         # Get local version of pattern
         local_pattern = self.local_db.get_pattern(pattern["id"])
@@ -365,7 +365,7 @@ class SyncManager:
 
     async def _get_pattern_from_server(
         self, pattern_id: str
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get a specific pattern from server."""
         # Placeholder for actual HTTP request
         await asyncio.sleep(0.1)  # Simulate network delay
