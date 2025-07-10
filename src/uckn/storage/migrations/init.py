@@ -13,9 +13,9 @@ from pathlib import Path
 # Add the src directory to the path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
-from sqlalchemy import text
+from sqlalchemy import text  # noqa: E402
 
-from uckn.storage.postgresql_connector import PostgreSQLConnector
+from uckn.storage.postgresql_connector import PostgreSQLConnector  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
