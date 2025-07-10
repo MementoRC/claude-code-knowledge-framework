@@ -43,8 +43,8 @@ class DummyChromaDBConnector:
     def get_documents(
         self,
         collection_name: str,
-        ids: Optional[list[str]] = None,
-        where: Optional[dict[str, Any]] = None,
+        ids: list[str] | None = None,
+        where: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Simulates retrieving documents from a collection."""
         collection = self.get_or_create_collection(collection_name)
@@ -92,8 +92,8 @@ class DummyChromaDBConnector:
         self,
         collection_name: str,
         ids: list[str],
-        documents: Optional[list[Optional[str]]] = None,
-        metadatas: Optional[list[Optional[dict[str, Any]]]] = None,
+        documents: list[str | None] | None = None,
+        metadatas: list[dict[str, Any] | None] | None = None,
     ):
         """Simulates updating documents in a collection."""
         collection = self.get_or_create_collection(collection_name)
