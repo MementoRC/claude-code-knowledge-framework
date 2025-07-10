@@ -158,7 +158,7 @@ class QueryParser:
                 i < len(tokens)
                 and isinstance(processed_tokens[-1], dict | str)
                 and tokens[i] not in ["AND", "OR", "NOT", ")"]
-                and not (isinstance(tokens[i], dict) and tokens[i].get("operator"))
+                and not (isinstance(tokens[i], dict) and tokens[i].get("operator") is not None)
             ):  # If next token is not an operator or a parsed sub-query
                 if (
                     isinstance(tokens[i], str) and tokens[i] == "("
@@ -176,7 +176,7 @@ class QueryParser:
         q = deque(processed_tokens)
 
         # Pass 1: Handle NOT
-        temp_q = deque()
+        temp_q: deque[str] = deque()
         while q:
             item = q.popleft()
             if item == "NOT":
@@ -190,7 +190,7 @@ class QueryParser:
         q = temp_q
 
         # Pass 2: Handle AND
-        temp_q = deque()
+        temp_q: deque[str] = deque()
         while q:
             item = q.popleft()
             if item == "AND":
@@ -209,7 +209,7 @@ class QueryParser:
         q = temp_q
 
         # Pass 3: Handle OR
-        temp_q = deque()
+        temp_q: deque[str] = deque()
         while q:
             item = q.popleft()
             if item == "OR":

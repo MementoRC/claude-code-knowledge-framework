@@ -88,7 +88,7 @@ class PatternExtractor:
             metadata["tech_stack"] = project_stack
         except Exception as e:
             logger.error(f"Error analyzing tech stack for project {project_path}: {e}")
-            metadata["tech_stack"] = {"error": str(e)}
+            metadata["tech_stack"] = {"error": str(e), "confidence": None}
 
         logger.debug(
             f"Generated metadata for pattern (type: {pattern_type}, id: {metadata['id']})"

@@ -22,7 +22,7 @@ class ChromaDBOptimizer:
     def __init__(self, chroma_connector: Any):
         self.chroma_connector = chroma_connector
         self.logger = logging.getLogger(__name__)
-        self.indexed_fields: set[str] = set()
+        self.indexed_fields: set[tuple[str, str]] = set()
 
     def create_index(self, collection_name: str, field: str):
         """

@@ -116,10 +116,10 @@ class SearchSuggestionEngine:
         # Sort by score and remove duplicates
         unique_suggestions: dict[str, dict[str, Any]] = {}
         for suggestion in suggestions:
-            text = suggestion["text"]
+            text = str(suggestion["text"])
             if (
                 text not in unique_suggestions
-                or suggestion["score"] > unique_suggestions[text]["score"]
+                or float(suggestion["score"]) > float(unique_suggestions[text]["score"])
             ):
                 unique_suggestions[text] = suggestion
 
@@ -156,8 +156,8 @@ class SearchSuggestionEngine:
                 )
 
         # Sort candidates and take top suggestions
-        candidates.sort(key=lambda x: x["score"], reverse=True)
-        return [c["query"] for c in candidates[:limit]]
+        candidates.sort(key=lambda x: float(x["score"]), reverse=True)
+        return [str(c["query"]) for c in candidates[:limit]]
 
     def _normalize_query(self, query: str) -> str:
         """Normalize a query for consistent processing."""

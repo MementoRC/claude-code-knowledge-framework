@@ -142,6 +142,9 @@ class SemanticSearchEngineOptimized:
         if embedding is None:
             self.logger.warning("Failed to generate embedding for query.")
             return []
+        if self.chroma_connector is None:
+            self.logger.error("ChromaDB connector not available")
+            return []
         results = self.chroma_connector.search_documents(
             collection_name=collection_name,
             query_embedding=embedding,
@@ -168,11 +171,14 @@ class SemanticSearchEngineOptimized:
             ]
         start = time.time()
         embeddings = self.embedding_atom.multi_modal_embed_batch(queries)
-        results = []
+        results: list[list[dict[str, Any]]] = []
         for embedding in embeddings:
             if embedding is None:
                 results.append([])
             else:
+                if self.chroma_connector is None:
+                    results.append([])
+                    continue
                 res = self.chroma_connector.search_documents(
                     collection_name=collection_name,
                     query_embedding=embedding,

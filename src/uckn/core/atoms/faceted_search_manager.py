@@ -26,8 +26,8 @@ class FacetedSearchManager:
 
     def __init__(self, logger: Logger | None = None):
         self.logger = logger or logging.getLogger(__name__)
-        self._facet_cache = {}
-        self._cache_expiry = {}
+        self._facet_cache: dict[str, dict[str, Any]] = {}
+        self._cache_expiry: dict[str, float] = {}
 
     def extract_facets(self, documents: list[dict[str, Any]]) -> dict[str, Any]:
         """
@@ -39,7 +39,7 @@ class FacetedSearchManager:
         Returns:
             Dictionary of facets with possible values and counts
         """
-        facets = {
+        facets: dict[str, defaultdict[str, int]] = {
             "technology_stack": defaultdict(int),
             "complexity": defaultdict(int),
             "pattern_type": defaultdict(int),

@@ -25,7 +25,7 @@ class PersonalizedRanking:
 
     def __init__(self, logger: Logger | None = None):
         self.logger = logger or logging.getLogger(__name__)
-        self.user_profiles = {}
+        self.user_profiles: dict[str, dict[str, Any]] = {}
         self.interaction_weights = {
             "view": 1.0,
             "click": 2.0,
