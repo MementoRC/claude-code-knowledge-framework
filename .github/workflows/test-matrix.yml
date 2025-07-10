@@ -30,10 +30,10 @@ jobs:
 
       - name: Setup pixi with cache fallback
         id: setup-pixi
-        uses: prefix-dev/setup-pixi@v0.8.1
+        uses: prefix-dev/setup-pixi@v0.9.0
         with:
-          pixi-version: v0.49.0
-          cache: false  # Temporarily disable during GitHub cache service outage
+          pixi-version: latest
+          cache: true
 
       - name: Secondary cache fallback when pixi cache fails
         if: steps.setup-pixi.outputs.cache-hit != 'true'
