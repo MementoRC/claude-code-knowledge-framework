@@ -34,7 +34,6 @@ jobs:
         with:
           pixi-version: v0.49.0
           cache: false  # Temporarily disable during GitHub cache service outage
-        continue-on-error: true
 
       - name: Secondary cache fallback when pixi cache fails
         if: steps.setup-pixi.outputs.cache-hit != 'true'
@@ -47,7 +46,6 @@ jobs:
           key: pixi-fallback-${{ runner.os }}-${{ hashFiles('pixi.lock') }}
           restore-keys: |
             pixi-fallback-${{ runner.os }}-
-        continue-on-error: true
 
       - name: Install dependencies (pixi) with retry and fallback
         run: |

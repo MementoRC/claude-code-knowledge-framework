@@ -21,7 +21,6 @@ jobs:
       with:
         pixi-version: v0.49.0
         cache: false  # Temporarily disable during GitHub cache service outage
-      continue-on-error: true # Add for consistent cache fallback
 
     - name: Install dependencies (pixi) with retry and fallback
       run: |
