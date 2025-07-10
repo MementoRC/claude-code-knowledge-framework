@@ -1,7 +1,7 @@
 import logging
 from contextlib import contextmanager
 from datetime import datetime
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 from sqlalchemy import (
     Column,
@@ -25,7 +25,7 @@ try:
 except ImportError:
     # Fallback for environments where psycopg2/psycopg is not installed
     # or when running against non-PostgreSQL databases like SQLite
-    JSONB = None
+    JSONB = None  # type: ignore[assignment]
 
 Base = declarative_base()
 _logger = logging.getLogger(__name__)

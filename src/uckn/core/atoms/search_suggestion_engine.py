@@ -25,8 +25,8 @@ class SearchSuggestionEngine:
 
     def __init__(self, logger: Logger | None = None):
         self.logger = logger or logging.getLogger(__name__)
-        self.query_history = defaultdict(int)
-        self.successful_queries = defaultdict(int)
+        self.query_history: defaultdict[str, int] = defaultdict(int)
+        self.successful_queries: defaultdict[str, int] = defaultdict(int)
         self.technology_keywords = {
             "python",
             "javascript",
@@ -114,7 +114,7 @@ class SearchSuggestionEngine:
                 )
 
         # Sort by score and remove duplicates
-        unique_suggestions = {}
+        unique_suggestions: dict[str, dict[str, Any]] = {}
         for suggestion in suggestions:
             text = suggestion["text"]
             if (

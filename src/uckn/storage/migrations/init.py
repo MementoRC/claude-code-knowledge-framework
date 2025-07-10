@@ -20,11 +20,12 @@ from uckn.storage.postgresql_connector import PostgreSQLConnector  # noqa: E402
 logger = logging.getLogger(__name__)
 
 
-def init_database(db_url: str = None):
+def init_database(db_url: str | None = None):
     """Initialize the UCKN database schema."""
 
     # Get database URL from environment or parameter
-    db_url = db_url or os.environ.get("UCKN_DATABASE_URL")
+    if db_url is None:
+        db_url = os.environ.get("UCKN_DATABASE_URL")
 
     if not db_url:
         print("❌ Database URL not provided.")
