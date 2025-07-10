@@ -75,7 +75,13 @@ class PatternExtractor:
             "content_hash": hash(
                 pattern_content
             ),  # Simple hash for content identification
-            "tech_stack": {},
+            "tech_stack": {
+                "languages": [],
+                "package_managers": [],
+                "frameworks": [],
+                "testing": [],
+                "ci_cd": [],
+            },
             "success_metrics": {
                 "success_rate": 0.0,
                 "usage_count": 0,

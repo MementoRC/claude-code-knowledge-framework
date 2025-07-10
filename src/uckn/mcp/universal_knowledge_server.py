@@ -17,75 +17,81 @@ import json
 import logging
 import os
 import sys
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 # Add the src directory to the path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
-try:
+if TYPE_CHECKING:
     from mcp.server import Server
     from mcp.server.stdio import stdio_server
-    from mcp.types import (
-        CallToolResult,
-        TextContent,
-        Tool,
-    )
-
+    from mcp.types import CallToolResult, TextContent, Tool
     MCP_AVAILABLE = True
-except ImportError as e:
-    print(f"MCP library not available: {e}", file=sys.stderr)
-    MCP_AVAILABLE = False
+else:
+    try:
+        from mcp.server import Server
+        from mcp.server.stdio import stdio_server
+        from mcp.types import (
+            CallToolResult,
+            TextContent,
+            Tool,
+        )
 
-    # Create stub classes for testing when MCP is not available
-    class Server:
-        def __init__(self, name=None):
-            self.name = name
+        MCP_AVAILABLE = True
+    except ImportError as e:
+        print(f"MCP library not available: {e}", file=sys.stderr)
+        MCP_AVAILABLE = False
 
-        def create_initialization_options(self):
-            return {}
+        # Create stub classes for testing when MCP is not available
+        class Server:  # type: ignore[no-redef]
+            def __init__(self, name=None):
+                self.name = name
 
-        async def run(self, read_stream, write_stream, options, raise_exceptions=True):
-            pass
+            def create_initialization_options(self):
+                return {}
 
-        def list_tools(self):
-            def decorator(func):
-                return func
+            async def run(self, read_stream, write_stream, options, raise_exceptions=True):
+                pass
 
-            return decorator
+            def list_tools(self):
+                def decorator(func):
+                    return func
 
-        def call_tool(self):
-            def decorator(func):
-                return func
+                return decorator
 
-            return decorator
+            def call_tool(self):
+                def decorator(func):
+                    return func
 
-    class CallToolResult:
-        def __init__(self, content=None):
-            self.content = content or []
+                return decorator
 
-        def model_dump(self):
-            return {"content": self.content}
+        class CallToolResult:  # type: ignore[no-redef]
+            def __init__(self, content=None):
+                self.content = content or []
 
-    class TextContent:
-        def __init__(self, type="text", text=""):
-            self.type = type
-            self.text = text
+            def model_dump(self):
+                return {"content": self.content}
 
-    class Tool:
-        def __init__(self, name=None, description=None, inputSchema=None):
-            self.name = name
-            self.description = description
-            self.inputSchema = inputSchema
+        class TextContent:  # type: ignore[no-redef]
+            def __init__(self, type="text", text=""):
+                self.type = type
+                self.text = text
 
-    def stdio_server():
-        return MockStdioServer()
+        class Tool:  # type: ignore[no-redef]
+            def __init__(self, name=None, description=None, inputSchema=None):
+                self.name = name
+                self.description = description
+                self.inputSchema = inputSchema
 
-    class MockStdioServer:
-        async def __aenter__(self):
-            return (None, None)
+        def stdio_server():  # type: ignore[no-redef]
+            return MockStdioServer()
 
-        async def __aexit__(self, exc_type, exc_val, exc_tb):
-            pass
+        class MockStdioServer:
+            async def __aenter__(self):
+                return (None, None)
+
+            async def __aexit__(self, exc_type, exc_val, exc_tb):
+                pass
 
 
 # Import UCKN components
@@ -403,7 +409,7 @@ class UniversalKnowledgeServer:
     async def _search_patterns(
         self,
         query: str,
-        project_path: str = None,
+        project_path: str | None = None,
         limit: int = 10,
         pattern_type: str = "all",
     ) -> CallToolResult:
@@ -448,7 +454,7 @@ class UniversalKnowledgeServer:
             ).model_dump()
 
     async def _recommend_setup(
-        self, project_path: str = None, limit: int = 5
+        self, project_path: str | None = None, limit: int = 5
     ) -> CallToolResult:
         """Get setup recommendations."""
         try:
@@ -496,7 +502,7 @@ class UniversalKnowledgeServer:
             ).model_dump()
 
     async def _predict_issues(
-        self, project_path: str = None, limit: int = 5
+        self, project_path: str | None = None, limit: int = 5
     ) -> CallToolResult:
         """Predict potential issues."""
         try:
@@ -541,7 +547,7 @@ class UniversalKnowledgeServer:
             ).model_dump()
 
     async def _validate_solution(
-        self, solution_description: str, problem_context: str, project_path: str = None
+        self, solution_description: str, problem_context: str, project_path: str | None = None
     ) -> CallToolResult:
         """Validate a proposed solution."""
         try:
@@ -553,7 +559,7 @@ class UniversalKnowledgeServer:
                     query_text=f"{problem_context} {solution_description}", limit=5
                 )
 
-                validation_result = {
+                validation_result: dict[str, Any] = {
                     "solution_description": solution_description,
                     "problem_context": problem_context,
                     "validation_score": 0.0,
@@ -621,8 +627,8 @@ class UniversalKnowledgeServer:
         pattern_description: str,
         pattern_type: str,
         pattern_code: str = "",
-        technologies: list[str] = None,
-        project_path: str = None,
+        technologies: list[str] | None = None,
+        project_path: str | None = None,
     ) -> CallToolResult:
         """Contribute a new pattern."""
         try:
@@ -679,7 +685,7 @@ class UniversalKnowledgeServer:
                 ]
             ).model_dump()
 
-    async def _get_project_dna(self, project_path: str = None) -> CallToolResult:
+    async def _get_project_dna(self, project_path: str | None = None) -> CallToolResult:
         """Get project DNA fingerprint."""
         try:
             project_path = project_path or self.project_root
