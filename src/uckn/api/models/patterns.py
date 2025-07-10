@@ -191,7 +191,7 @@ class PatternSearchRequest(BaseModel):
 
     def to_metadata_filter(self) -> dict[str, Any]:
         """Convert search request to metadata filter"""
-        filters = {}
+        filters: dict[str, Any] = {}
 
         if self.pattern_types:
             filters["pattern_type"] = {"$in": [pt.value for pt in self.pattern_types]}
@@ -294,9 +294,7 @@ class PatternAnalytics(BaseModel):
         default=None, ge=0.0, le=5.0, description="Average user rating"
     )
     feedback_count: int = Field(default=0, description="Number of feedback entries")
-    last_used: datetime | None = Field(
-        default=None, description="Last usage timestamp"
-    )
+    last_used: datetime | None = Field(default=None, description="Last usage timestamp")
     trending_score: float = Field(default=0.0, description="Trending score")
     similar_patterns_count: int = Field(
         default=0, description="Number of similar patterns"

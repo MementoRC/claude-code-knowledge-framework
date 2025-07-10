@@ -381,7 +381,11 @@ class PatternRecommendationEngine:
                 )
 
                 # Get success rate from analytics
-                success_rate = self._get_pattern_success_rate(pattern.get("pattern_id"))
+                pattern_id = pattern.get("pattern_id")
+                if isinstance(pattern_id, str):
+                    success_rate = self._get_pattern_success_rate(pattern_id)
+                else:
+                    success_rate = 0.0
 
                 # Calculate relevance score
                 relevance_score = pattern.get("similarity_score", 0.5)

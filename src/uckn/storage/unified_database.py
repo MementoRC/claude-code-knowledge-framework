@@ -211,12 +211,17 @@ class UnifiedDatabase:
             )
             return False
 
+        # Extract and validate chroma updates with proper types
+        document_update = chroma_updates.get("document")
+        embedding_update = chroma_updates.get("embedding")
+        metadata_update = chroma_updates.get("metadata")
+        
         chroma_success = self.chroma_connector.update_document(
             collection_name="code_patterns",
             doc_id=pattern_id,
-            document=chroma_updates.get("document"),
-            embedding=chroma_updates.get("embedding"),
-            metadata=chroma_updates.get("metadata"),
+            document=document_update if isinstance(document_update, str) else None,
+            embedding=embedding_update if isinstance(embedding_update, list) else None,
+            metadata=metadata_update if isinstance(metadata_update, dict) else None,
         )
         if not chroma_success:
             self._logger.warning(
@@ -453,12 +458,17 @@ class UnifiedDatabase:
             )
             return False
 
+        # Extract and validate chroma updates with proper types
+        document_update = chroma_updates.get("document")
+        embedding_update = chroma_updates.get("embedding")
+        metadata_update = chroma_updates.get("metadata")
+        
         chroma_success = self.chroma_connector.update_document(
             collection_name="error_solutions",
             doc_id=solution_id,
-            document=chroma_updates.get("document"),
-            embedding=chroma_updates.get("embedding"),
-            metadata=chroma_updates.get("metadata"),
+            document=document_update if isinstance(document_update, str) else None,
+            embedding=embedding_update if isinstance(embedding_update, list) else None,
+            metadata=metadata_update if isinstance(metadata_update, dict) else None,
         )
         if not chroma_success:
             self._logger.warning(

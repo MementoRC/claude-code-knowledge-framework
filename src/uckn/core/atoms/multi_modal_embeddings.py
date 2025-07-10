@@ -29,7 +29,7 @@ if not _DISABLE_TORCH:
         try:
             import torch
         except Exception:
-            torch = None
+            torch = None  # type: ignore[assignment]
             # Log or print for debugging, but do not raise
         else:
             try:
@@ -37,8 +37,8 @@ if not _DISABLE_TORCH:
 
                 TRANSFORMERS_AVAILABLE = True
             except Exception:
-                AutoTokenizer = None
-                AutoModel = None
+                AutoTokenizer = None  # type: ignore[assignment]
+                AutoModel = None  # type: ignore[assignment]
                 TRANSFORMERS_AVAILABLE = False
     except Exception:
         torch = None
@@ -256,17 +256,19 @@ class MultiModalEmbeddings:
             data_type = data["type"]
             data = data["content"]
 
+        # Ensure data is a string at this point
+        if not isinstance(data, str):
+            self._logger.warning(f"Expected string data, got {type(data)}. Converting to string.")
+            data = str(data)
+
         if data_type == "auto":
             # Heuristic: detect type
-            if isinstance(data, str):
-                if data.strip().startswith("def ") or data.strip().startswith("class "):
-                    data_type = "code"
-                elif "=" in data and "\n" in data:
-                    data_type = "config"
-                elif "Traceback" in data or "Exception" in data:
-                    data_type = "error"
-                else:
-                    data_type = "text"
+            if data.strip().startswith("def ") or data.strip().startswith("class "):
+                data_type = "code"
+            elif "=" in data and "\n" in data:
+                data_type = "config"
+            elif "Traceback" in data or "Exception" in data:
+                data_type = "error"
             else:
                 data_type = "text"
 
