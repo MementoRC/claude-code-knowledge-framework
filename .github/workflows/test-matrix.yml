@@ -43,7 +43,7 @@ jobs:
             ~/.pixi/cache
             ~/.cache/pip
             .pixi
-          key: pixi-fallback-${{ runner.os }}-${{ hashFiles('pixi.lock') }}
+          key: pixi-fallback-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
           restore-keys: |
             pixi-fallback-${{ runner.os }}-
 
