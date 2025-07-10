@@ -13,24 +13,29 @@ import logging
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import numpy as np
 
 _DISABLE_TORCH = os.environ.get("UCKN_DISABLE_TORCH", "0") == "1"
 
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
+else:
+    SentenceTransformer = None  # type: ignore[misc,assignment]
+
 if _DISABLE_TORCH:
     SENTENCE_TRANSFORMERS_AVAILABLE = False
-    SentenceTransformer = None
+    SentenceTransformer = None  # type: ignore[misc,assignment]
 else:
     try:
-        from sentence_transformers import SentenceTransformer
+        from sentence_transformers import SentenceTransformer  # type: ignore[misc,assignment]
 
         SENTENCE_TRANSFORMERS_AVAILABLE = True
     except (ImportError, RuntimeError):
         # Handle PyTorch docstring conflicts and import errors
         SENTENCE_TRANSFORMERS_AVAILABLE = False
-        SentenceTransformer = None
+        SentenceTransformer = None  # type: ignore[misc,assignment]
 
 try:
     import chromadb

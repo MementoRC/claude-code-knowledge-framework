@@ -13,11 +13,11 @@ from collections.abc import Callable
 from typing import Any
 
 try:
-    import redis
+    import redis  # type: ignore[import-untyped]
 
     REDIS_AVAILABLE = True
 except ImportError:
-    redis = None
+    redis = None  # type: ignore[assignment]
     REDIS_AVAILABLE = False
 
 

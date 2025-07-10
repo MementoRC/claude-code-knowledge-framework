@@ -2,21 +2,26 @@ import logging
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, TYPE_CHECKING
 
 # Defensive import to handle PyTorch docstring conflicts
 _DISABLE_TORCH = os.environ.get("UCKN_DISABLE_TORCH", "0") == "1"
+
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
+else:
+    SentenceTransformer = None  # type: ignore[misc,assignment]
 
 if _DISABLE_TORCH:
     logging.getLogger(__name__).warning(
         "Torch disabled by environment variable. "
         "Semantic encoding capabilities will be limited."
     )
-    SentenceTransformer = None
+    SentenceTransformer = None  # type: ignore[misc,assignment]
     SENTENCE_TRANSFORMER_AVAILABLE = False
 else:
     try:
-        from sentence_transformers import SentenceTransformer
+        from sentence_transformers import SentenceTransformer  # type: ignore[misc,assignment]
 
         SENTENCE_TRANSFORMER_AVAILABLE = True
     except (ImportError, RuntimeError) as e:
@@ -24,7 +29,7 @@ else:
             f"SentenceTransformer not available ({e}). "
             "Semantic encoding capabilities will be limited."
         )
-        SentenceTransformer = None
+        SentenceTransformer = None  # type: ignore[misc,assignment]
         SENTENCE_TRANSFORMER_AVAILABLE = False
 
 try:
@@ -53,7 +58,7 @@ except ImportError:
 
 
 def _tech_stack_match(
-    query_stack: list[str] | None, doc_stack: list[str] | None
+    query_stack: Optional[list[str]], doc_stack: Optional[list[str]]
 ) -> float:
     """
     Compute a tech stack compatibility score between two stacks.
@@ -85,8 +90,8 @@ class EnhancedSemanticSearchEngine:
         knowledge_dir: str = ".uckn/knowledge",
         model_name: str = "all-MiniLM-L6-v2",
         device: str = "cpu",
-        embedding_atom: MultiModalEmbeddings | None = None,
-        chroma_connector: ChromaDBConnector | None = None,
+        embedding_atom: Optional[MultiModalEmbeddings] = None,
+        chroma_connector: Optional[ChromaDBConnector] = None,
     ):
         self._logger = logging.getLogger(__name__)
         self.knowledge_dir = knowledge_dir
