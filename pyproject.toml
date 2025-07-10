@@ -105,6 +105,7 @@ ci = {features = ["ci-deps"], solve-group = "default"}
 install = "echo 'Dependencies installed via conda-forge'"
 dev = "echo 'Development environment ready'"
 ci-dev = "echo 'CI environment ready'"
+ci-install = "echo 'CI dependencies installed'"
 test = "pytest tests/ -v"
 test-cov = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term"
 benchmark = "pytest tests/benchmarks/ --benchmark-only --benchmark-sort=mean"
