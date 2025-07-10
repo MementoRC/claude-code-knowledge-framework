@@ -30,7 +30,6 @@ jobs:
       with:
         pixi-version: v0.49.0
         cache: false  # Temporarily disable during GitHub cache service outage
-      continue-on-error: true
 
     - name: Log pixi cache status
       run: |
@@ -99,7 +98,6 @@ jobs:
       with:
         pixi-version: v0.49.0
         cache: false  # Temporarily disable during GitHub cache service outage
-      continue-on-error: true
 
     - name: Log pixi cache status
       run: |
@@ -168,7 +166,6 @@ jobs:
       with:
         pixi-version: v0.49.0
         cache: false  # Temporarily disable during GitHub cache service outage
-      continue-on-error: true
 
     - name: Log pixi cache status
       run: |
@@ -376,7 +373,6 @@ jobs:
       with:
         pixi-version: v0.49.0
         cache: false  # Temporarily disable during GitHub cache service outage
-      continue-on-error: true
 
     - name: Log pixi cache status
       run: |
@@ -474,7 +470,6 @@ jobs:
       with:
         pixi-version: v0.49.0
         cache: false  # Temporarily disable during GitHub cache service outage
-      continue-on-error: true
 
     - name: Log pixi cache status
       run: |
