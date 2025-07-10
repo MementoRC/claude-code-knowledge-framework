@@ -1,0 +1,74 @@
+[project]
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+
+[dependencies]
+python = ">=3.10,<3.13"
+chromadb = "*"
+fastapi = "*"
+jinja2 = "*" 
+numpy = "*"
+pandas = "*"
+psutil = "*"
+psycopg2 = "*"
+pydantic = "*"
+redis-py = "*"
+rich = "*"
+ruff = "*"
+sentence-transformers = "*"
+sqlalchemy = "*"
+toml = "*"
+uvicorn = "*"
+
+[feature.dev.dependencies]
+black = "*"
+coverage = "*"
+locust = "*"
+memory_profiler = "*"
+mypy = "*"
+pre-commit = "*"
+pytest = "*"
+pytest-asyncio = "*"
+pytest-benchmark = "*"
+pytest-cov = "*"
+pytest-html = "*"
+pytest-timeout = "*"
+pytest-xdist = "*"
+
+[feature.ci-deps.dependencies]
+pytest = "*"
+pytest-cov = "*"
+ruff = "*"
+
+[environments]
+default = {solve-group = "default"}
+dev = {features = ["dev"], solve-group = "default"}
+ci = {features = ["ci-deps"], solve-group = "default"}
+
+[tasks]
+# Development tasks
+install = "echo 'Dependencies installed via conda-forge'"
+dev = "echo 'Development environment ready'"
+ci-dev = "echo 'CI environment ready'"
+test = "pytest tests/ -v"
+test-cov = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term"
+benchmark = "pytest tests/benchmarks/ --benchmark-only --benchmark-sort=mean"
+benchmark-save = "pytest tests/benchmarks/ --benchmark-only --benchmark-save=baseline"
+benchmark-compare = "pytest tests/benchmarks/ --benchmark-only --benchmark-compare"
+load-test = "cd tests/load_tests && locust -f locustfile.py --host=http://localhost:8000"
+load-test-ui = "cd tests/load_tests && locust -f locustfile.py --host=http://localhost:8000 --web-host=0.0.0.0"
+load-test-headless = "cd tests/load_tests && locust -f locustfile.py --host=http://localhost:8000 --headless --users=100 --spawn-rate=10 --run-time=2m"
+test-coverage = "pytest tests/ --cov=src/uckn --cov-branch --cov-report=html --cov-report=xml --cov-report=json --cov-report=term-missing"
+test-coverage-json = "pytest tests/ --cov=src/uckn --cov-branch --cov-report=json --json-report --json-report-file=pytest-report.json"
+quality-metrics = "python tests/quality_metrics/quality_dashboard.py --summary"
+quality-gate = "python tests/quality_metrics/quality_dashboard.py --check-gate --fail-under=90"
+coverage-trend = "python tests/quality_metrics/coverage_analysis.py"
+lint = "ruff check src/ tests/"
+format = "ruff format src/ tests/"
+typecheck = "mypy src/uckn"
+pre-commit = "pre-commit run --all-files"
+
+# Framework tasks
+start-server = "python -m uckn.server"
+analyze-project = "uckn analyze ."
+migrate-patterns = "uckn migrate --source .claude/knowledge"
