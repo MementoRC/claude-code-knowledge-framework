@@ -19,6 +19,10 @@ from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.types import JSON, TypeDecorator
 
+if TYPE_CHECKING:
+    from sqlalchemy import Engine
+    from sqlalchemy.orm import Session
+
 # Import JSONB specifically for PostgreSQL dialect
 try:
     from sqlalchemy.dialects.postgresql import JSONB
@@ -188,8 +192,8 @@ class PostgreSQLConnector:
         max_overflow: int = 20,
     ):
         self.db_url = db_url
-        self.engine = None
-        self.SessionLocal = None
+        self.engine: "Engine | None" = None
+        self.SessionLocal: "sessionmaker[Session] | None" = None
         self._logger = logging.getLogger(__name__)
         self.pool_size = pool_size
         self.max_overflow = max_overflow
