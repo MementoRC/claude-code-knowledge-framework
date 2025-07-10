@@ -54,8 +54,8 @@ def create_mock_pattern_dict(
     pattern_id: str,
     status: PatternStatus,
     current_version: str = "1.0.0",
-    versions: Optional[list[PatternVersion]] = None,
-    reviews: Optional[list[ReviewFeedback]] = None,
+    versions: list[PatternVersion] | None = None,
+    reviews: list[ReviewFeedback] | None = None,
     document: str = "test document content",
     title: str = "Test Pattern",
 ) -> dict[str, Any]:
