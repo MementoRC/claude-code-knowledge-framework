@@ -118,10 +118,10 @@ class DummyChromaDBConnector:
     def query_documents(
         self,
         collection_name: str,
-        query_texts: Optional[list[str]] = None,
-        query_embeddings: Optional[list[list[float]]] = None,
+        query_texts: list[str] | None = None,
+        query_embeddings: list[list[float]] | None = None,
         n_results: int = 10,
-        where: Optional[dict[str, Any]] = None,
+        where: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Simplified query for testing, primarily uses 'where' clause."""
         return self.get_documents(collection_name, where=where)
@@ -152,7 +152,7 @@ class PatternClassification:
         )
         return True
 
-    def get_category(self, category_id: str) -> Optional[dict[str, Any]]:
+    def get_category(self, category_id: str) -> dict[str, Any] | None:
         """Retrieves a category by its ID."""
         results = self.db_connector.get_documents(
             self.categories_collection_name, ids=[category_id]
@@ -168,8 +168,8 @@ class PatternClassification:
     def update_category(
         self,
         category_id: str,
-        new_name: Optional[str] = None,
-        new_description: Optional[str] = None,
+        new_name: str | None = None,
+        new_description: str | None = None,
     ) -> bool:
         """Updates an existing category's name or description."""
         current_category = self.get_category(category_id)
