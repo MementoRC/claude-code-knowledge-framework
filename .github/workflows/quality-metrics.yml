@@ -21,6 +21,7 @@ jobs:
         with:
           pixi-version: v0.49.0
           cache: false  # Temporarily disable during GitHub cache service outage
+          manifest-path: pyproject.toml
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y git
 

@@ -27,6 +27,7 @@ jobs:
         with:
           pixi-version: v0.49.0
           cache: false  # Temporarily disable during GitHub cache service outage
+          manifest-path: pyproject.toml
 
       - name: Install dependencies (pixi)
         run: pixi install --locked

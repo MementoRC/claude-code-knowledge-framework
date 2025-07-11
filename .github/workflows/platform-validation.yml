@@ -53,6 +53,7 @@ jobs:
       with:
         pixi-version: ${{ env.PIXI_VERSION }}
         cache: false  # Disable cache to save memory
+        manifest-path: pyproject.toml
 
     - name: Set memory limits
       run: |
