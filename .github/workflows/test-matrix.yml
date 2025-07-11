@@ -47,36 +47,33 @@ jobs:
           restore-keys: |
             pixi-fallback-${{ runner.os }}-
 
-      - name: Install dependencies (pixi) with retry and fallback
+      - name: Install dependencies with pixi fallback to pip
         run: |
-          n=0
-          until [ "$n" -ge 3 ]
-          do
-            # Force update first to ensure new dependencies are resolved
-            if pixi install --frozen=false; then # PIXI_ENV will make this target 'ci'
-              echo "✅ Installation successful"
-              break
-            elif [ "$n" -eq 2 ]; then
-              echo "⚠️ Install failed, forcing update..."
-              pixi update && pixi install && break # PIXI_ENV will make this target 'ci'
-            fi
-            n=$((n+1))
-            echo "pixi install failed, retrying ($n/3)..."
-            sleep 5
-          done
+          # Try pixi first with timeout protection
+          if timeout 60 pixi install --frozen=false -e ci; then
+            echo "✅ Pixi installation successful"
+            echo "INSTALL_METHOD=pixi" >> $GITHUB_ENV
+          else
+            echo "⚠️ Pixi failed or timed out, falling back to pip"
+            echo "INSTALL_METHOD=pip" >> $GITHUB_ENV
+            
+            # Set up Python environment
+            python -m pip install --upgrade pip
+            
+            # Install core dependencies for CI
+            pip install pytest pytest-cov pytest-timeout pytest-asyncio pytest-xdist pytest-json-report ruff
+            pip install click fastapi uvicorn pydantic
+          fi
 
-      - name: Activate pixi environment
+      - name: Verify installation
         run: |
-          eval "$(pixi shell --env-hook bash)"
-
-      - name: Install dev dependencies using pixi
-        run: |
-          pixi run -e ci ci-install
-
-      - name: Verify pixi environment
-        run: |
-          pixi run -e ci python --version
-          pixi run -e ci pip --version
+          if [ "$INSTALL_METHOD" = "pixi" ]; then
+            pixi run -e ci python --version
+            pixi run -e ci pip --version
+          else
+            python --version
+            pip --version
+          fi
 
       - name: Select tests by marker
         id: select-tests
@@ -90,12 +87,23 @@ jobs:
             echo "PYTEST_MARK=e2e" >> $GITHUB_ENV
           fi
 
-      - name: Run selected tests using pixi
+      - name: Run selected tests
         run: |
-          if [[ -n "$PYTEST_MARK" ]]; then
-            pixi run -e ci pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+          # Set PYTHONPATH for imports
+          export PYTHONPATH="${PWD}/src:${PYTHONPATH}"
+          
+          if [ "$INSTALL_METHOD" = "pixi" ]; then
+            if [[ -n "$PYTEST_MARK" ]]; then
+              pixi run -e ci pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+            else
+              pixi run -e ci pytest tests/ --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+            fi
           else
-            pixi run -e ci pytest tests/ --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+            if [[ -n "$PYTEST_MARK" ]]; then
+              pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+            else
+              pytest tests/ --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+            fi
           fi
 
       - name: Upload test results
