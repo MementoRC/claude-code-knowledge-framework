@@ -48,7 +48,7 @@ packages = ["src/uckn"]
 
 [tool.pixi.project]
 channels = ["conda-forge"]
-platforms = ["linux-64"]  # Start with linux-64 only for CI compatibility
+platforms = ["linux-64"]  # Development environment stays lean
 
 [tool.pixi.dependencies]
 # Core dependencies for linux-64 CI environment
@@ -69,7 +69,7 @@ uvicorn = "*"
 # ML/Heavy packages - test if they work with single platform:
 # chromadb = "*"  # May still cause issues
 # numpy = "*"
-# pandas = "*"  
+# pandas = "*"
 # psycopg2 = "*"
 # redis-py = "*"
 # sentence-transformers = "*"
@@ -257,7 +257,7 @@ ignore = [
 [tool.mypy]
 python_version = "3.10"
 # Temporarily simplified configuration for CI stability
-# TODO: Re-enable systematic type checking in follow-up PR  
+# TODO: Re-enable systematic type checking in follow-up PR
 ignore_missing_imports = true
 follow_imports = "silent"
 warn_no_return = false

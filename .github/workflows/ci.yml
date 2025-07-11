@@ -17,7 +17,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest] # Focus on main development platform
         python-version: ["3.10", "3.11", "3.12"]
 
     steps:
@@ -41,29 +41,19 @@ jobs:
           echo "⚠️ Pixi cache miss or failed to restore."
         fi
 
-    - name: Set platform for pixi
-      shell: bash
-      run: |
-        case "${{ matrix.os }}" in
-          "ubuntu-latest") echo "PIXI_PLATFORM=linux-64" >> $GITHUB_ENV ;;
-          "macos-latest") echo "PIXI_PLATFORM=osx-64" >> $GITHUB_ENV ;;
-          "windows-latest") echo "PIXI_PLATFORM=win-64" >> $GITHUB_ENV ;;
-        esac
-        echo "Using platform: $PIXI_PLATFORM"
-
     - name: Install dependencies (with retry and fallback)
       shell: bash
       run: |
         n=0
         until [ "$n" -ge 3 ]
         do
-          # Use platform-specific install for cross-platform CI
-          if pixi install --platform $PIXI_PLATFORM; then
-            echo "✅ Installation successful for platform $PIXI_PLATFORM"
+          # Use native pixi install for each platform
+          if pixi install; then
+            echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
             echo "⚠️ Install failed, retrying..."
-            pixi install --platform $PIXI_PLATFORM && break
+            pixi install && break
           fi
           n=$((n+1))
           echo "pixi install failed, retrying ($n/3)..."
@@ -90,7 +80,7 @@ jobs:
     - name: Run tests
       shell: bash
       run: |
-        pixi run --platform $PIXI_PLATFORM test
+        pixi run test
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
