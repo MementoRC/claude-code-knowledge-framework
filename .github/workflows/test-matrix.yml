@@ -34,6 +34,7 @@ jobs:
         with:
           pixi-version: latest
           cache: true
+          run-install: false
 
       - name: Secondary cache fallback when pixi cache fails
         if: steps.setup-pixi.outputs.cache-hit != 'true'
