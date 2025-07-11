@@ -48,28 +48,31 @@ packages = ["src/uckn"]
 
 [tool.pixi.project]
 channels = ["conda-forge"]
-platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+platforms = ["linux-64"]  # Start with linux-64 only for CI compatibility
 
 [tool.pixi.dependencies]
+# Core dependencies for linux-64 CI environment
 alembic = "*"
-chromadb = "*"
 click = "*"
 fastapi = "*"
 gitpython = "*"
 httpx = "*"
 jinja2 = "*"
-numpy = "*"
-pandas = "*"
-psutil = "*"
-psycopg2 = "*"
 pydantic = "*"
-redis-py = "*"
+psutil = "*"
 rich = "*"
 ruff = "*"
-sentence-transformers = "*"
 sqlalchemy = "*"
 toml = "*"
 uvicorn = "*"
+
+# ML/Heavy packages - test if they work with single platform:
+# chromadb = "*"  # May still cause issues
+# numpy = "*"
+# pandas = "*"  
+# psycopg2 = "*"
+# redis-py = "*"
+# sentence-transformers = "*"
 
 [tool.pixi.feature.dev.dependencies]
 black = "*"

@@ -48,14 +48,14 @@ jobs:
           restore-keys: |
             pixi-fallback-${{ runner.os }}-
 
-      - name: Install dependencies with pixi (properly)
+      - name: Install dependencies with pixi (bypass lock)
         run: |
           # Clean any existing environment first
           pixi clean cache || true
           
-          # Install with proper environment targeting and verbose output
-          echo "Installing pixi environment: ci"
-          pixi install --environment ci --verbose
+          # Install fresh environment (no lock file)
+          echo "Installing pixi environment: ci (fresh resolve)"
+          pixi install --environment ci
           
           echo "✅ Pixi installation completed"
 
