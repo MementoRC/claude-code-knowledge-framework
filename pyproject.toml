@@ -58,8 +58,8 @@ fastapi = "*"
 gitpython = "*"
 httpx = "*"
 jinja2 = "*"
-pydantic = "*"
 psutil = "*"
+pydantic = "*"
 rich = "*"
 ruff = "*"
 sqlalchemy = "*"
@@ -74,22 +74,58 @@ uvicorn = "*"
 # redis-py = "*"
 # sentence-transformers = "*"
 
-[tool.pixi.feature.dev.dependencies]
+# This section moved to tiered quality features below
+
+# ===== TIERED QUALITY FEATURES =====
+# TIER 1: Essential Quality Gates (ZERO-TOLERANCE)
+[tool.pixi.feature.quality.dependencies]
+# Core Testing Framework
+pytest = ">=8.0.0"
+pytest-cov = ">=4.0.0"
+pytest-timeout = ">=2.1.0"
+pytest-asyncio = ">=0.21.0"
+pytest-xdist = ">=3.3.0"
+
+# Type Checking
+mypy = ">=1.0.0"
+
+# Note: ruff already in base dependencies for linting & formatting
+
+# TIER 2: Extended Quality & Security
+[tool.pixi.feature.quality-extended.dependencies]
+# Security Scanning
+bandit = ">=1.7.0"
+safety = ">=3.0.0"
+
+# Code Quality Analysis
+radon = ">=6.0.0"
+vulture = ">=2.7.0"
+
+# Git Hooks
+pre-commit = ">=3.0.0"
+
+# TIER 3: CI/CD & Build
+[tool.pixi.feature.quality-ci.dependencies]
+# CI Reporting
+pytest-json-report = ">=1.5.0"
+pytest-html = ">=4.0.0"
+
+# Build Tools
+python-build = ">=0.10.0"
+pip-audit = ">=2.6.0"
+
+# Coverage Tools
+coverage = ">=7.0.0"
+
+# ===== LEGACY DEVELOPMENT FEATURES =====
+# Keep existing dev feature for specialized tools
+[tool.pixi.feature.dev-specialized.dependencies]
 black = "*"
-coverage = "*"
 locust = "*"
 memory_profiler = "*"
-mypy = "*"
-pre-commit = "*"
-pytest = "*"
-pytest-asyncio = "*"
 pytest-benchmark = "*"
-pytest-cov = "*"
-pytest-html = "*"
-pytest-timeout = "*"
-pytest-xdist = "*"
-ruff = "*"
 
+# Minimal CI dependencies (legacy)
 [tool.pixi.feature.ci-deps.dependencies]
 pytest = "*"
 pytest-cov = "*"
@@ -99,22 +135,76 @@ pytest-xdist = "*"
 pytest-json-report = "*"
 ruff = "*"
 
-# Removed [tool.pixi.feature.mcp.dependencies] (nodejs, pnpm) as not needed for Python CI
-# Removed [tool.pixi.feature.ml.dependencies] (pytorch, etc.) as not needed for minimal CI
-
 [tool.pixi.environments]
+# Basic runtime environment
 default = {solve-group = "default"}
-dev = {features = ["dev"], solve-group = "default"}
-ci = {features = ["ci-deps"], solve-group = "default"}
+
+# Quality gate environments (tiered approach)
+quality = {features = ["quality"], solve-group = "default"}
+quality-extended = {features = ["quality", "quality-extended"], solve-group = "default"}
+quality-full = {features = ["quality", "quality-extended", "quality-ci"], solve-group = "default"}
+
+# Development environment (full quality + specialized tools)
+dev = {features = ["quality", "quality-extended", "quality-ci", "dev-specialized"], solve-group = "default"}
+
+# CI environment (quality + CI reporting)
+ci = {features = ["quality", "quality-ci"], solve-group = "default"}
+
+# Legacy CI environment (for backward compatibility)
+ci-legacy = {features = ["ci-deps"], solve-group = "default"}
 
 [tool.pixi.tasks]
-# Development tasks
-install = "echo 'Dependencies installed via conda-forge'"
+# ===== TIER 1: CORE DEVELOPMENT TASKS (ESSENTIAL) =====
+# Installation & Setup
+install-editable = "pip install -e ."
 dev = "echo 'Development environment ready'"
-ci-dev = "echo 'CI environment ready'"
-ci-deps = "echo 'CI dependencies installed'"
+
+# Testing (ZERO-TOLERANCE QUALITY GATES)
 test = "pytest tests/ -v"
-test-cov = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term"
+test-cov = "pytest tests/ --cov=src/uckn --cov-report=term-missing --cov-report=xml"
+test-unit = "pytest tests/unit/ -v"
+test-integration = "pytest tests/integration/ -v"
+test-e2e = "pytest tests/e2e/ -v"
+
+# Quality Gates (CRITICAL - MUST PASS)
+lint = "ruff check src/ tests/ --select=F,E9"
+lint-fix = "ruff check --fix src/ tests/"
+format = "ruff format src/ tests/"
+format-check = "ruff format --check src/ tests/"
+typecheck = "mypy src/uckn"
+
+# Combined Quality Check
+quality = { depends-on = ["test", "lint", "typecheck"] }
+
+# ===== TIER 2: SECURITY & COMPLIANCE TASKS =====
+# Security Scanning
+security-scan = "bandit -r src/ --severity-level high"
+safety-check = "safety check"
+complexity-check = "radon cc src/ --min B"
+dead-code-check = "vulture src/ --min-confidence 80"
+
+# Static Analysis Suite
+static-analysis = { depends-on = ["security-scan", "safety-check", "complexity-check", "dead-code-check"] }
+
+# Comprehensive Check
+check-all = { depends-on = ["quality", "static-analysis"] }
+
+# ===== TIER 3: CI/CD & DEPLOYMENT TASKS =====
+# CI-specific variants
+ci-test = { cmd = "pytest tests/ --cov=src/uckn --cov-report=xml --timeout=90", env = { ENVIRONMENT = "ci" } }
+ci-lint = "ruff check src/ tests/ --output-format=github"
+ci-format-check = "ruff format --check src/ tests/"
+
+# Build & Deploy
+build = "python -m build"
+clean = "rm -rf __pycache__ .pytest_cache .coverage htmlcov .ruff_cache dist build"
+
+# Pre-commit Integration
+pre-commit = "pre-commit run --all-files"
+install-pre-commit = "pre-commit install --install-hooks"
+
+# ===== LEGACY/SPECIALIZED TASKS =====
+# Keep existing specialized tasks
 benchmark = "pytest tests/benchmarks/ --benchmark-only --benchmark-sort=mean"
 benchmark-save = "pytest tests/benchmarks/ --benchmark-only --benchmark-save=baseline"
 benchmark-compare = "pytest tests/benchmarks/ --benchmark-only --benchmark-compare"
@@ -126,17 +216,13 @@ test-coverage-json = "pytest tests/ --cov=src/uckn --cov-branch --cov-report=jso
 quality-metrics = "python tests/quality_metrics/quality_dashboard.py --summary"
 quality-gate = "python tests/quality_metrics/quality_dashboard.py --check-gate --fail-under=90"
 coverage-trend = "python tests/quality_metrics/coverage_analysis.py"
-lint = "ruff check src/ tests/"
-format = "ruff format src/ tests/"
-typecheck = "mypy src/uckn"
-pre-commit = "pre-commit run --all-files"
 
 # Framework tasks
 start-server = "python -m uckn.server"
 analyze-project = "uckn analyze ."
 migrate-patterns = "uckn migrate --source .claude/knowledge"
 init-project = "uckn init"
-db-migrate = "alembic -c src/uckn/storage/migrations/alembic.ini upgrade head" # Added for DB migrations
+db-migrate = "alembic -c src/uckn/storage/migrations/alembic.ini upgrade head"
 
 # Documentation
 docs-serve = "mkdocs serve"
@@ -144,12 +230,6 @@ docs-build = "mkdocs build"
 
 # MCP Server tasks
 mcp-server = { cmd = "python -m uckn.mcp.universal_knowledge_server", env = { PYTHONPATH = "src" } }
-
-# CI/CD tasks
-ci-install = "pip install -e ."
-ci-test = {cmd = "pytest tests/ --cov=src/uckn --cov-report=xml --timeout=90", env = {ENVIRONMENT = "ci"}}
-ci-lint = "ruff check src/ tests/ --output-format=github"
-ci-format-check = "ruff format --check src/ tests/"
 
 [tool.ruff]
 target-version = "py310"
