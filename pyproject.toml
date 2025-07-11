@@ -90,6 +90,9 @@ ruff = "*"
 [tool.pixi.feature.ci-deps.dependencies]
 pytest = "*"
 pytest-cov = "*"
+pytest-timeout = "*"
+pytest-asyncio = "*"
+pytest-xdist = "*"
 ruff = "*"
 
 # Removed [tool.pixi.feature.mcp.dependencies] (nodejs, pnpm) as not needed for Python CI
