@@ -47,20 +47,20 @@ jobs:
         n=0
         until [ "$n" -ge 3 ]
         do
-          # Use native pixi install for each platform
-          if pixi install; then
-            echo "✅ Installation successful"
+          # Install CI environment which includes pytest and quality tools
+          if pixi install -e ci; then
+            echo "✅ Installation successful for CI environment"
             break
           elif [ "$n" -eq 2 ]; then
             echo "⚠️ Install failed, retrying..."
-            pixi install && break
+            pixi install -e ci && break
           fi
           n=$((n+1))
-          echo "pixi install failed, retrying ($n/3)..."
+          echo "pixi install -e ci failed, retrying ($n/3)..."
           sleep 5
         done
         if [ "$n" -ge 3 ]; then
-          echo "❌ Failed to install pixi dependencies after multiple retries."
+          echo "❌ Failed to install pixi dependencies for CI environment after multiple retries."
           exit 1
         fi
 
@@ -80,7 +80,7 @@ jobs:
     - name: Run tests
       shell: bash
       run: |
-        pixi run test
+        pixi run -e ci test
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
@@ -121,20 +121,20 @@ jobs:
         n=0
         until [ "$n" -ge 3 ]
         do
-          # Install base environment with ruff available
-          if pixi install; then
-            echo "✅ Installation successful"
+          # Install CI environment with all quality tools
+          if pixi install -e ci; then
+            echo "✅ Installation successful for CI environment"
             break
           elif [ "$n" -eq 2 ]; then
             echo "⚠️ Install failed, retrying..."
-            pixi install && break
+            pixi install -e ci && break
           fi
           n=$((n+1))
-          echo "pixi install failed, retrying ($n/3)..."
+          echo "pixi install -e ci failed, retrying ($n/3)..."
           sleep 5
         done
         if [ "$n" -ge 3 ]; then
-          echo "❌ Failed to install pixi dependencies after multiple retries."
+          echo "❌ Failed to install pixi dependencies for CI environment after multiple retries."
           exit 1
         fi
 
@@ -154,12 +154,12 @@ jobs:
     - name: Run linting
       shell: bash
       run: |
-        pixi run ci-lint
+        pixi run -e ci ci-lint
 
     - name: Check formatting
       shell: bash
       run: |
-        pixi run ci-format-check
+        pixi run -e ci ci-format-check
 
     - name: Type checking
       shell: bash
