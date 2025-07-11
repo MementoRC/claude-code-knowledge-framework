@@ -34,7 +34,6 @@ jobs:
         with:
           pixi-version: latest
           cache: true
-          run-install: false
 
       - name: Secondary cache fallback when pixi cache fails
         if: steps.setup-pixi.outputs.cache-hit != 'true'
@@ -48,16 +47,10 @@ jobs:
           restore-keys: |
             pixi-fallback-${{ runner.os }}-
 
-      - name: Install dependencies with pixi (bypass lock)
+      - name: Verify pixi installation
         run: |
-          # Clean any existing environment first
-          pixi clean cache || true
-          
-          # Install fresh environment (no lock file)
-          echo "Installing pixi environment: ci (fresh resolve)"
-          pixi install --environment ci
-          
-          echo "✅ Pixi installation completed"
+          echo "Verifying pixi setup completed successfully..."
+          pixi info
 
       - name: Verify pixi environment
         run: |
