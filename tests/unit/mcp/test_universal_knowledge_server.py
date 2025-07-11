@@ -116,33 +116,44 @@ class TestUniversalKnowledgeServer:
         self.temp_dir = tempfile.mkdtemp()
 
         # Set the UCKN_DATABASE_URL environment variable for testing
-        os.environ[
-            "UCKN_DATABASE_URL"
-        ] = "postgresql://test:test@localhost:5432/test_db"
+        os.environ["UCKN_DATABASE_URL"] = (
+            "postgresql://test:test@localhost:5432/test_db"
+        )
 
         # Mock all UCKN components that UniversalKnowledgeServer initializes.
         # Ensure UnifiedDatabase is also mocked as it uses UCKN_DATABASE_URL.
-        with patch(
-            "src.uckn.mcp.universal_knowledge_server.ChromaDBConnector"
-        ) as mock_chroma, patch(
-            "src.uckn.mcp.universal_knowledge_server.UnifiedDatabase"
-        ) as mock_unified_db, patch(
-            "src.uckn.mcp.universal_knowledge_server.ProjectDNAFingerprinter"
-        ) as mock_dna, patch(
-            "src.uckn.mcp.universal_knowledge_server.MultiModalEmbeddings"
-        ) as mock_embeddings, patch(
-            "src.uckn.mcp.universal_knowledge_server.SemanticSearchEngine"
-        ) as mock_search, patch(
-            "src.uckn.mcp.universal_knowledge_server.PatternManager"
-        ) as mock_pattern_mgr, patch(
-            "src.uckn.mcp.universal_knowledge_server.TechStackCompatibilityMatrix"
-        ) as mock_compat, patch(
-            "src.uckn.mcp.universal_knowledge_server.PatternAnalytics"
-        ) as mock_analytics, patch(
-            "src.uckn.mcp.universal_knowledge_server.PatternRecommendationEngine"
-        ) as mock_rec_engine, patch(
-            "src.uckn.mcp.universal_knowledge_server.KnowledgeManager"
-        ) as mock_km:
+        with (
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.ChromaDBConnector"
+            ) as mock_chroma,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.UnifiedDatabase"
+            ) as mock_unified_db,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.ProjectDNAFingerprinter"
+            ) as mock_dna,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.MultiModalEmbeddings"
+            ) as mock_embeddings,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.SemanticSearchEngine"
+            ) as mock_search,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.PatternManager"
+            ) as mock_pattern_mgr,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.TechStackCompatibilityMatrix"
+            ) as mock_compat,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.PatternAnalytics"
+            ) as mock_analytics,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.PatternRecommendationEngine"
+            ) as mock_rec_engine,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.KnowledgeManager"
+            ) as mock_km,
+        ):
             # Configure mocks
             self.mock_chroma = mock_chroma.return_value
             self.mock_chroma.is_available.return_value = True

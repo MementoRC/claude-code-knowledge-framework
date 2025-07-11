@@ -17,7 +17,7 @@ import json
 import logging
 import os
 import sys
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 # Add the src directory to the path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from mcp.server import Server
     from mcp.server.stdio import stdio_server
     from mcp.types import CallToolResult, TextContent, Tool
+
     MCP_AVAILABLE = True
 else:
     try:
@@ -50,7 +51,9 @@ else:
             def create_initialization_options(self):
                 return {}
 
-            async def run(self, read_stream, write_stream, options, raise_exceptions=True):
+            async def run(
+                self, read_stream, write_stream, options, raise_exceptions=True
+            ):
                 pass
 
             def list_tools(self):
@@ -547,7 +550,10 @@ class UniversalKnowledgeServer:
             ).model_dump()
 
     async def _validate_solution(
-        self, solution_description: str, problem_context: str, project_path: str | None = None
+        self,
+        solution_description: str,
+        problem_context: str,
+        project_path: str | None = None,
     ) -> CallToolResult:
         """Validate a proposed solution."""
         try:

@@ -83,9 +83,7 @@ class ConnectionManager:
         self.active_connections: list[WebSocket] = []
         self.connection_filters: dict[WebSocket, UpdateFilter] = {}
 
-    async def connect(
-        self, websocket: WebSocket, filters: UpdateFilter | None = None
-    ):
+    async def connect(self, websocket: WebSocket, filters: UpdateFilter | None = None):
         """Accept WebSocket connection."""
         await websocket.accept()
         self.active_connections.append(websocket)

@@ -131,9 +131,7 @@ class ProjectCreate(BaseModel):
     visibility: ProjectVisibility = Field(
         default=ProjectVisibility.PRIVATE, description="Project visibility"
     )
-    repository_url: str | None = Field(
-        default=None, description="Git repository URL"
-    )
+    repository_url: str | None = Field(default=None, description="Git repository URL")
     project_path: str | None = Field(default=None, description="Local project path")
     tags: list[str] = Field(default_factory=list, description="Project tags")
     settings: ProjectSettings = Field(
@@ -164,9 +162,7 @@ class Project(BaseModel):
     status: ProjectStatus = Field(
         default=ProjectStatus.ACTIVE, description="Project status"
     )
-    repository_url: str | None = Field(
-        default=None, description="Git repository URL"
-    )
+    repository_url: str | None = Field(default=None, description="Git repository URL")
     project_path: str | None = Field(default=None, description="Local project path")
     tags: list[str] = Field(default_factory=list, description="Project tags")
     technology_stack: TechnologyStackDNA | None = Field(
@@ -205,9 +201,7 @@ class ProjectUpdate(BaseModel):
     repository_url: str | None = Field(
         default=None, description="Updated repository URL"
     )
-    project_path: str | None = Field(
-        default=None, description="Updated project path"
-    )
+    project_path: str | None = Field(default=None, description="Updated project path")
     tags: list[str] | None = Field(default=None, description="Updated tags")
     settings: ProjectSettings | None = Field(
         default=None, description="Updated settings"
@@ -256,9 +250,7 @@ class ProjectAnalysisResponse(BaseResponse):
     issue_warnings: list[IssueWarning] = Field(description="Predicted issues")
     patterns_found: int = Field(description="Number of patterns found")
     analysis_duration_ms: float = Field(description="Analysis duration in milliseconds")
-    health_score: float | None = Field(
-        default=None, description="Project health score"
-    )
+    health_score: float | None = Field(default=None, description="Project health score")
     complexity_metrics: dict[str, Any] | None = Field(
         default=None, description="Complexity metrics"
     )
@@ -274,9 +266,7 @@ class ProjectSearchRequest(BaseModel):
     visibility: ProjectVisibility | None = Field(
         default=None, description="Filter by visibility"
     )
-    status: ProjectStatus | None = Field(
-        default=None, description="Filter by status"
-    )
+    status: ProjectStatus | None = Field(default=None, description="Filter by status")
     tags: list[str] | None = Field(default=None, description="Filter by tags")
     technologies: list[str] | None = Field(
         default=None, description="Filter by technologies"

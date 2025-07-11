@@ -148,9 +148,7 @@ class TechStackCompatibilityMatrix:
         )
         return combo_id if success else None
 
-    def get_compatibility_score(
-        self, ts_a: list[str], ts_b: list[str]
-    ) -> float | None:
+    def get_compatibility_score(self, ts_a: list[str], ts_b: list[str]) -> float | None:
         """
         Retrieves the compatibility score between two technology stacks.
 

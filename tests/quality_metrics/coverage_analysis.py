@@ -16,7 +16,7 @@ COVERAGE_MD = os.environ.get("UCKN_COVERAGE_MD", "coverage.md")
 COVERAGE_HISTORY = os.environ.get("UCKN_COVERAGE_HISTORY", "coverage_history.json")
 
 
-def load_coverage_json(path: str = COVERAGE_JSON) -> Optional[dict[str, Any]]:
+def load_coverage_json(path: str = COVERAGE_JSON) -> dict[str, Any] | None:
     if not os.path.exists(path):
         return None
     with open(path) as f:

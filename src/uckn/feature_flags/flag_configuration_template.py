@@ -51,7 +51,12 @@ class FlagConfigurationTemplate:
 
     def compose_template(self) -> dict[str, Any]:
         """Compose complete template from atomic components."""
-        template: dict[str, list[dict[str, Any]]] = {"atoms": [], "molecules": [], "organisms": [], "templates": []}
+        template: dict[str, list[dict[str, Any]]] = {
+            "atoms": [],
+            "molecules": [],
+            "organisms": [],
+            "templates": [],
+        }
 
         for component in self._components.values():
             level_key = f"{component.level.value}s"

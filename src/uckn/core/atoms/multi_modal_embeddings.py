@@ -258,7 +258,9 @@ class MultiModalEmbeddings:
 
         # Ensure data is a string at this point
         if not isinstance(data, str):
-            self._logger.warning(f"Expected string data, got {type(data)}. Converting to string.")
+            self._logger.warning(
+                f"Expected string data, got {type(data)}. Converting to string."
+            )
             data = str(data)
 
         if data_type == "auto":

@@ -37,11 +37,11 @@ class PatternAnalytics:
             return
         if self.APPLICATION_COLLECTION not in self.chroma_connector.collections:
             try:
-                self.chroma_connector.collections[
-                    self.APPLICATION_COLLECTION
-                ] = self.chroma_connector.client.get_or_create_collection(
-                    name=self.APPLICATION_COLLECTION,
-                    metadata={"description": "UCKN pattern application attempts"},
+                self.chroma_connector.collections[self.APPLICATION_COLLECTION] = (
+                    self.chroma_connector.client.get_or_create_collection(
+                        name=self.APPLICATION_COLLECTION,
+                        metadata={"description": "UCKN pattern application attempts"},
+                    )
                 )
                 self._logger.info(
                     f"ChromaDB collection '{self.APPLICATION_COLLECTION}' initialized."

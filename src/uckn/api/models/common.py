@@ -175,15 +175,11 @@ class HealthStatus(BaseModel):
     )
     knowledge_dir: str = Field(description="Knowledge directory path")
     components: dict[str, str] = Field(description="Component health status")
-    uptime: float | None = Field(
-        default=None, description="System uptime in seconds"
-    )
+    uptime: float | None = Field(default=None, description="System uptime in seconds")
     memory_usage: float | None = Field(
         default=None, description="Memory usage percentage"
     )
-    disk_usage: float | None = Field(
-        default=None, description="Disk usage percentage"
-    )
+    disk_usage: float | None = Field(default=None, description="Disk usage percentage")
     timestamp: datetime = Field(default_factory=datetime.now)
 
 

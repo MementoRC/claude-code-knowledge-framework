@@ -1,7 +1,7 @@
 import logging
 from contextlib import contextmanager
 from datetime import datetime
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import (
     Column,
@@ -192,8 +192,8 @@ class PostgreSQLConnector:
         max_overflow: int = 20,
     ):
         self.db_url = db_url
-        self.engine: "Engine | None" = None
-        self.SessionLocal: "sessionmaker[Session] | None" = None
+        self.engine: Engine | None = None
+        self.SessionLocal: sessionmaker[Session] | None = None
         self._logger = logging.getLogger(__name__)
         self.pool_size = pool_size
         self.max_overflow = max_overflow

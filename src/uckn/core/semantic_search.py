@@ -13,7 +13,7 @@ import logging
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -29,7 +29,9 @@ if _DISABLE_TORCH:
     SentenceTransformer = None  # type: ignore[misc,assignment]
 else:
     try:
-        from sentence_transformers import SentenceTransformer  # type: ignore[misc,assignment]
+        from sentence_transformers import (
+            SentenceTransformer,  # type: ignore[misc,assignment]
+        )
 
         SENTENCE_TRANSFORMERS_AVAILABLE = True
     except (ImportError, RuntimeError):

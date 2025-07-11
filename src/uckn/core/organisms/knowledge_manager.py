@@ -56,9 +56,7 @@ class KnowledgeManager:
         self.tech_detector = TechStackDetector()
 
     # Project management methods (new)
-    def add_project(
-        self, name: str, description: str | None = None
-    ) -> str | None:
+    def add_project(self, name: str, description: str | None = None) -> str | None:
         """Add a new project."""
         try:
             project_id = self.unified_db.add_project(name, description)
@@ -320,9 +318,7 @@ class KnowledgeManager:
         )
 
     # Team Access Management (new)
-    def add_team_access(
-        self, user_id: str, project_id: str, role: str
-    ) -> str | None:
+    def add_team_access(self, user_id: str, project_id: str, role: str) -> str | None:
         """Add team access for a user to a project."""
         return self.unified_db.add_team_access(user_id, project_id, role)
 

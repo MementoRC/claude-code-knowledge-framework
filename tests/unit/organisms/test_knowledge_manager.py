@@ -98,15 +98,18 @@ def manager(monkeypatch, mock_unified_db, mock_semantic_search, mock_tech_detect
 
 def test_initialization_default(monkeypatch):
     # Patch dependencies to avoid real file system or DB
-    with patch(
-        "src.uckn.core.organisms.knowledge_manager.UnifiedDatabase"
-    ) as unified_db_patch, patch(
-        "src.uckn.core.organisms.knowledge_manager.SemanticSearch"
-    ) as search_patch, patch(
-        "src.uckn.core.organisms.knowledge_manager.PatternManager"
-    ), patch("src.uckn.core.organisms.knowledge_manager.ErrorSolutionManager"), patch(
-        "src.uckn.core.organisms.knowledge_manager.PatternClassification"
-    ), patch("src.uckn.core.organisms.knowledge_manager.TechStackDetector"):
+    with (
+        patch(
+            "src.uckn.core.organisms.knowledge_manager.UnifiedDatabase"
+        ) as unified_db_patch,
+        patch(
+            "src.uckn.core.organisms.knowledge_manager.SemanticSearch"
+        ) as search_patch,
+        patch("src.uckn.core.organisms.knowledge_manager.PatternManager"),
+        patch("src.uckn.core.organisms.knowledge_manager.ErrorSolutionManager"),
+        patch("src.uckn.core.organisms.knowledge_manager.PatternClassification"),
+        patch("src.uckn.core.organisms.knowledge_manager.TechStackDetector"),
+    ):
         unified_db_patch.return_value.is_available.return_value = True
         search_patch.return_value.is_available.return_value = True
         km = KnowledgeManager()
@@ -116,15 +119,18 @@ def test_initialization_default(monkeypatch):
 
 
 def test_initialization_unavailable(monkeypatch):
-    with patch(
-        "src.uckn.core.organisms.knowledge_manager.UnifiedDatabase"
-    ) as unified_db_patch, patch(
-        "src.uckn.core.organisms.knowledge_manager.SemanticSearch"
-    ) as search_patch, patch(
-        "src.uckn.core.organisms.knowledge_manager.PatternManager"
-    ), patch("src.uckn.core.organisms.knowledge_manager.ErrorSolutionManager"), patch(
-        "src.uckn.core.organisms.knowledge_manager.PatternClassification"
-    ), patch("src.uckn.core.organisms.knowledge_manager.TechStackDetector"):
+    with (
+        patch(
+            "src.uckn.core.organisms.knowledge_manager.UnifiedDatabase"
+        ) as unified_db_patch,
+        patch(
+            "src.uckn.core.organisms.knowledge_manager.SemanticSearch"
+        ) as search_patch,
+        patch("src.uckn.core.organisms.knowledge_manager.PatternManager"),
+        patch("src.uckn.core.organisms.knowledge_manager.ErrorSolutionManager"),
+        patch("src.uckn.core.organisms.knowledge_manager.PatternClassification"),
+        patch("src.uckn.core.organisms.knowledge_manager.TechStackDetector"),
+    ):
         unified_db_patch.return_value.is_available.return_value = False
         search_patch.return_value.is_available.return_value = False
         km = KnowledgeManager()
@@ -449,15 +455,18 @@ def test_get_health_status(manager, mock_unified_db, mock_semantic_search):
 
 
 def test_health_status_unavailable(monkeypatch):
-    with patch(
-        "src.uckn.core.organisms.knowledge_manager.UnifiedDatabase"
-    ) as unified_db_patch, patch(
-        "src.uckn.core.organisms.knowledge_manager.SemanticSearch"
-    ) as search_patch, patch(
-        "src.uckn.core.organisms.knowledge_manager.PatternManager"
-    ), patch("src.uckn.core.organisms.knowledge_manager.ErrorSolutionManager"), patch(
-        "src.uckn.core.organisms.knowledge_manager.PatternClassification"
-    ), patch("src.uckn.core.organisms.knowledge_manager.TechStackDetector"):
+    with (
+        patch(
+            "src.uckn.core.organisms.knowledge_manager.UnifiedDatabase"
+        ) as unified_db_patch,
+        patch(
+            "src.uckn.core.organisms.knowledge_manager.SemanticSearch"
+        ) as search_patch,
+        patch("src.uckn.core.organisms.knowledge_manager.PatternManager"),
+        patch("src.uckn.core.organisms.knowledge_manager.ErrorSolutionManager"),
+        patch("src.uckn.core.organisms.knowledge_manager.PatternClassification"),
+        patch("src.uckn.core.organisms.knowledge_manager.TechStackDetector"),
+    ):
         unified_db_patch.return_value.is_available.return_value = False
         search_patch.return_value.is_available.return_value = False
         km = KnowledgeManager()
@@ -573,16 +582,19 @@ def test_error_handling_unified_db(monkeypatch):
         def search_patterns_by_metadata(self, *a, **kw):
             raise Exception("fail search_patterns_by_metadata")
 
-    with patch(
-        "src.uckn.core.organisms.knowledge_manager.UnifiedDatabase",
-        FailingUnifiedDatabase,
-    ), patch(
-        "src.uckn.core.organisms.knowledge_manager.SemanticSearch"
-    ) as search_patch, patch(
-        "src.uckn.core.organisms.knowledge_manager.PatternManager"
-    ), patch("src.uckn.core.organisms.knowledge_manager.ErrorSolutionManager"), patch(
-        "src.uckn.core.organisms.knowledge_manager.PatternClassification"
-    ), patch("src.uckn.core.organisms.knowledge_manager.TechStackDetector"):
+    with (
+        patch(
+            "src.uckn.core.organisms.knowledge_manager.UnifiedDatabase",
+            FailingUnifiedDatabase,
+        ),
+        patch(
+            "src.uckn.core.organisms.knowledge_manager.SemanticSearch"
+        ) as search_patch,
+        patch("src.uckn.core.organisms.knowledge_manager.PatternManager"),
+        patch("src.uckn.core.organisms.knowledge_manager.ErrorSolutionManager"),
+        patch("src.uckn.core.organisms.knowledge_manager.PatternClassification"),
+        patch("src.uckn.core.organisms.knowledge_manager.TechStackDetector"),
+    ):
         search_patch.return_value.is_available.return_value = True
         search_patch.return_value.encode.return_value = [
             0.1,

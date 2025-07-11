@@ -75,7 +75,7 @@ def test_graceful_degradation():
 
     # Mock disabled capabilities
     with patch.object(manager, "get_capabilities") as mock_caps:
-        mock_caps.return_value = {cap: False for cap in manager.KNOWN_CAPABILITIES}
+        mock_caps.return_value = dict.fromkeys(manager.KNOWN_CAPABILITIES, False)
 
         # Should return None when pattern extraction disabled
         pattern = manager.get_pattern("test-pattern")

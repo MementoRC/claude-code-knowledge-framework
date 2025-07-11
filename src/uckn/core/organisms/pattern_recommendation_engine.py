@@ -291,10 +291,10 @@ class PatternRecommendationEngine:
         }
 
         if error_context:
-            recommendations[
-                "issue_resolution"
-            ] = self.get_issue_resolution_recommendations(
-                error_context, project_path, limit=3
+            recommendations["issue_resolution"] = (
+                self.get_issue_resolution_recommendations(
+                    error_context, project_path, limit=3
+                )
             )
 
         # Apply personalization if user history is provided

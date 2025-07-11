@@ -320,10 +320,15 @@ class TestEnhancedSemanticSearchEngine:
         with open(embeddings_file, "w") as f:
             json.dump(test_embeddings, f)
 
-        with patch(
-            "uckn.core.enhanced_semantic_search_engine.SENTENCE_TRANSFORMERS_AVAILABLE",
-            False,
-        ), patch("uckn.core.enhanced_semantic_search_engine.CHROMADB_AVAILABLE", False):
+        with (
+            patch(
+                "uckn.core.enhanced_semantic_search_engine.SENTENCE_TRANSFORMERS_AVAILABLE",
+                False,
+            ),
+            patch(
+                "uckn.core.enhanced_semantic_search_engine.CHROMADB_AVAILABLE", False
+            ),
+        ):
             from uckn.core.enhanced_semantic_search_engine import (
                 EnhancedSemanticSearchEngine,
             )
