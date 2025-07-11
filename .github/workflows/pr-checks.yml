@@ -26,6 +26,7 @@ jobs:
         manifest-path: pyproject.toml
 
     - name: Log pixi cache status
+      shell: bash
       run: |
         if [ "${{ steps.setup-pixi-step.outputs.cache-hit }}" == "true" ]; then
           echo "✅ Pixi cache hit!"
@@ -33,59 +34,65 @@ jobs:
           echo "⚠️ Pixi cache miss or failed to restore."
         fi
 
-    - name: Install pixi dependencies for CI environment (with retry)
+    - name: Install pixi dependencies (with retry)
+      shell: bash
       run: |
         n=0
         until [ "$n" -ge 3 ]
         do
-          if pixi install -e ci; then
-            echo "✅ Installation for CI environment successful"
+          if pixi install; then
+            echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
-            echo "⚠️ Install for CI environment failed, retrying..."
-            pixi install -e ci && break
+            echo "⚠️ Install failed, retrying..."
+            pixi install && break
           fi
           n=$((n+1))
-          echo "pixi install for CI environment failed, retrying ($n/3)..."
+          echo "pixi install failed, retrying ($n/3)..."
           sleep 5
         done
         if [ "$n" -ge 3 ]; then
-          echo "❌ Failed to install pixi dependencies for CI environment after multiple retries."
+          echo "❌ Failed to install pixi dependencies after multiple retries."
           exit 1
         fi
 
     - name: Activate pixi environment
+      shell: bash
       run: |
         eval "$(pixi shell --env-hook bash)"
 
-    - name: Install dev dependencies for CI environment
+    - name: Install dev dependencies
+      shell: bash
       run: |
-        pixi run -e ci install-editable
+        pixi run install-editable
 
     - name: Verify pixi environment
+      shell: bash
       run: |
-        pixi run -e ci python --version
-        pixi run -e ci pip --version
+        pixi run python --version
+        pixi run pip --version
 
     - name: Quick lint check (changed files only)
+      shell: bash
       run: |
         echo "🔍 Quick lint check on changed files..."
         CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.py' | tr '\n' ' ')
         if [ -n "$CHANGED_FILES" ]; then
           echo "Changed files: $CHANGED_FILES"
-          pixi run -e ci ruff check $CHANGED_FILES --output-format=github
-          pixi run -e ci ruff format --check $CHANGED_FILES
+          pixi run ruff check $CHANGED_FILES --output-format=github
+          pixi run ruff format --check $CHANGED_FILES
           echo "✅ Lint check passed"
         else
           echo "No Python files changed"
         fi
 
     - name: Run tests on changed modules
+      shell: bash
       run: |
         echo "🧪 Running tests for changed modules..."
         CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'src/**/*.py')
         if [ -n "$CHANGED_FILES" ]; then
-          pixi run -e ci pytest tests/ -v --tb=short
+          pixi run pytest tests/ -v --tb=short
           echo "✅ Tests passed"
         else
           echo "No source files changed, skipping tests"
@@ -185,6 +192,7 @@ jobs:
         manifest-path: pyproject.toml
 
     - name: Log pixi cache status
+      shell: bash
       run: |
         if [ "${{ steps.setup-pixi-step.outputs.cache-hit }}" == "true" ]; then
           echo "✅ Pixi cache hit!"
@@ -192,39 +200,43 @@ jobs:
           echo "⚠️ Pixi cache miss or failed to restore."
         fi
 
-    - name: Install pixi dependencies for CI environment (with retry)
+    - name: Install pixi dependencies (with retry)
+      shell: bash
       run: |
         n=0
         until [ "$n" -ge 3 ]
         do
-          if pixi install -e ci; then
-            echo "✅ Installation for CI environment successful"
+          if pixi install; then
+            echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
-            echo "⚠️ Install for CI environment failed, retrying..."
-            pixi install -e ci && break
+            echo "⚠️ Install failed, retrying..."
+            pixi install && break
           fi
           n=$((n+1))
-          echo "pixi install for CI environment failed, retrying ($n/3)..."
+          echo "pixi install failed, retrying ($n/3)..."
           sleep 5
         done
         if [ "$n" -ge 3 ]; then
-          echo "❌ Failed to install pixi dependencies for CI environment after multiple retries."
+          echo "❌ Failed to install pixi dependencies after multiple retries."
           exit 1
         fi
 
     - name: Activate pixi environment
+      shell: bash
       run: |
         eval "$(pixi shell --env-hook bash)"
 
     - name: Install project in editable mode
+      shell: bash
       run: |
-        pixi run -e ci install-editable
+        pixi run install-editable
 
     - name: Generate coverage report
+      shell: bash
       run: |
         echo "📊 Generating coverage report..."
-        pixi run -e ci pytest tests/ --cov=src/uckn --cov-report=json --cov-report=term
+        pixi run pytest tests/ --cov=src/uckn --cov-report=json --cov-report=term
 
         # Check coverage threshold
         python << 'EOF'

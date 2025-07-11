@@ -49,20 +49,23 @@ jobs:
             pixi-fallback-${{ runner.os }}-
 
       - name: Verify pixi installation
+        shell: bash
         run: |
           echo "Verifying pixi setup completed successfully..."
           pixi info
 
       - name: Verify pixi environment
+        shell: bash
         run: |
-          echo "Verifying pixi ci environment..."
-          pixi run --environment ci python --version
-          pixi run --environment ci pip --version
-          pixi run --environment ci pytest --version
+          echo "Verifying pixi environment..."
+          pixi run python --version
+          pixi run pip --version
+          pixi run pytest --version
 
       - name: Install project in editable mode
+        shell: bash
         run: |
-          pixi run --environment ci pip install -e .
+          pixi run install-editable
 
       - name: Select tests by marker
         id: select-tests
@@ -77,12 +80,13 @@ jobs:
           fi
 
       - name: Run selected tests using pixi
+        shell: bash
         run: |
-          echo "Running tests with pixi in ci environment..."
+          echo "Running tests with pixi..."
           if [[ -n "$PYTEST_MARK" ]]; then
-            pixi run --environment ci pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+            pixi run pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
           else
-            pixi run --environment ci pytest tests/ --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+            pixi run pytest tests/ --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
           fi
 
       - name: Upload test results
