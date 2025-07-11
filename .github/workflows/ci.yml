@@ -117,6 +117,7 @@ jobs:
         manifest-path: pyproject.toml
 
     - name: Log pixi cache status
+      shell: bash
       run: |
         if [ "${{ steps.setup-pixi-step.outputs.cache-hit }}" == "true" ]; then
           echo "✅ Pixi cache hit!"
@@ -125,11 +126,12 @@ jobs:
         fi
 
     - name: Install dependencies (with retry and fallback)
+      shell: bash
       run: |
         n=0
         until [ "$n" -ge 3 ]
         do
-          # Try locked first, then fallback to update if needed
+          # Install base environment with ruff available
           if pixi install; then
             echo "✅ Installation successful"
             break
@@ -147,10 +149,12 @@ jobs:
         fi
 
     - name: Activate pixi environment
+      shell: bash
       run: |
         eval "$(pixi shell --env-hook bash)"
 
     - name: Verify pixi environment
+      shell: bash
       run: |
         which python
         which pip
@@ -158,14 +162,17 @@ jobs:
         pip --version
 
     - name: Run linting
+      shell: bash
       run: |
         pixi run ci-lint
 
     - name: Check formatting
+      shell: bash
       run: |
         pixi run ci-format-check
 
     - name: Type checking
+      shell: bash
       run: |
         echo "⚠️ Type checking temporarily disabled for CI stability"
         echo "TODO: Re-enable after resolving 143 mypy errors systematically"
