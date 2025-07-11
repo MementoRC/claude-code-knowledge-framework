@@ -33,6 +33,7 @@ jobs:
         manifest-path: pyproject.toml
 
     - name: Log pixi cache status
+      shell: bash
       run: |
         if [ "${{ steps.setup-pixi-step.outputs.cache-hit }}" == "true" ]; then
           echo "✅ Pixi cache hit!"
@@ -40,18 +41,29 @@ jobs:
           echo "⚠️ Pixi cache miss or failed to restore."
         fi
 
+    - name: Set platform for pixi
+      shell: bash
+      run: |
+        case "${{ matrix.os }}" in
+          "ubuntu-latest") echo "PIXI_PLATFORM=linux-64" >> $GITHUB_ENV ;;
+          "macos-latest") echo "PIXI_PLATFORM=osx-64" >> $GITHUB_ENV ;;
+          "windows-latest") echo "PIXI_PLATFORM=win-64" >> $GITHUB_ENV ;;
+        esac
+        echo "Using platform: $PIXI_PLATFORM"
+
     - name: Install dependencies (with retry and fallback)
+      shell: bash
       run: |
         n=0
         until [ "$n" -ge 3 ]
         do
-          # Try locked first, then fallback to update if needed
-          if pixi install; then
-            echo "✅ Installation successful"
+          # Use platform-specific install for cross-platform CI
+          if pixi install --platform $PIXI_PLATFORM; then
+            echo "✅ Installation successful for platform $PIXI_PLATFORM"
             break
           elif [ "$n" -eq 2 ]; then
             echo "⚠️ Install failed, retrying..."
-            pixi install && break
+            pixi install --platform $PIXI_PLATFORM && break
           fi
           n=$((n+1))
           echo "pixi install failed, retrying ($n/3)..."
@@ -63,10 +75,12 @@ jobs:
         fi
 
     - name: Activate pixi environment
+      shell: bash
       run: |
         eval "$(pixi shell --env-hook bash)"
 
     - name: Verify pixi environment
+      shell: bash
       run: |
         which python
         which pip
@@ -74,8 +88,9 @@ jobs:
         pip --version
 
     - name: Run tests
+      shell: bash
       run: |
-        pixi run ci-test
+        pixi run --platform $PIXI_PLATFORM test
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
