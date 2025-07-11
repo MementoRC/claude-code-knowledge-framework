@@ -60,6 +60,10 @@ jobs:
           pixi run --environment ci pip --version
           pixi run --environment ci pytest --version
 
+      - name: Install project in editable mode
+        run: |
+          pixi run --environment ci pip install -e .
+
       - name: Select tests by marker
         id: select-tests
         shell: bash
