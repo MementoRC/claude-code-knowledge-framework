@@ -80,7 +80,7 @@ jobs:
     - name: Run tests
       shell: bash
       run: |
-        pixi run -e ci test
+        pixi run -e ci ci-test
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'

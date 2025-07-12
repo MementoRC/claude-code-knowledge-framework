@@ -84,9 +84,9 @@ jobs:
         run: |
           echo "Running tests with pixi..."
           if [[ -n "$PYTEST_MARK" ]]; then
-            pixi run pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+            pixi run ci-test-matrix -m "$PYTEST_MARK" --json-report-file=pytest-${{ matrix.test-type }}.json
           else
-            pixi run pytest tests/ --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+            pixi run ci-test-matrix --json-report-file=pytest-${{ matrix.test-type }}.json
           fi
 
       - name: Upload test results
