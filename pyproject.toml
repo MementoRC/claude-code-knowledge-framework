@@ -194,7 +194,7 @@ check-all = { depends-on = ["quality", "static-analysis"] }
 # CI-specific variants
 ci-install = "pip install -e ."
 ci-test = { cmd = "pytest tests/ --cov=src/uckn --cov-report=xml --timeout=90", env = { ENVIRONMENT = "ci" } }
-ci-test-matrix = "pytest tests/ --json-report --json-report-file=pytest-report.json"
+ci-test-matrix = "pytest tests/"
 ci-lint = "ruff check src/ tests/ --output-format=github"
 ci-format-check = "ruff format --check src/ tests/"
 
