@@ -149,7 +149,7 @@ class KnowledgeManager:
             self._logger.error(f"Failed to get pattern {pattern_id}: {e}")
             return None
 
-    def update_pattern(self, pattern_id: str, updates: dict[str, Any]) -> bool:
+    def update_pattern(self, pattern_id: str, updates: dict[str, Any]) -> bool | None:
         """Update an existing pattern."""
         document_text = updates.get("document")
         metadata = updates.get("metadata")
@@ -168,17 +168,25 @@ class KnowledgeManager:
                 "Semantic search not available, cannot re-generate embedding for updated document text."
             )
 
-        return self.unified_db.update_pattern(
-            pattern_id=pattern_id,
-            document_text=document_text,
-            embedding=embedding,
-            metadata=metadata,
-            project_id=project_id,
-        )
+        try:
+            return self.unified_db.update_pattern(
+                pattern_id=pattern_id,
+                document_text=document_text,
+                embedding=embedding,
+                metadata=metadata,
+                project_id=project_id,
+            )
+        except Exception as e:
+            self._logger.error(f"Failed to update pattern {pattern_id}: {e}")
+            return None
 
-    def delete_pattern(self, pattern_id: str) -> bool:
+    def delete_pattern(self, pattern_id: str) -> bool | None:
         """Delete a pattern."""
-        return self.unified_db.delete_pattern(pattern_id)
+        try:
+            return self.unified_db.delete_pattern(pattern_id)
+        except Exception as e:
+            self._logger.error(f"Failed to delete pattern {pattern_id}: {e}")
+            return None
 
     def search_patterns(
         self,
@@ -197,9 +205,13 @@ class KnowledgeManager:
         if query_embedding is None:
             self._logger.error("Failed to generate query embedding for pattern search.")
             return []
-        return self.unified_db.search_patterns(
-            query_embedding, limit, min_similarity, metadata_filter
-        )
+        try:
+            return self.unified_db.search_patterns(
+                query_embedding, limit, min_similarity, metadata_filter
+            )
+        except Exception as e:
+            self._logger.error(f"Failed to search patterns: {e}")
+            return []
 
     # Pattern classification methods
     def create_category(
@@ -251,58 +263,50 @@ class KnowledgeManager:
     # Error solution management methods
     def add_error_solution(self, solution_data: dict[str, Any]) -> str | None:
         """Add a new error solution."""
-        try:
-            document_text = solution_data.get("document")
-            metadata = solution_data.get("metadata", {})
-            project_id = solution_data.get("project_id")
+        document_text = solution_data.get("document")
+        metadata = solution_data.get("metadata", {})
+        project_id = solution_data.get("project_id")
 
-            if not document_text:
-                self._logger.error(
-                    "Solution data must include 'document' text for embedding."
-                )
-                return None
-            if not self.semantic_search.is_available():
-                self._logger.error(
-                    "Semantic search not available, cannot generate embeddings for error solution."
-                )
-                return None
-
-            embedding = self.semantic_search.encode(document_text)
-            if embedding is None:
-                self._logger.error("Failed to generate embedding for error solution.")
-                return None
-
-            solution_id = self.unified_db.add_error_solution(
-                document_text=document_text,
-                embedding=embedding,
-                metadata=metadata,
-                solution_id=solution_data.get("solution_id"),
-                project_id=project_id,
+        if not document_text:
+            self._logger.error(
+                "Solution data must include 'document' text for embedding."
             )
-            if not solution_id:
-                # Fallback: try to create the solution directly if not implemented
-                if hasattr(self.unified_db, "pg_connector") and hasattr(
-                    self.unified_db.pg_connector, "add_error_solution"
-                ):
-                    solution_id = self.unified_db.pg_connector.add_error_solution(
-                        document_text=document_text,
-                        embedding=embedding,
-                        metadata=metadata,
-                        solution_id=solution_data.get("solution_id"),
-                        project_id=project_id,
-                    )
-            return solution_id
-        except Exception as e:
-            self._logger.error(f"Failed to add error solution: {e}")
             return None
+        if not self.semantic_search.is_available():
+            self._logger.error(
+                "Semantic search not available, cannot generate embeddings for error solution."
+            )
+            return None
+
+        embedding = self.semantic_search.encode(document_text)
+        if embedding is None:
+            self._logger.error("Failed to generate embedding for error solution.")
+            return None
+
+        solution_id = self.unified_db.add_error_solution(
+            document_text=document_text,
+            embedding=embedding,
+            metadata=metadata,
+            solution_id=solution_data.get("solution_id"),
+            project_id=project_id,
+        )
+        if not solution_id:
+            # Fallback: try to create the solution directly if not implemented
+            if hasattr(self.unified_db, "pg_connector") and hasattr(
+                self.unified_db.pg_connector, "add_error_solution"
+            ):
+                solution_id = self.unified_db.pg_connector.add_error_solution(
+                    document_text=document_text,
+                    embedding=embedding,
+                    metadata=metadata,
+                    solution_id=solution_data.get("solution_id"),
+                    project_id=project_id,
+                )
+        return solution_id
 
     def get_error_solution(self, solution_id: str) -> dict[str, Any] | None:
         """Retrieve a specific error solution."""
-        try:
-            return self.unified_db.get_error_solution(solution_id)
-        except Exception as e:
-            self._logger.error(f"Failed to get error solution {solution_id}: {e}")
-            return None
+        return self.unified_db.get_error_solution(solution_id)
 
     def search_error_solutions(
         self,
