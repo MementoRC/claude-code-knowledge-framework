@@ -5,8 +5,8 @@ from src.uckn.core.atoms.multi_modal_embeddings import MultiModalEmbeddings
 
 # Check if ML dependencies are available
 try:
-    import transformers
     import sentence_transformers
+    import transformers
     ML_DEPENDENCIES_AVAILABLE = True
 except ImportError:
     ML_DEPENDENCIES_AVAILABLE = False
