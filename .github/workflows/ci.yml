@@ -24,39 +24,29 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+    - name: Setup pixi
+      uses: prefix-dev/setup-pixi@v0.8.10
       with:
-        python-version: ${{ matrix.python-version }}
+        manifest-path: pyproject.toml
+        environments: ci
+        cache: true
+        auth-host: conda.anaconda.org
+        auth-token: ${{ secrets.ANACONDA_TOKEN }}
 
-    - name: Cache pip dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: pip-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
-        restore-keys: |
-          pip-${{ runner.os }}-${{ matrix.python-version }}-
-
-    - name: Install dependencies
+    - name: Install project in editable mode
       shell: bash
-      run: |
-        echo "Installing dependencies..."
-        python -m pip install --upgrade pip
-        pip install -e .
-        pip install pytest pytest-cov pytest-timeout pytest-asyncio pytest-xdist
+      run: pixi run -e ci install-editable
 
     - name: Verify environment
       shell: bash
       run: |
-        which python
-        which pip
-        python --version
-        pip --version
+        pixi run -e ci python --version
+        pixi --version
 
     - name: Run tests
       shell: bash
       run: |
-        python -m pytest tests/ --cov=src/uckn --cov-report=xml -v
+        pixi run -e ci pytest tests/ --cov=src/uckn --cov-report=xml -v
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
@@ -74,44 +64,34 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+    - name: Setup pixi
+      uses: prefix-dev/setup-pixi@v0.8.10
       with:
-        python-version: 3.11
+        manifest-path: pyproject.toml
+        environments: ci
+        cache: true
+        auth-host: conda.anaconda.org
+        auth-token: ${{ secrets.ANACONDA_TOKEN }}
 
-    - name: Cache pip dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: pip-${{ runner.os }}-3.11-${{ hashFiles('pyproject.toml') }}
-        restore-keys: |
-          pip-${{ runner.os }}-3.11-
-
-    - name: Install dependencies
+    - name: Install project in editable mode
       shell: bash
-      run: |
-        echo "Installing dependencies..."
-        python -m pip install --upgrade pip
-        pip install -e .
-        pip install ruff mypy
+      run: pixi run -e ci install-editable
 
     - name: Verify environment
       shell: bash
       run: |
-        which python
-        which pip
-        python --version
-        pip --version
+        pixi run -e ci python --version
+        pixi --version
 
     - name: Run linting
       shell: bash
       run: |
-        python -m ruff check src/ tests/ --output-format=github
+        pixi run -e ci ruff check src/ tests/ --output-format=github
 
     - name: Check formatting
       shell: bash
       run: |
-        python -m ruff format --check src/ tests/
+        pixi run -e ci ruff format --check src/ tests/
 
     - name: Type checking
       shell: bash
