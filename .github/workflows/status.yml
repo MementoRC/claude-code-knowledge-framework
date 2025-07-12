@@ -47,7 +47,7 @@ jobs:
 
     - name: Install project dependencies
       run: |
-        pixi run -e ci ci-install
+        pixi run ci-install
 
     - name: Quick smoke test
       run: |

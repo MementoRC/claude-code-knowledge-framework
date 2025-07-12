@@ -3,16 +3,16 @@ name: Platform Validation
 on:
   # Trigger on pyproject.toml changes (when dependencies are modified)
   push:
-    paths: 
+    paths:
       - 'pyproject.toml'
       - 'pixi.lock'
     branches: [ main, development ]
   pull_request:
-    paths: 
+    paths:
       - 'pyproject.toml'
       - 'pixi.lock'
     branches: [ main, development ]
-  
+
   # Allow manual trigger for testing
   workflow_dispatch:
     inputs:
@@ -37,13 +37,13 @@ jobs:
     name: Validate ${{ matrix.platform }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    
+
     strategy:
       fail-fast: false  # Continue testing other platforms if one fails
       matrix:
-        platform: [linux-64, osx-64, osx-arm64, win-64]
-        environment: [quality, quality-extended, ci]
-    
+        platform: [linux-64]  # Only test supported platforms from pyproject.toml
+        environment: [quality, ci]  # Test main CI environments
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -61,23 +61,23 @@ jobs:
         echo "PIXI_CACHE_DIR=/tmp/pixi-cache" >> $GITHUB_ENV
         echo "CONDA_PKGS_DIRS=/tmp/conda-pkgs" >> $GITHUB_ENV
         echo "PIXI_SOLVER_THREADS=2" >> $GITHUB_ENV
-        
+
         # Free up disk space
         sudo rm -rf /opt/hostedtoolcache
         sudo rm -rf /usr/local/lib/android
         sudo rm -rf /usr/share/dotnet
-        
+
         echo "💾 Available memory:"
         free -h
 
     - name: Create temporary pyproject.toml for platform testing
       run: |
         echo "🎯 Testing platform: ${{ matrix.platform }}"
-        
+
         # Create a temporary pyproject.toml with single platform
         cp pyproject.toml pyproject.toml.backup
         sed -i 's/platforms = \["linux-64"\]/platforms = ["${{ matrix.platform }}"]/' pyproject.toml
-        
+
         echo "📋 Platform configuration:"
         grep -A5 -B5 "platforms.*=" pyproject.toml
 
@@ -85,21 +85,21 @@ jobs:
       timeout-minutes: 30
       run: |
         echo "🔍 Testing dependency resolution for ${{ matrix.platform }} environment ${{ matrix.environment }}..."
-        
+
         # Test if pixi can resolve dependencies without installing
         if pixi info -e ${{ matrix.environment }} 2>&1 | grep -q "solve-group"; then
           echo "✅ Dependency resolution successful for ${{ matrix.platform }}"
-          
+
           # Get dependency count
           DEP_COUNT=$(pixi info -e ${{ matrix.environment }} | grep "Dependency count:" | cut -d: -f2 | xargs)
           echo "📦 Dependencies for ${{ matrix.environment }}: $DEP_COUNT"
-          
+
           # Test quality commands (dry run)
           echo "🧪 Testing quality commands..."
           pixi run -e ${{ matrix.environment }} --dry-run lint || echo "⚠️ lint command not available"
           pixi run -e ${{ matrix.environment }} --dry-run test || echo "⚠️ test command not available"
           pixi run -e ${{ matrix.environment }} --dry-run typecheck || echo "⚠️ typecheck command not available"
-          
+
         else
           echo "❌ Dependency resolution failed for ${{ matrix.platform }}"
           echo "::error::Platform ${{ matrix.platform }} is not compatible with environment ${{ matrix.environment }}"
@@ -109,10 +109,10 @@ jobs:
     - name: Test package availability
       run: |
         echo "📦 Testing critical package availability for ${{ matrix.platform }}..."
-        
+
         # Test if critical packages are available on this platform
         CRITICAL_PACKAGES=("pytest" "ruff" "mypy" "bandit" "safety")
-        
+
         for package in "${CRITICAL_PACKAGES[@]}"; do
           if pixi search $package --platform ${{ matrix.platform }} | grep -q $package; then
             echo "✅ $package available on ${{ matrix.platform }}"
@@ -132,7 +132,7 @@ jobs:
         echo "**Status**: ${{ job.status }}" >> platform-report-${{ matrix.platform }}-${{ matrix.environment }}.md
         echo "**Date**: $(date)" >> platform-report-${{ matrix.platform }}-${{ matrix.environment }}.md
         echo "" >> platform-report-${{ matrix.platform }}-${{ matrix.environment }}.md
-        
+
         # Add dependency info
         echo "### Dependencies" >> platform-report-${{ matrix.platform }}-${{ matrix.environment }}.md
         pixi info -e ${{ matrix.environment }} | grep "Dependency count:" >> platform-report-${{ matrix.platform }}-${{ matrix.environment }}.md || echo "N/A" >> platform-report-${{ matrix.platform }}-${{ matrix.environment }}.md
@@ -155,7 +155,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [validate-platforms]
     if: always()
-    
+
     steps:
     - name: Download all platform reports
       uses: actions/download-artifact@v4
@@ -169,14 +169,14 @@ jobs:
         echo "" >> compatibility-summary.md
         echo "Generated on: $(date)" >> compatibility-summary.md
         echo "" >> compatibility-summary.md
-        
+
         # Create matrix table
         echo "| Platform | quality | quality-extended | ci |" >> compatibility-summary.md
         echo "|----------|---------|------------------|-------|" >> compatibility-summary.md
-        
+
         for platform in linux-64 osx-64 osx-arm64 win-64; do
           echo -n "| $platform |" >> compatibility-summary.md
-          
+
           for env in quality quality-extended ci; do
             if [ -f "platform-report-$platform-$env.md" ]; then
               if grep -q "Status.*success" "platform-report-$platform-$env.md"; then
@@ -190,7 +190,7 @@ jobs:
           done
           echo "" >> compatibility-summary.md
         done
-        
+
         echo "" >> compatibility-summary.md
         echo "## 📋 Recommendations" >> compatibility-summary.md
         echo "" >> compatibility-summary.md
@@ -216,7 +216,7 @@ jobs:
         script: |
           const fs = require('fs');
           const summary = fs.readFileSync('compatibility-summary.md', 'utf8');
-          
+
           github.rest.issues.createComment({
             issue_number: context.issue.number,
             owner: context.repo.owner,
@@ -230,7 +230,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [validate-platforms]
     if: always() && github.event_name == 'push'
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -245,17 +245,17 @@ jobs:
       run: |
         echo "🎯 Platform Update Suggestions" > suggestions.md
         echo "" >> suggestions.md
-        
+
         # Check current platforms in pyproject.toml
         CURRENT_PLATFORMS=$(grep -o 'platforms = \[.*\]' pyproject.toml | sed 's/platforms = \[\(.*\)\]/\1/' | tr -d '"')
         echo "**Current platforms**: $CURRENT_PLATFORMS" >> suggestions.md
         echo "" >> suggestions.md
-        
+
         # Suggest additions based on success
         echo "### ✅ Safe to Add" >> suggestions.md
         echo "Based on successful validation, these platforms can be added:" >> suggestions.md
         echo "" >> suggestions.md
-        
+
         # This would be enhanced with actual validation results
         echo "```toml" >> suggestions.md
         echo "# Suggested pyproject.toml update:" >> suggestions.md

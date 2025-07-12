@@ -107,7 +107,7 @@ jobs:
         import sys
 
         # Get changed files
-        result = subprocess.run(['git', 'diff', '--name-only', 'origin/${{ github.base_ref }}...HEAD', '--', 'src/**/*.py'],
+        result = subprocess.run(['git', 'diff', '--name-only', 'origin/${{ github.base_ref }}...HEAD', '--', 'src/'],
                               capture_output=True, text=True)
         changed_files = result.stdout.strip().split('\n') if result.stdout.strip() else []
 
@@ -156,22 +156,24 @@ jobs:
                             violations.append(f"Legacy framework import: {node.module}")
             except:
                 pass  # Skip files that can't be parsed
+            
+            return violations
 
-            all_violations = []
-            for root, dirs, files in os.walk("src/uckn"):
-                for file in files:
-                    if file.endswith(".py"):
-                        file_path = os.path.join(root, file)
-                        violations = check_imports(file_path)
-                        all_violations.extend([f"{file_path}: {v}" for v in violations])
+        all_violations = []
+        for root, dirs, files in os.walk("src/uckn"):
+            for file in files:
+                if file.endswith(".py"):
+                    file_path = os.path.join(root, file)
+                    violations = check_imports(file_path)
+                    all_violations.extend([f"{file_path}: {v}" for v in violations])
 
-            if all_violations:
-                print("❌ Import violations:")
-                for violation in all_violations:
-                    print(f"  {violation}")
-                sys.exit(1)
-            else:
-                print("✅ Import structure is clean")
+        if all_violations:
+            print("❌ Import violations:")
+            for violation in all_violations:
+                print(f"  {violation}")
+            sys.exit(1)
+        else:
+            print("✅ Import structure is clean")
         EOF
 
   pr-coverage:
