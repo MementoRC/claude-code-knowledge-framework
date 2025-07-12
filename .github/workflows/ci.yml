@@ -24,52 +24,28 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup pixi with cache fallback
-      id: setup-pixi-step # Added ID for checking cache status
-      uses: prefix-dev/setup-pixi@v0.8.10
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
       with:
-        pixi-version: v0.49.0
-        cache: false  # Temporarily disable during GitHub cache service outage
-        manifest-path: pyproject.toml
+        python-version: ${{ matrix.python-version }}
 
-    - name: Log pixi cache status
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: pip-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+        restore-keys: |
+          pip-${{ runner.os }}-${{ matrix.python-version }}-
+
+    - name: Install dependencies
       shell: bash
       run: |
-        if [ "${{ steps.setup-pixi-step.outputs.cache-hit }}" == "true" ]; then
-          echo "✅ Pixi cache hit!"
-        else
-          echo "⚠️ Pixi cache miss or failed to restore."
-        fi
+        echo "Installing dependencies..."
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install pytest pytest-cov pytest-timeout pytest-asyncio pytest-xdist
 
-    - name: Install dependencies (with retry and fallback)
-      shell: bash
-      run: |
-        n=0
-        until [ "$n" -ge 3 ]
-        do
-          # Install CI environment which includes pytest and quality tools
-          if pixi install -e ci; then
-            echo "✅ Installation successful for CI environment"
-            break
-          elif [ "$n" -eq 2 ]; then
-            echo "⚠️ Install failed, retrying..."
-            pixi install -e ci && break
-          fi
-          n=$((n+1))
-          echo "pixi install -e ci failed, retrying ($n/3)..."
-          sleep 5
-        done
-        if [ "$n" -ge 3 ]; then
-          echo "❌ Failed to install pixi dependencies for CI environment after multiple retries."
-          exit 1
-        fi
-
-    - name: Activate pixi environment
-      shell: bash
-      run: |
-        eval "$(pixi shell --env-hook bash)"
-
-    - name: Verify pixi environment
+    - name: Verify environment
       shell: bash
       run: |
         which python
@@ -80,7 +56,7 @@ jobs:
     - name: Run tests
       shell: bash
       run: |
-        pixi run -e ci ci-test
+        python -m pytest tests/ --cov=src/uckn --cov-report=xml -v
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
@@ -98,52 +74,28 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup pixi with cache fallback
-      id: setup-pixi-step # Added ID for checking cache status
-      uses: prefix-dev/setup-pixi@v0.8.10
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        pixi-version: v0.49.0
-        cache: false  # Temporarily disable during GitHub cache service outage
-        manifest-path: pyproject.toml
+        python-version: 3.11
 
-    - name: Log pixi cache status
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: pip-${{ runner.os }}-3.11-${{ hashFiles('pyproject.toml') }}
+        restore-keys: |
+          pip-${{ runner.os }}-3.11-
+
+    - name: Install dependencies
       shell: bash
       run: |
-        if [ "${{ steps.setup-pixi-step.outputs.cache-hit }}" == "true" ]; then
-          echo "✅ Pixi cache hit!"
-        else
-          echo "⚠️ Pixi cache miss or failed to restore."
-        fi
+        echo "Installing dependencies..."
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install ruff mypy
 
-    - name: Install dependencies (with retry and fallback)
-      shell: bash
-      run: |
-        n=0
-        until [ "$n" -ge 3 ]
-        do
-          # Install CI environment with all quality tools
-          if pixi install -e ci; then
-            echo "✅ Installation successful for CI environment"
-            break
-          elif [ "$n" -eq 2 ]; then
-            echo "⚠️ Install failed, retrying..."
-            pixi install -e ci && break
-          fi
-          n=$((n+1))
-          echo "pixi install -e ci failed, retrying ($n/3)..."
-          sleep 5
-        done
-        if [ "$n" -ge 3 ]; then
-          echo "❌ Failed to install pixi dependencies for CI environment after multiple retries."
-          exit 1
-        fi
-
-    - name: Activate pixi environment
-      shell: bash
-      run: |
-        eval "$(pixi shell --env-hook bash)"
-
-    - name: Verify pixi environment
+    - name: Verify environment
       shell: bash
       run: |
         which python
@@ -154,19 +106,19 @@ jobs:
     - name: Run linting
       shell: bash
       run: |
-        pixi run -e ci ci-lint
+        python -m ruff check src/ tests/ --output-format=github
 
     - name: Check formatting
       shell: bash
       run: |
-        pixi run -e ci ci-format-check
+        python -m ruff format --check src/ tests/
 
     - name: Type checking
       shell: bash
       run: |
         echo "⚠️ Type checking temporarily disabled for CI stability"
         echo "TODO: Re-enable after resolving 143 mypy errors systematically"
-        # pixi run typecheck
+        # python -m mypy src/uckn
 
   security:
     name: Security Scan

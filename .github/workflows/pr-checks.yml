@@ -17,60 +17,32 @@ jobs:
       with:
         fetch-depth: 0  # Get full history for diff analysis
 
-    - name: Setup pixi with cache fallback
-      id: setup-pixi-step # Added ID for checking cache status
-      uses: prefix-dev/setup-pixi@v0.8.10
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
       with:
-        pixi-version: v0.49.0
-        cache: false  # Temporarily disable during GitHub cache service outage
-        manifest-path: pyproject.toml
+        python-version: 3.11
 
-    - name: Log pixi cache status
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: pip-${{ runner.os }}-3.11-${{ hashFiles('pyproject.toml') }}
+        restore-keys: |
+          pip-${{ runner.os }}-3.11-
+
+    - name: Install dependencies
       shell: bash
       run: |
-        if [ "${{ steps.setup-pixi-step.outputs.cache-hit }}" == "true" ]; then
-          echo "✅ Pixi cache hit!"
-        else
-          echo "⚠️ Pixi cache miss or failed to restore."
-        fi
+        echo "Installing dependencies..."
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install ruff pytest
 
-    - name: Install pixi dependencies (with retry)
+    - name: Verify environment
       shell: bash
       run: |
-        n=0
-        until [ "$n" -ge 3 ]
-        do
-          if pixi install; then
-            echo "✅ Installation successful"
-            break
-          elif [ "$n" -eq 2 ]; then
-            echo "⚠️ Install failed, retrying..."
-            pixi install && break
-          fi
-          n=$((n+1))
-          echo "pixi install failed, retrying ($n/3)..."
-          sleep 5
-        done
-        if [ "$n" -ge 3 ]; then
-          echo "❌ Failed to install pixi dependencies after multiple retries."
-          exit 1
-        fi
-
-    - name: Activate pixi environment
-      shell: bash
-      run: |
-        eval "$(pixi shell --env-hook bash)"
-
-    - name: Install dev dependencies
-      shell: bash
-      run: |
-        pixi run -e ci install-editable
-
-    - name: Verify pixi environment
-      shell: bash
-      run: |
-        pixi run -e ci python --version
-        pixi run -e ci pip --version
+        python --version
+        pip --version
 
     - name: Quick lint check (changed files only)
       shell: bash
@@ -79,8 +51,8 @@ jobs:
         CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.py' | tr '\n' ' ')
         if [ -n "$CHANGED_FILES" ]; then
           echo "Changed files: $CHANGED_FILES"
-          pixi run -e ci ruff check $CHANGED_FILES --output-format=github
-          pixi run -e ci ruff format --check $CHANGED_FILES
+          python -m ruff check $CHANGED_FILES --output-format=github
+          python -m ruff format --check $CHANGED_FILES
           echo "✅ Lint check passed"
         else
           echo "No Python files changed"
@@ -92,7 +64,7 @@ jobs:
         echo "🧪 Running tests for changed modules..."
         CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'src/**/*.py')
         if [ -n "$CHANGED_FILES" ]; then
-          pixi run -e ci pytest tests/ -v --tb=short
+          python -m pytest tests/ -v --tb=short
           echo "✅ Tests passed"
         else
           echo "No source files changed, skipping tests"
