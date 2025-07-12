@@ -81,21 +81,21 @@ class KnowledgeManager:
             self._logger.error(f"Failed to get project {project_id}: {e}")
             return None
 
-    def update_project(self, project_id: str, updates: dict[str, Any]) -> bool:
+    def update_project(self, project_id: str, updates: dict[str, Any]) -> bool | None:
         """Update an existing project."""
         try:
             return self.unified_db.update_project(project_id, updates)
         except Exception as e:
             self._logger.error(f"Failed to update project {project_id}: {e}")
-            return False
+            return None
 
-    def delete_project(self, project_id: str) -> bool:
+    def delete_project(self, project_id: str) -> bool | None:
         """Delete a project."""
         try:
             return self.unified_db.delete_project(project_id)
         except Exception as e:
             self._logger.error(f"Failed to delete project {project_id}: {e}")
-            return False
+            return None
 
     def get_all_projects(self) -> list[dict[str, Any]]:
         """Get all projects."""
@@ -129,17 +129,25 @@ class KnowledgeManager:
             self._logger.error("Failed to generate embedding for pattern.")
             return None
 
-        return self.unified_db.add_pattern(
-            document_text=document_text,
-            embedding=embedding,
-            metadata=metadata,
-            pattern_id=pattern_data.get("pattern_id"),
-            project_id=project_id,
-        )
+        try:
+            return self.unified_db.add_pattern(
+                document_text=document_text,
+                embedding=embedding,
+                metadata=metadata,
+                pattern_id=pattern_data.get("pattern_id"),
+                project_id=project_id,
+            )
+        except Exception as e:
+            self._logger.error(f"Failed to add pattern: {e}")
+            return None
 
     def get_pattern(self, pattern_id: str) -> dict[str, Any] | None:
         """Retrieve a specific pattern."""
-        return self.unified_db.get_pattern(pattern_id)
+        try:
+            return self.unified_db.get_pattern(pattern_id)
+        except Exception as e:
+            self._logger.error(f"Failed to get pattern {pattern_id}: {e}")
+            return None
 
     def update_pattern(self, pattern_id: str, updates: dict[str, Any]) -> bool:
         """Update an existing pattern."""

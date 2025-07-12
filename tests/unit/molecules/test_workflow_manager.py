@@ -268,11 +268,11 @@ async def test_transition_state_publish_success(
     mock_knowledge_manager.update_pattern.assert_called_once()
     updated_pattern_obj = mock_knowledge_manager.update_pattern.call_args[0][1]
     assert updated_pattern_obj["status"] == WorkflowState.PUBLISHED
-    assert updated_pattern_obj.current_version == "1.0.0"
-    assert len(updated_pattern_obj.versions) == 2  # Original 0.1.0 + new 1.0.0
-    assert updated_pattern_obj.versions[-1].version_number == "1.0.0"
+    assert updated_pattern_obj["current_version"] == "1.0.0"
+    assert len(updated_pattern_obj["versions"]) == 2  # Original 0.1.0 + new 1.0.0
+    assert updated_pattern_obj["versions"][-1]["version_number"] == "1.0.0"
     assert (
-        updated_pattern_obj.versions[-1].status_at_creation == WorkflowState.PUBLISHED
+        updated_pattern_obj["versions"][-1]["status_at_creation"] == WorkflowState.PUBLISHED
     )
 
     mock_connection_manager.broadcast.assert_called_once()
