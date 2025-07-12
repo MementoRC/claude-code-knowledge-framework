@@ -33,8 +33,6 @@ jobs:
           manifest-path: pyproject.toml
           environments: ci
           cache: true
-          auth-host: conda.anaconda.org
-          auth-token: ${{ secrets.ANACONDA_TOKEN }}
 
       - name: Install project in editable mode
         shell: bash
