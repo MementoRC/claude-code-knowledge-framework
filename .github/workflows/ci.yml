@@ -29,7 +29,7 @@ jobs:
       with:
         manifest-path: pyproject.toml
         environments: quality
-        cache: true
+        cache: false
 
     - name: Install project in editable mode
       shell: bash
@@ -67,7 +67,7 @@ jobs:
       with:
         manifest-path: pyproject.toml
         environments: quality
-        cache: true
+        cache: false
 
     - name: Install project in editable mode
       shell: bash

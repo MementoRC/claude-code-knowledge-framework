@@ -21,7 +21,7 @@ jobs:
         with:
           manifest-path: pyproject.toml
           environments: quality
-          cache: true
+          cache: false
 
       - name: Install project in editable mode
         run: pixi run -e quality install-editable
