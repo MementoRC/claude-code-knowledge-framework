@@ -64,7 +64,7 @@ jobs:
         echo "🧪 Running tests for changed modules..."
         CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'src/**/*.py')
         if [ -n "$CHANGED_FILES" ]; then
-          python -m pytest tests/ -v --tb=short
+          pixi run -e ci pytest tests/ -v --tb=short
           echo "✅ Tests passed"
         else
           echo "No source files changed, skipping tests"
@@ -73,7 +73,7 @@ jobs:
     - name: Validate atomic design on changes
       run: |
         echo "🏗️ Validating atomic design on changed files..."
-        python << 'EOF'
+        pixi run -e ci python << 'EOF'
         import os
         import subprocess
         import sys
@@ -109,7 +109,7 @@ jobs:
     - name: Check imports and dependencies
       run: |
         echo "🔍 Checking import structure..."
-        python << 'EOF'
+        pixi run -e ci python << 'EOF'
         import os
         import ast
         import sys
@@ -128,7 +128,7 @@ jobs:
                             violations.append(f"Legacy framework import: {node.module}")
             except:
                 pass  # Skip files that can't be parsed
-            
+
             return violations
 
         all_violations = []
@@ -157,35 +157,27 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+    - name: Setup pixi
+      uses: prefix-dev/setup-pixi@v0.8.10
       with:
-        python-version: 3.11
+        manifest-path: pyproject.toml
+        environments: ci
+        cache: true
+        auth-host: conda.anaconda.org
+        auth-token: ${{ secrets.ANACONDA_TOKEN }}
 
-    - name: Cache pip dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: pip-${{ runner.os }}-3.11-${{ hashFiles('pyproject.toml') }}
-        restore-keys: |
-          pip-${{ runner.os }}-3.11-
-
-    - name: Install dependencies
+    - name: Install project in editable mode
       shell: bash
-      run: |
-        echo "Installing dependencies..."
-        python -m pip install --upgrade pip
-        pip install -e .
-        pip install pytest pytest-cov
+      run: pixi run -e ci install-editable
 
     - name: Generate coverage report
       shell: bash
       run: |
         echo "📊 Generating coverage report..."
-        python -m pytest tests/ --cov=src/uckn --cov-report=json --cov-report=term
+        pixi run -e ci pytest tests/ --cov=src/uckn --cov-report=json --cov-report=term
 
         # Check coverage threshold
-        python << 'EOF'
+        pixi run -e ci python << 'EOF'
         import json
 
         with open('coverage.json', 'r') as f:

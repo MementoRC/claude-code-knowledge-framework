@@ -16,34 +16,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+      - name: Setup pixi
+        uses: prefix-dev/setup-pixi@v0.8.10
         with:
-          python-version: 3.11
+          manifest-path: pyproject.toml
+          environments: ci
+          cache: true
+          auth-host: conda.anaconda.org
+          auth-token: ${{ secrets.ANACONDA_TOKEN }}
 
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: pip-${{ runner.os }}-3.11-${{ hashFiles('pyproject.toml') }}
-          restore-keys: |
-            pip-${{ runner.os }}-3.11-
-
-      - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y git
-
-      - name: Install dependencies
-        run: |
-          echo "Installing dependencies..."
-          python -m pip install --upgrade pip
-          pip install -e .
-          pip install pytest pytest-cov pytest-json-report pytest-html coverage
+      - name: Install project in editable mode
+        run: pixi run -e ci install-editable
 
       - name: Run tests with coverage (HTML, XML, JSON, Markdown)
-        run: |
-          # Run tests with comprehensive coverage reporting
-          python -m pytest tests/ --cov=src/uckn --cov-report=html --cov-report=xml --cov-report=json --cov-report=term --cov-report=term-missing --json-report --json-report-file=pytest-report.json --html=pytest-report.html --self-contained-html
-          python -m coverage markdown
+        run: pixi run -e ci test-coverage-json
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -60,7 +46,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           # Install diff-cover separately to avoid dependency resolution issues
-          pip install diff-cover
+          pixi run -e ci python -m pip install diff-cover
 
       - name: diff-cover analysis (PR only)
         if: github.event_name == 'pull_request'
