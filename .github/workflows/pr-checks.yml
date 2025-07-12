@@ -64,13 +64,13 @@ jobs:
     - name: Install dev dependencies
       shell: bash
       run: |
-        pixi run install-editable
+        pixi run -e ci install-editable
 
     - name: Verify pixi environment
       shell: bash
       run: |
-        pixi run python --version
-        pixi run pip --version
+        pixi run -e ci python --version
+        pixi run -e ci pip --version
 
     - name: Quick lint check (changed files only)
       shell: bash
@@ -79,8 +79,8 @@ jobs:
         CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.py' | tr '\n' ' ')
         if [ -n "$CHANGED_FILES" ]; then
           echo "Changed files: $CHANGED_FILES"
-          pixi run ruff check $CHANGED_FILES --output-format=github
-          pixi run ruff format --check $CHANGED_FILES
+          pixi run -e ci ruff check $CHANGED_FILES --output-format=github
+          pixi run -e ci ruff format --check $CHANGED_FILES
           echo "✅ Lint check passed"
         else
           echo "No Python files changed"
@@ -92,7 +92,7 @@ jobs:
         echo "🧪 Running tests for changed modules..."
         CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'src/**/*.py')
         if [ -n "$CHANGED_FILES" ]; then
-          pixi run pytest tests/ -v --tb=short
+          pixi run -e ci pytest tests/ -v --tb=short
           echo "✅ Tests passed"
         else
           echo "No source files changed, skipping tests"

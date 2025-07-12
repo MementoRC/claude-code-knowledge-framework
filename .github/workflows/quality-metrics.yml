@@ -30,16 +30,16 @@ jobs:
           n=0
           until [ "$n" -ge 3 ]
           do
-            # Try locked first, then fallback to update if needed
-            if pixi install; then # PIXI_ENV will make this target 'ci'
-              echo "✅ Installation successful"
+            # Install CI environment explicitly with all required features
+            if pixi install -e ci --verbose; then
+              echo "✅ CI environment installation successful"
               break
             elif [ "$n" -eq 2 ]; then
               echo "⚠️ Install failed, retrying..."
-              pixi install && break # PIXI_ENV will make this target 'ci'
+              pixi install -e ci --verbose && break
             fi
             n=$((n+1))
-            echo "pixi install failed, retrying ($n/3)..."
+            echo "pixi install -e ci failed, retrying ($n/3)..."
             sleep 5
           done
 
