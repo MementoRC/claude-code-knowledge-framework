@@ -15,50 +15,35 @@ jobs:
       PIXI_ENV: ci # Ensure pixi targets the 'ci' environment
     steps:
       - uses: actions/checkout@v4
-      - name: Setup pixi with cache fallback
-        id: setup-pixi
-        uses: prefix-dev/setup-pixi@v0.8.10
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
         with:
-          pixi-version: v0.49.0
-          cache: false  # Temporarily disable during GitHub cache service outage
-          manifest-path: pyproject.toml
+          python-version: 3.11
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-3.11-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            pip-${{ runner.os }}-3.11-
+
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y git
 
-      - name: Install dependencies (pixi) with retry and fallback
+      - name: Install dependencies
         run: |
-          n=0
-          until [ "$n" -ge 3 ]
-          do
-            # Install default environment with all dependencies
-            if pixi install --verbose; then
-              echo "✅ Installation successful"
-              break
-            elif [ "$n" -eq 2 ]; then
-              echo "⚠️ Install failed, retrying..."
-              pixi install --verbose && break
-            fi
-            n=$((n+1))
-            echo "pixi install failed, retrying ($n/3)..."
-            sleep 5
-          done
-
-      - name: Activate pixi environment
-        run: |
-          eval "$(pixi shell --env-hook bash)"
-
-      - name: Install project dependencies
-        run: |
-          pixi run install-editable
+          echo "Installing dependencies..."
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest pytest-cov pytest-json-report pytest-html coverage
 
       - name: Run tests with coverage (HTML, XML, JSON, Markdown)
         run: |
-          # Install missing packages if needed
-          pixi run pip install pytest-json-report pytest-html coverage || true
-          
-          # Run tests using pixi to ensure environment is properly set
-          pixi run pytest tests/ --cov=src/uckn --cov-report=html --cov-report=xml --cov-report=json --cov-report=term --cov-report=term-missing --json-report --json-report-file=pytest-report.json --html=pytest-report.html --self-contained-html
-          pixi run python -m coverage markdown
+          # Run tests with comprehensive coverage reporting
+          python -m pytest tests/ --cov=src/uckn --cov-report=html --cov-report=xml --cov-report=json --cov-report=term --cov-report=term-missing --json-report --json-report-file=pytest-report.json --html=pytest-report.html --self-contained-html
+          python -m coverage markdown
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -75,14 +60,14 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           # Install diff-cover separately to avoid dependency resolution issues
-          pixi run pip install diff-cover
+          pip install diff-cover
 
       - name: diff-cover analysis (PR only)
         if: github.event_name == 'pull_request'
         run: |
-          # Use pixi environment to run diff-cover
+          # Run diff-cover analysis
           git fetch origin main:refs/remotes/origin/main
-          pixi run diff-cover coverage.xml --compare-branch=origin/main --fail-under=40 --html-report diffcover.html --markdown-report diffcover.md --json-report diffcover.json
+          diff-cover coverage.xml --compare-branch=origin/main --fail-under=40 --html-report diffcover.html --markdown-report diffcover.md --json-report diffcover.json
       - name: Upload diff-cover artifacts
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
