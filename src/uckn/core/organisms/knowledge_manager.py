@@ -359,48 +359,32 @@ class KnowledgeManager:
         notes: str | None = None,
     ) -> str | None:
         """Add a new compatibility matrix entry."""
-        try:
-            entry_id = self.unified_db.add_compatibility_entry(
-                source_tech, target_tech, compatibility_score, notes
-            )
-            if not entry_id:
-                # Fallback: try to create the entry directly if not implemented
-                if hasattr(self.unified_db, "pg_connector") and hasattr(
-                    self.unified_db.pg_connector, "add_compatibility_entry"
-                ):
-                    entry_id = self.unified_db.pg_connector.add_compatibility_entry(
-                        source_tech, target_tech, compatibility_score, notes
-                    )
-            return entry_id
-        except Exception as e:
-            self._logger.error(f"Failed to add compatibility entry: {e}")
-            return None
+        entry_id = self.unified_db.add_compatibility_entry(
+            source_tech, target_tech, compatibility_score, notes
+        )
+        if not entry_id:
+            # Fallback: try to create the entry directly if not implemented
+            if hasattr(self.unified_db, "pg_connector") and hasattr(
+                self.unified_db.pg_connector, "add_compatibility_entry"
+            ):
+                entry_id = self.unified_db.pg_connector.add_compatibility_entry(
+                    source_tech, target_tech, compatibility_score, notes
+                )
+        return entry_id
 
     def get_compatibility_entry(self, entry_id: str) -> dict[str, Any] | None:
         """Retrieve a specific compatibility matrix entry."""
-        try:
-            return self.unified_db.get_compatibility_entry(entry_id)
-        except Exception as e:
-            self._logger.error(f"Failed to get compatibility entry {entry_id}: {e}")
-            return None
+        return self.unified_db.get_compatibility_entry(entry_id)
 
     def update_compatibility_entry(
         self, entry_id: str, updates: dict[str, Any]
     ) -> bool:
         """Update an existing compatibility matrix entry."""
-        try:
-            return self.unified_db.update_compatibility_entry(entry_id, updates)
-        except Exception as e:
-            self._logger.error(f"Failed to update compatibility entry {entry_id}: {e}")
-            return False
+        return self.unified_db.update_compatibility_entry(entry_id, updates)
 
     def delete_compatibility_entry(self, entry_id: str) -> bool:
         """Delete a compatibility matrix entry."""
-        try:
-            return self.unified_db.delete_compatibility_entry(entry_id)
-        except Exception as e:
-            self._logger.error(f"Failed to delete compatibility entry {entry_id}: {e}")
-            return False
+        return self.unified_db.delete_compatibility_entry(entry_id)
 
     def search_compatibility_entries(
         self,
@@ -410,13 +394,9 @@ class KnowledgeManager:
         max_score: float | None = None,
     ) -> list[dict[str, Any]]:
         """Search compatibility entries."""
-        try:
-            return self.unified_db.search_compatibility_entries(
-                source_tech, target_tech, min_score, max_score
-            )
-        except Exception as e:
-            self._logger.error(f"Failed to search compatibility entries: {e}")
-            return []
+        return self.unified_db.search_compatibility_entries(
+            source_tech, target_tech, min_score, max_score
+        )
 
     # Tech stack analysis
     def analyze_project_stack(self, project_path: str) -> dict[str, Any]:
@@ -425,12 +405,8 @@ class KnowledgeManager:
 
     def get_all_patterns_by_status(self, status: str) -> list[dict[str, Any]]:
         """Get all patterns filtered by status. Used by workflow manager."""
-        try:
-            # Use the unified database to search patterns by status
-            return self.unified_db.search_patterns_by_metadata({"status": status})
-        except Exception as e:
-            self._logger.error(f"Error searching patterns by status {status}: {e}")
-            return []
+        # Use the unified database to search patterns by status
+        return self.unified_db.search_patterns_by_metadata({"status": status})
 
     # Health and utility methods
     def get_health_status(self) -> dict[str, Any]:
