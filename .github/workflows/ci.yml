@@ -28,23 +28,23 @@ jobs:
       uses: prefix-dev/setup-pixi@v0.8.10
       with:
         manifest-path: pyproject.toml
-        environments: ci
+        environments: quality
         cache: true
 
     - name: Install project in editable mode
       shell: bash
-      run: pixi run -e ci install-editable
+      run: pixi run -e quality install-editable
 
     - name: Verify environment
       shell: bash
       run: |
-        pixi run -e ci python --version
+        pixi run -e quality python --version
         pixi --version
 
     - name: Run tests
       shell: bash
       run: |
-        pixi run -e ci pytest tests/ --cov=src/uckn --cov-report=xml -v
+        pixi run -e quality pytest tests/ --cov=src/uckn --cov-report=xml -v
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
@@ -66,28 +66,28 @@ jobs:
       uses: prefix-dev/setup-pixi@v0.8.10
       with:
         manifest-path: pyproject.toml
-        environments: ci
+        environments: quality
         cache: true
 
     - name: Install project in editable mode
       shell: bash
-      run: pixi run -e ci install-editable
+      run: pixi run -e quality install-editable
 
     - name: Verify environment
       shell: bash
       run: |
-        pixi run -e ci python --version
+        pixi run -e quality python --version
         pixi --version
 
     - name: Run linting
       shell: bash
       run: |
-        pixi run -e ci ruff check src/ tests/ --output-format=github
+        pixi run -e quality ruff check src/ tests/ --output-format=github
 
     - name: Check formatting
       shell: bash
       run: |
-        pixi run -e ci ruff format --check src/ tests/
+        pixi run -e quality ruff format --check src/ tests/
 
     - name: Type checking
       shell: bash

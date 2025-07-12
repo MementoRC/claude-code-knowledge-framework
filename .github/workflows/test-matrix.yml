@@ -31,12 +31,12 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.8.10
         with:
           manifest-path: pyproject.toml
-          environments: ci
+          environments: quality
           cache: true
 
       - name: Install project in editable mode
         shell: bash
-        run: pixi run -e ci install-editable
+        run: pixi run -e quality install-editable
 
       - name: Select tests by marker
         id: select-tests
@@ -55,9 +55,9 @@ jobs:
         run: |
           echo "Running tests with Python..."
           if [[ -n "$PYTEST_MARK" ]]; then
-            pixi run -e ci pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json -v
+            pixi run -e quality pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json -v
           else
-            pixi run -e ci pytest tests/ --json-report --json-report-file=pytest-${{ matrix.test-type }}.json -v
+            pixi run -e quality pytest tests/ --json-report --json-report-file=pytest-${{ matrix.test-type }}.json -v
           fi
 
       - name: Upload test results

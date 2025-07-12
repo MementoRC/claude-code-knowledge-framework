@@ -161,12 +161,12 @@ jobs:
       uses: prefix-dev/setup-pixi@v0.8.10
       with:
         manifest-path: pyproject.toml
-        environments: ci
+        environments: quality
         cache: true
 
     - name: Install project in editable mode
       shell: bash
-      run: pixi run -e ci install-editable
+      run: pixi run -e quality install-editable
 
     - name: Generate coverage report
       shell: bash
