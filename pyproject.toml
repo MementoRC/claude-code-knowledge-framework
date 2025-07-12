@@ -89,6 +89,9 @@ pytest-xdist = ">=3.3.0"
 # Type Checking
 mypy = ">=1.0.0"
 
+# Database dependencies for tests
+psycopg = "*"
+
 # Note: ruff already in base dependencies for linting & formatting
 
 # TIER 2: Extended Quality & Security
