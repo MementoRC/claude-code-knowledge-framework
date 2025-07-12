@@ -3,8 +3,8 @@ import shutil
 import tempfile
 import time
 
-import pytest
 import psycopg
+import pytest
 
 from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
 

@@ -4,8 +4,8 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
-import pytest
 import psycopg
+import pytest
 
 from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
 from src.uckn.storage.chromadb_connector import ChromaDBConnector
