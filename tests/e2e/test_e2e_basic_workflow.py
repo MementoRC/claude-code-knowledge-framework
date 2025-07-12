@@ -4,8 +4,26 @@ import tempfile
 import time
 
 import pytest
+import psycopg
 
 from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
+
+
+def _check_database_available():
+    """Check if PostgreSQL database is available for testing."""
+    try:
+        import psycopg
+        conn = psycopg.connect("postgresql://localhost:5432/postgres", connect_timeout=2)
+        conn.close()
+        return True
+    except (ImportError, psycopg.OperationalError, Exception):
+        return False
+
+
+requires_database = pytest.mark.skipif(
+    not _check_database_available(),
+    reason="PostgreSQL database not available - skipping integration tests"
+)
 
 
 @pytest.fixture(scope="module")
@@ -21,6 +39,7 @@ def km(temp_knowledge_dir):
     yield km
 
 
+@requires_database
 def test_basic_end_to_end_workflow(km):
     """Test basic end-to-end workflow: add → retrieve → update → delete"""
 
@@ -92,6 +111,7 @@ def test_basic_end_to_end_workflow(km):
     assert deleted_category
 
 
+@requires_database
 def test_error_handling_workflow(km):
     """Test error handling in end-to-end workflow"""
 
@@ -104,6 +124,7 @@ def test_error_handling_workflow(km):
     assert not km.delete_pattern("nonexistent")
 
 
+@requires_database
 def test_tech_stack_analysis_workflow(km):
     """Test technology stack analysis workflow"""
 

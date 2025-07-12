@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
+import psycopg
 
 from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
 from src.uckn.storage.chromadb_connector import ChromaDBConnector
@@ -18,6 +19,23 @@ from src.uckn.storage.postgresql_connector import (
     Project,
 )
 from src.uckn.storage.unified_database import UnifiedDatabase
+
+
+def _check_database_available():
+    """Check if PostgreSQL database is available for testing."""
+    try:
+        import psycopg
+        conn = psycopg.connect("postgresql://localhost:5432/postgres", connect_timeout=2)
+        conn.close()
+        return True
+    except (ImportError, psycopg.OperationalError, Exception):
+        return False
+
+
+requires_database = pytest.mark.skipif(
+    not _check_database_available(),
+    reason="PostgreSQL database not available - skipping integration tests"
+)
 
 # Use a temporary directory for ChromaDB and an in-memory SQLite for PostgreSQL
 # For true integration testing, a Dockerized PostgreSQL might be preferred,
@@ -93,6 +111,7 @@ def knowledge_manager_instance():
 
 
 @pytest.mark.integration
+@requires_database
 def test_knowledge_manager_full_lifecycle_pattern(knowledge_manager_instance):
     km = knowledge_manager_instance
     assert km.get_health_status()["unified_db_available"]

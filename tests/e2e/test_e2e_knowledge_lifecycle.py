@@ -4,8 +4,26 @@ import tempfile
 import time
 
 import pytest
+import psycopg
 
 from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
+
+
+def _check_database_available():
+    """Check if PostgreSQL database is available for testing."""
+    try:
+        import psycopg
+        conn = psycopg.connect("postgresql://localhost:5432/postgres", connect_timeout=2)
+        conn.close()
+        return True
+    except (ImportError, psycopg.OperationalError, Exception):
+        return False
+
+
+requires_database = pytest.mark.skipif(
+    not _check_database_available(),
+    reason="PostgreSQL database not available - skipping integration tests"
+)
 
 
 @pytest.fixture(scope="module")
@@ -21,6 +39,7 @@ def km(temp_knowledge_dir):
     yield km
 
 
+@requires_database
 def test_complete_knowledge_lifecycle(km):
     """Test complete knowledge lifecycle: ingestion → processing → storage → retrieval → analytics"""
 
@@ -110,6 +129,7 @@ def test_complete_knowledge_lifecycle(km):
     assert solution_deleted
 
 
+@requires_database
 def test_end_to_end_error_handling(km):
     """Test end-to-end error handling and graceful degradation"""
 
@@ -133,6 +153,7 @@ def test_end_to_end_error_handling(km):
     assert not invalid_assignment
 
 
+@requires_database
 def test_concurrent_operations(km):
     """Test system behavior under concurrent operations"""
 
