@@ -24,51 +24,29 @@ jobs:
     env:
       ENVIRONMENT: ci
       PYTHONUNBUFFERED: 1
-      PIXI_ENV: ci # Kept: This job explicitly targets the 'ci' environment for its primary installation.
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup pixi with cache fallback
-        id: setup-pixi
-        uses: prefix-dev/setup-pixi@v0.8.10
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
         with:
-          pixi-version: latest
-          cache: true
-          manifest-path: pyproject.toml
+          python-version: ${{ matrix.python-version }}
 
-      - name: Secondary cache fallback when pixi cache fails
-        if: steps.setup-pixi.outputs.cache-hit != 'true'
+      - name: Cache pip dependencies
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.pixi/cache
-            ~/.cache/pip
-            .pixi
-          key: pixi-fallback-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
           restore-keys: |
-            pixi-fallback-${{ runner.os }}-
+            pip-${{ runner.os }}-${{ matrix.python-version }}-
 
-      - name: Verify pixi installation
-        shell: bash
-        run: |
-          echo "Verifying pixi setup completed successfully..."
-          pixi info
-
-      - name: Verify pixi environment
-        shell: bash
-        run: |
-          echo "Verifying pixi environment..."
-          pixi run python --version
-          pixi run pip --version
-          pixi run pytest --version
-
-      - name: Install dependencies and project
+      - name: Install dependencies
         shell: bash
         run: |
           echo "Installing dependencies..."
-          pixi install --verbose
-          echo "Installing project in editable mode..."
-          pixi run install-editable
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest pytest-cov pytest-timeout pytest-asyncio pytest-xdist pytest-json-report
 
       - name: Select tests by marker
         id: select-tests
@@ -82,17 +60,14 @@ jobs:
             echo "PYTEST_MARK=e2e" >> $GITHUB_ENV
           fi
 
-      - name: Run selected tests using pixi
+      - name: Run selected tests
         shell: bash
         run: |
-          echo "Running tests with pixi..."
-          # First install pytest-json-report if not available
-          pixi run pip install pytest-json-report || true
-          
+          echo "Running tests with Python..."
           if [[ -n "$PYTEST_MARK" ]]; then
-            pixi run pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json -v
+            python -m pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json -v
           else
-            pixi run pytest tests/ --json-report --json-report-file=pytest-${{ matrix.test-type }}.json -v
+            python -m pytest tests/ --json-report --json-report-file=pytest-${{ matrix.test-type }}.json -v
           fi
 
       - name: Upload test results
