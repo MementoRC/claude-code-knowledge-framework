@@ -116,7 +116,7 @@ pip-audit = ">=2.6.0"
 
 # Coverage Tools
 coverage = ">=7.0.0"
-diff-cover = ">=7.0.0"
+# diff-cover = "*"  # Install separately in CI workflow due to dependency resolution issues
 
 # ===== LEGACY DEVELOPMENT FEATURES =====
 # Keep existing dev feature for specialized tools

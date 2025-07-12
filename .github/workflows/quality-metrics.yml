@@ -68,10 +68,16 @@ jobs:
             .coverage*
             pytest-report.json
             pytest-report.html
-      - name: diff-cover (PR only)
+      - name: Install diff-cover separately (PR only)
         if: github.event_name == 'pull_request'
         run: |
-          # Use pixi to run diff-cover
+          # Install diff-cover separately to avoid dependency resolution issues
+          pixi run -e ci pip install diff-cover
+
+      - name: diff-cover analysis (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          # Use pixi environment to run diff-cover
           git fetch origin main:refs/remotes/origin/main
           pixi run -e ci diff-cover coverage.xml --compare-branch=origin/main --fail-under=40 --html-report diffcover.html --markdown-report diffcover.md --json-report diffcover.json
       - name: Upload diff-cover artifacts
