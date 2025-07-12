@@ -65,10 +65,10 @@ jobs:
       - name: Install dependencies and project
         shell: bash
         run: |
-          echo "Installing CI environment..."
-          pixi install -e ci --verbose
+          echo "Installing dependencies..."
+          pixi install --verbose
           echo "Installing project in editable mode..."
-          pixi run -e ci install-editable
+          pixi run install-editable
 
       - name: Select tests by marker
         id: select-tests
@@ -85,11 +85,14 @@ jobs:
       - name: Run selected tests using pixi
         shell: bash
         run: |
-          echo "Running tests with pixi in CI environment..."
+          echo "Running tests with pixi..."
+          # First install pytest-json-report if not available
+          pixi run pip install pytest-json-report || true
+          
           if [[ -n "$PYTEST_MARK" ]]; then
-            pixi run -e ci ci-test-matrix -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+            pixi run pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json -v
           else
-            pixi run -e ci ci-test-matrix --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+            pixi run pytest tests/ --json-report --json-report-file=pytest-${{ matrix.test-type }}.json -v
           fi
 
       - name: Upload test results
