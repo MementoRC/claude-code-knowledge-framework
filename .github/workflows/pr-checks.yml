@@ -17,58 +17,40 @@ jobs:
       with:
         fetch-depth: 0  # Get full history for diff analysis
 
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
+    - name: Setup pixi
+      uses: prefix-dev/setup-pixi@v0.8.10
       with:
-        python-version: 3.11
-
-    - name: Cache pip dependencies
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: pip-${{ runner.os }}-3.11-${{ hashFiles('pyproject.toml') }}
-        restore-keys: |
-          pip-${{ runner.os }}-3.11-
+        manifest-path: pyproject.toml
+        cache: false
 
     - name: Install dependencies
-      shell: bash
-      run: |
-        echo "Installing dependencies..."
-        python -m pip install --upgrade pip
-        pip install -e .
-        pip install ruff pytest
+      run: pixi install -e ci
 
-    - name: Verify environment
-      shell: bash
-      run: |
-        python --version
-        pip --version
+    - name: Install project in editable mode
+      run: pixi run -e ci pip install -e .
 
-    - name: Quick lint check (changed files only)
-      shell: bash
+    - name: Run format check
       run: |
-        echo "🔍 Quick lint check on changed files..."
-        CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.py' | tr '\n' ' ')
-        if [ -n "$CHANGED_FILES" ]; then
-          echo "Changed files: $CHANGED_FILES"
-          python -m ruff check $CHANGED_FILES --output-format=github
-          python -m ruff format --check $CHANGED_FILES
-          echo "✅ Lint check passed"
-        else
-          echo "No Python files changed"
+        echo "🎨 Running format check..."
+        pixi run -e ci format-check || {
+          echo "❌ Format check failed - showing diff:"
+          pixi run -e ci format-diff
+          exit 1
+        }
+
+    - name: Run linting (ZERO-TOLERANCE)
+      run: |
+        echo "🔍 Running critical linting..."
+        pixi run -e ci lint
+        if [ $? -ne 0 ]; then
+          echo "::error::Critical lint violations detected - ZERO TOLERANCE POLICY"
+          exit 1
         fi
 
-    - name: Run tests on changed modules
-      shell: bash
+    - name: Run tests with coverage
       run: |
-        echo "🧪 Running tests for changed modules..."
-        CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'src/**/*.py')
-        if [ -n "$CHANGED_FILES" ]; then
-          pixi run -e ci pytest tests/ -v --tb=short
-          echo "✅ Tests passed"
-        else
-          echo "No source files changed, skipping tests"
-        fi
+        echo "🧪 Running tests with coverage..."
+        pixi run -e ci test-cov
 
     - name: Validate atomic design on changes
       run: |
