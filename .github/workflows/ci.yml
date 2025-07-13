@@ -31,15 +31,15 @@ jobs:
         cache: false
 
     - name: Install dependencies
-      run: pixi install -e ci
+      run: pixi install -e quality
 
     - name: Install project in editable mode
-      run: pixi run -e ci pip install -e .
+      run: pixi run -e quality pip install -e .
 
     - name: Run tests with coverage
       run: |
         echo "🧪 Running tests with coverage..."
-        pixi run -e ci test-cov
+        pixi run -e quality test-cov
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
@@ -64,24 +64,24 @@ jobs:
         cache: false
 
     - name: Install dependencies
-      run: pixi install -e ci
+      run: pixi install -e quality
 
     - name: Install project in editable mode
-      run: pixi run -e ci pip install -e .
+      run: pixi run -e quality pip install -e .
 
     - name: Run format check
       run: |
         echo "🎨 Running format check..."
-        pixi run -e ci format-check || {
+        pixi run -e quality format-check || {
           echo "❌ Format check failed - showing diff:"
-          pixi run -e ci format-diff
+          pixi run -e quality format-diff
           exit 1
         }
 
     - name: Run linting (ZERO-TOLERANCE)
       run: |
         echo "🔍 Running critical linting..."
-        pixi run -e ci lint
+        pixi run -e quality lint
         if [ $? -ne 0 ]; then
           echo "::error::Critical lint violations detected - ZERO TOLERANCE POLICY"
           exit 1
@@ -90,7 +90,7 @@ jobs:
     - name: Run type checking
       run: |
         echo "🏷️ Running type checking..."
-        pixi run -e ci typecheck
+        pixi run -e quality typecheck
 
     - name: Type checking
       shell: bash
@@ -129,12 +129,12 @@ jobs:
         until [ "$n" -ge 3 ]
         do
           # Try locked first, then fallback to update if needed
-          if pixi install -e ci; then
+          if pixi install -e quality; then
             echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
             echo "⚠️ Install failed, retrying..."
-            pixi install -e ci && break
+            pixi install -e quality && break
           fi
           n=$((n+1))
           echo "pixi install failed, retrying ($n/3)..."
@@ -147,7 +147,7 @@ jobs:
 
     - name: Activate pixi environment
       run: |
-        eval "$(pixi shell -e ci --env-hook bash)"
+        eval "$(pixi shell -e quality --env-hook bash)"
 
     - name: Verify pixi environment
       run: |
@@ -204,12 +204,12 @@ jobs:
         until [ "$n" -ge 3 ]
         do
           # Try locked first, then fallback to update if needed
-          if pixi install -e ci; then
+          if pixi install -e quality; then
             echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
             echo "⚠️ Install failed, retrying..."
-            pixi install -e ci && break
+            pixi install -e quality && break
           fi
           n=$((n+1))
           echo "pixi install failed, retrying ($n/3)..."
@@ -222,7 +222,7 @@ jobs:
 
     - name: Activate pixi environment
       run: |
-        eval "$(pixi shell -e ci --env-hook bash)"
+        eval "$(pixi shell -e quality --env-hook bash)"
 
     - name: Validate UCKN atomic structure
       run: |
@@ -338,12 +338,12 @@ jobs:
         until [ "$n" -ge 3 ]
         do
           # Try locked first, then fallback to update if needed
-          if pixi install -e ci; then
+          if pixi install -e quality; then
             echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
             echo "⚠️ Install failed, retrying..."
-            pixi install -e ci && break
+            pixi install -e quality && break
           fi
           n=$((n+1))
           echo "pixi install failed, retrying ($n/3)..."
@@ -356,7 +356,7 @@ jobs:
 
     - name: Activate pixi environment
       run: |
-        eval "$(pixi shell -e ci --env-hook bash)"
+        eval "$(pixi shell -e quality --env-hook bash)"
 
     - name: Verify pixi environment
       run: |
@@ -436,12 +436,12 @@ jobs:
         until [ "$n" -ge 3 ]
         do
           # Try locked first, then fallback to update if needed
-          if pixi install -e ci; then
+          if pixi install -e quality; then
             echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
             echo "⚠️ Install failed, retrying..."
-            pixi install -e ci && break
+            pixi install -e quality && break
           fi
           n=$((n+1))
           echo "pixi install failed, retrying ($n/3)..."
@@ -454,7 +454,7 @@ jobs:
 
     - name: Activate pixi environment
       run: |
-        eval "$(pixi shell -e ci --env-hook bash)"
+        eval "$(pixi shell -e quality --env-hook bash)"
 
     - name: Verify pixi environment
       run: |
