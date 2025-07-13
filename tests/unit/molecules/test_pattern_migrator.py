@@ -8,7 +8,6 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
-
 from uckn.core.molecules.pattern_migrator import MigrationReport, PatternMigrator
 
 

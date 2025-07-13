@@ -272,7 +272,8 @@ async def test_transition_state_publish_success(
     assert len(updated_pattern_obj["versions"]) == 2  # Original 0.1.0 + new 1.0.0
     assert updated_pattern_obj["versions"][-1]["version_number"] == "1.0.0"
     assert (
-        updated_pattern_obj["versions"][-1]["status_at_creation"] == WorkflowState.PUBLISHED
+        updated_pattern_obj["versions"][-1]["status_at_creation"]
+        == WorkflowState.PUBLISHED
     )
 
     mock_connection_manager.broadcast.assert_called_once()

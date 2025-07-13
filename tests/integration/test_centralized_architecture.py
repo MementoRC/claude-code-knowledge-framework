@@ -25,7 +25,10 @@ def _check_database_available():
     """Check if PostgreSQL database is available for testing."""
     try:
         import psycopg
-        conn = psycopg.connect("postgresql://localhost:5432/postgres", connect_timeout=2)
+
+        conn = psycopg.connect(
+            "postgresql://localhost:5432/postgres", connect_timeout=2
+        )
         conn.close()
         return True
     except (ImportError, psycopg.OperationalError, Exception):
@@ -34,7 +37,7 @@ def _check_database_available():
 
 requires_database = pytest.mark.skipif(
     not _check_database_available(),
-    reason="PostgreSQL database not available - skipping integration tests"
+    reason="PostgreSQL database not available - skipping integration tests",
 )
 
 # Use a temporary directory for ChromaDB and an in-memory SQLite for PostgreSQL

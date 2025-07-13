@@ -7,6 +7,7 @@ from src.uckn.core.atoms.multi_modal_embeddings import MultiModalEmbeddings
 try:
     import sentence_transformers
     import transformers
+
     ML_DEPENDENCIES_AVAILABLE = True
 except ImportError:
     ML_DEPENDENCIES_AVAILABLE = False
@@ -37,7 +38,10 @@ def mm_embedder():
     return MultiModalEmbeddings()
 
 
-@pytest.mark.skipif(not ML_DEPENDENCIES_AVAILABLE, reason="ML dependencies (transformers, sentence-transformers) not available")
+@pytest.mark.skipif(
+    not ML_DEPENDENCIES_AVAILABLE,
+    reason="ML dependencies (transformers, sentence-transformers) not available",
+)
 def test_code_embedding_quality(mm_embedder):
     code1 = "def add(a, b):\n    return a + b"
     code2 = "def sum(x, y):\n    return x + y"
@@ -48,7 +52,10 @@ def test_code_embedding_quality(mm_embedder):
     assert sim > 0.8  # Similar code should have high similarity
 
 
-@pytest.mark.skipif(not ML_DEPENDENCIES_AVAILABLE, reason="ML dependencies (transformers, sentence-transformers) not available")
+@pytest.mark.skipif(
+    not ML_DEPENDENCIES_AVAILABLE,
+    reason="ML dependencies (transformers, sentence-transformers) not available",
+)
 def test_text_embedding_quality(mm_embedder):
     text1 = "Add two numbers"
     text2 = "Sum two values"
@@ -59,7 +66,10 @@ def test_text_embedding_quality(mm_embedder):
     assert sim > 0.6  # Lowered threshold for semantic similarity
 
 
-@pytest.mark.skipif(not ML_DEPENDENCIES_AVAILABLE, reason="ML dependencies (transformers, sentence-transformers) not available")
+@pytest.mark.skipif(
+    not ML_DEPENDENCIES_AVAILABLE,
+    reason="ML dependencies (transformers, sentence-transformers) not available",
+)
 def test_config_embedding(mm_embedder):
     config1 = "setting1 = true\nsetting2 = 42"
     config2 = "setting1: true\nsetting2: 42"
@@ -70,7 +80,10 @@ def test_config_embedding(mm_embedder):
     assert sim > 0.7
 
 
-@pytest.mark.skipif(not ML_DEPENDENCIES_AVAILABLE, reason="ML dependencies (transformers, sentence-transformers) not available")
+@pytest.mark.skipif(
+    not ML_DEPENDENCIES_AVAILABLE,
+    reason="ML dependencies (transformers, sentence-transformers) not available",
+)
 def test_error_embedding(mm_embedder):
     error1 = 'Traceback (most recent call last):\n  File "main.py", line 1, in <module>\nZeroDivisionError: division by zero'
     error2 = "ZeroDivisionError: division by zero"
@@ -81,7 +94,10 @@ def test_error_embedding(mm_embedder):
     assert sim > 0.8
 
 
-@pytest.mark.skipif(not ML_DEPENDENCIES_AVAILABLE, reason="ML dependencies (transformers, sentence-transformers) not available")
+@pytest.mark.skipif(
+    not ML_DEPENDENCIES_AVAILABLE,
+    reason="ML dependencies (transformers, sentence-transformers) not available",
+)
 def test_batch_processing(mm_embedder):
     items = [
         {"type": "text", "content": "Hello world"},
@@ -94,7 +110,10 @@ def test_batch_processing(mm_embedder):
     assert len(embs) == 4
 
 
-@pytest.mark.skipif(not ML_DEPENDENCIES_AVAILABLE, reason="ML dependencies (transformers, sentence-transformers) not available")
+@pytest.mark.skipif(
+    not ML_DEPENDENCIES_AVAILABLE,
+    reason="ML dependencies (transformers, sentence-transformers) not available",
+)
 def test_multi_modal_combination(mm_embedder):
     code = "def foo(): return 1"
     text = "Function that returns one"
@@ -116,7 +135,10 @@ def test_caching(mm_embedder):
     assert emb1 is emb2 or np.allclose(emb1, emb2)
 
 
-@pytest.mark.skipif(not ML_DEPENDENCIES_AVAILABLE, reason="ML dependencies (transformers, sentence-transformers) not available")
+@pytest.mark.skipif(
+    not ML_DEPENDENCIES_AVAILABLE,
+    reason="ML dependencies (transformers, sentence-transformers) not available",
+)
 def test_search_integration(mm_embedder):
     chroma = DummyChromaDBConnector()
     query = {"code": "def foo(): pass", "text": "A function"}
