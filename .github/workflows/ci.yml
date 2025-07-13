@@ -129,12 +129,12 @@ jobs:
         until [ "$n" -ge 3 ]
         do
           # Try locked first, then fallback to update if needed
-          if pixi install; then
+          if pixi install -e ci; then
             echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
             echo "⚠️ Install failed, retrying..."
-            pixi install && break
+            pixi install -e ci && break
           fi
           n=$((n+1))
           echo "pixi install failed, retrying ($n/3)..."
@@ -147,7 +147,7 @@ jobs:
 
     - name: Activate pixi environment
       run: |
-        eval "$(pixi shell --env-hook bash)"
+        eval "$(pixi shell -e ci --env-hook bash)"
 
     - name: Verify pixi environment
       run: |
@@ -204,12 +204,12 @@ jobs:
         until [ "$n" -ge 3 ]
         do
           # Try locked first, then fallback to update if needed
-          if pixi install; then
+          if pixi install -e ci; then
             echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
             echo "⚠️ Install failed, retrying..."
-            pixi install && break
+            pixi install -e ci && break
           fi
           n=$((n+1))
           echo "pixi install failed, retrying ($n/3)..."
@@ -222,7 +222,7 @@ jobs:
 
     - name: Activate pixi environment
       run: |
-        eval "$(pixi shell --env-hook bash)"
+        eval "$(pixi shell -e ci --env-hook bash)"
 
     - name: Validate UCKN atomic structure
       run: |
@@ -338,12 +338,12 @@ jobs:
         until [ "$n" -ge 3 ]
         do
           # Try locked first, then fallback to update if needed
-          if pixi install; then
+          if pixi install -e ci; then
             echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
             echo "⚠️ Install failed, retrying..."
-            pixi install && break
+            pixi install -e ci && break
           fi
           n=$((n+1))
           echo "pixi install failed, retrying ($n/3)..."
@@ -356,7 +356,7 @@ jobs:
 
     - name: Activate pixi environment
       run: |
-        eval "$(pixi shell --env-hook bash)"
+        eval "$(pixi shell -e ci --env-hook bash)"
 
     - name: Verify pixi environment
       run: |
@@ -436,12 +436,12 @@ jobs:
         until [ "$n" -ge 3 ]
         do
           # Try locked first, then fallback to update if needed
-          if pixi install; then
+          if pixi install -e ci; then
             echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
             echo "⚠️ Install failed, retrying..."
-            pixi install && break
+            pixi install -e ci && break
           fi
           n=$((n+1))
           echo "pixi install failed, retrying ($n/3)..."
@@ -454,7 +454,7 @@ jobs:
 
     - name: Activate pixi environment
       run: |
-        eval "$(pixi shell --env-hook bash)"
+        eval "$(pixi shell -e ci --env-hook bash)"
 
     - name: Verify pixi environment
       run: |
