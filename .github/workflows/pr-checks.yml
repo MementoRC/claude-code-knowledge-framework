@@ -24,24 +24,24 @@ jobs:
         cache: false
 
     - name: Install dependencies
-      run: pixi install -e ci
+      run: pixi install -e quality
 
     - name: Install project in editable mode
-      run: pixi run -e ci pip install -e .
+      run: pixi run -e quality pip install -e .
 
     - name: Run format check
       run: |
         echo "🎨 Running format check..."
-        pixi run -e ci format-check || {
+        pixi run -e quality format-check || {
           echo "❌ Format check failed - showing diff:"
-          pixi run -e ci format-diff
+          pixi run -e quality format-diff
           exit 1
         }
 
     - name: Run linting (ZERO-TOLERANCE)
       run: |
         echo "🔍 Running critical linting..."
-        pixi run -e ci lint
+        pixi run -e quality lint
         if [ $? -ne 0 ]; then
           echo "::error::Critical lint violations detected - ZERO TOLERANCE POLICY"
           exit 1
@@ -50,12 +50,12 @@ jobs:
     - name: Run tests with coverage
       run: |
         echo "🧪 Running tests with coverage..."
-        pixi run -e ci test-cov
+        pixi run -e quality test-cov
 
     - name: Validate atomic design on changes
       run: |
         echo "🏗️ Validating atomic design on changed files..."
-        pixi run -e ci python << 'EOF'
+        pixi run -e quality python << 'EOF'
         import os
         import subprocess
         import sys
@@ -91,7 +91,7 @@ jobs:
     - name: Check imports and dependencies
       run: |
         echo "🔍 Checking import structure..."
-        pixi run -e ci python << 'EOF'
+        pixi run -e quality python << 'EOF'
         import os
         import ast
         import sys
@@ -148,16 +148,16 @@ jobs:
 
     - name: Install project in editable mode
       shell: bash
-      run: pixi run -e ci install-editable
+      run: pixi run -e quality install-editable
 
     - name: Generate coverage report
       shell: bash
       run: |
         echo "📊 Generating coverage report..."
-        pixi run -e ci pytest tests/ --cov=src/uckn --cov-report=json --cov-report=term
+        pixi run -e quality pytest tests/ --cov=src/uckn --cov-report=json --cov-report=term
 
         # Check coverage threshold
-        pixi run -e ci python << 'EOF'
+        pixi run -e quality python << 'EOF'
         import json
 
         with open('coverage.json', 'r') as f:

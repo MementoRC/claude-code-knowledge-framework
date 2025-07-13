@@ -34,10 +34,10 @@ jobs:
           cache: false
 
       - name: Install dependencies
-        run: pixi install -e ci
+        run: pixi install -e quality
 
       - name: Install project in editable mode
-        run: pixi run -e ci pip install -e .
+        run: pixi run -e quality pip install -e .
 
       - name: Select tests by marker
         id: select-tests
@@ -55,9 +55,9 @@ jobs:
         run: |
           echo "🧪 Running ${{ matrix.test-type }} tests with Python ${{ matrix.python-version }}..."
           if [[ -n "$PYTEST_MARK" ]]; then
-            pixi run -e ci pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json -v
+            pixi run -e quality pytest tests/ -m "$PYTEST_MARK" --json-report --json-report-file=pytest-${{ matrix.test-type }}.json -v
           else
-            pixi run -e ci test --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+            pixi run -e quality test --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
           fi
 
       - name: Upload test results
