@@ -192,6 +192,14 @@ class UniversalKnowledgeServer:
             self.logger.error(f"Failed to initialize UCKN components: {e}")
             # Create mock components for graceful degradation
             self._create_mock_components()
+        
+        # Always initialize tools module
+        try:
+            from uckn.mcp.tools import UniversalKnowledgeTools
+            self.tools = UniversalKnowledgeTools(project_root=self.project_root)
+        except Exception as e:
+            self.logger.error(f"Failed to initialize tools: {e}")
+            self.tools = None
 
     def _create_mock_components(self):
         """Create mock components for graceful degradation."""
@@ -417,137 +425,34 @@ class UniversalKnowledgeServer:
         pattern_type: str = "all",
     ) -> CallToolResult:
         """Search for knowledge patterns."""
-        try:
-            project_path = project_path or self.project_root
-
-            # Perform semantic search
-            if hasattr(self.semantic_search, "search_by_text"):
-                results = self.semantic_search.search_by_text(
-                    query_text=query, limit=limit
-                )
-            else:
-                # Fallback to pattern manager search
-                results = self.pattern_manager.search_patterns(query=query, limit=limit)
-
-            # Format results
-            formatted_results = []
-            for result in results:
-                formatted_results.append(
-                    {
-                        "pattern_id": result.get("id", "unknown"),
-                        "content": result.get("document", ""),
-                        "metadata": result.get("metadata", {}),
-                        "similarity_score": result.get("similarity_score", 0.0),
-                    }
-                )
-
-            response = {
-                "query": query,
-                "results": formatted_results,
-                "total_found": len(formatted_results),
-            }
-
+        if self.tools:
+            return await self.tools.search_patterns(query, pattern_type, limit, project_path)
+        else:
             return CallToolResult(
-                content=[TextContent(type="text", text=json.dumps(response, indent=2))]
-            ).model_dump()
-
-        except Exception as e:
-            return CallToolResult(
-                content=[TextContent(type="text", text=f"Search failed: {str(e)}")]
-            ).model_dump()
+                content=[TextContent(type="text", text="Tools not available")]
+            )
 
     async def _recommend_setup(
         self, project_path: str | None = None, limit: int = 5
     ) -> CallToolResult:
         """Get setup recommendations."""
-        try:
-            project_path = project_path or self.project_root
-
-            if hasattr(self.recommendation_engine, "get_setup_recommendations"):
-                recommendations = self.recommendation_engine.get_setup_recommendations(
-                    project_path=project_path, limit=limit
-                )
-
-                formatted_recommendations = []
-                for rec in recommendations:
-                    formatted_recommendations.append(
-                        {
-                            "pattern_id": rec.pattern_id,
-                            "description": rec.description,
-                            "confidence_score": rec.confidence_score,
-                            "compatibility_score": rec.compatibility_score,
-                            "success_rate": rec.success_rate,
-                        }
-                    )
-
-                response = {
-                    "project_path": project_path,
-                    "recommendations": formatted_recommendations,
-                    "total_recommendations": len(formatted_recommendations),
-                }
-            else:
-                response = {
-                    "error": "Recommendation engine not available",
-                    "project_path": project_path,
-                }
-
+        if self.tools:
+            return await self.tools.recommend_setup(project_path, limit)
+        else:
             return CallToolResult(
-                content=[TextContent(type="text", text=json.dumps(response, indent=2))]
-            ).model_dump()
-
-        except Exception as e:
-            return CallToolResult(
-                content=[
-                    TextContent(
-                        type="text", text=f"Setup recommendations failed: {str(e)}"
-                    )
-                ]
-            ).model_dump()
+                content=[TextContent(type="text", text="Tools not available")]
+            )
 
     async def _predict_issues(
         self, project_path: str | None = None, limit: int = 5
     ) -> CallToolResult:
         """Predict potential issues."""
-        try:
-            project_path = project_path or self.project_root
-
-            if hasattr(self.recommendation_engine, "get_proactive_recommendations"):
-                predictions = self.recommendation_engine.get_proactive_recommendations(
-                    project_path=project_path, limit=limit
-                )
-
-                formatted_predictions = []
-                for pred in predictions:
-                    formatted_predictions.append(
-                        {
-                            "issue_type": pred.description,
-                            "pattern_id": pred.pattern_id,
-                            "prevention_strategy": pred.pattern_content,
-                            "confidence_score": pred.confidence_score,
-                        }
-                    )
-
-                response = {
-                    "project_path": project_path,
-                    "potential_issues": formatted_predictions,
-                    "total_predictions": len(formatted_predictions),
-                }
-            else:
-                response = {
-                    "error": "Issue prediction not available",
-                    "project_path": project_path,
-                }
-
+        if self.tools:
+            return await self.tools.predict_issues(project_path, limit)
+        else:
             return CallToolResult(
-                content=[TextContent(type="text", text=json.dumps(response, indent=2))]
-            ).model_dump()
-
-        except Exception as e:
-            return CallToolResult(
-                content=[
-                    TextContent(type="text", text=f"Issue prediction failed: {str(e)}")
-                ]
-            ).model_dump()
+                content=[TextContent(type="text", text="Tools not available")]
+            )
 
     async def _validate_solution(
         self,
