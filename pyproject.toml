@@ -67,8 +67,6 @@ sqlalchemy = "*"
 toml = "*"
 uvicorn = "*"
 
-[tool.pixi.pypi-dependencies]
-uckn-framework = { path = ".", editable = true }
 
 # ML/Heavy packages - test if they work with single platform:
 # chromadb = "*"  # May still cause issues
@@ -179,6 +177,7 @@ lint = "ruff check src/ tests/ --select=F,E9"
 lint-fix = "ruff check --fix src/ tests/"
 format = "ruff format src/ tests/"
 format-check = "ruff format --check src/ tests/"
+format-diff = "ruff format --diff src/ tests/"
 typecheck = "mypy src/uckn"
 
 # Combined Quality Check
