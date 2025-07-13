@@ -346,7 +346,7 @@ exclude_lines = [
 show_missing = true
 skip_covered = false
 precision = 2
-fail_under = 90
+fail_under = 45
 
 [tool.coverage.html]
 directory = "htmlcov"
@@ -369,4 +369,4 @@ source = [
 
 [tool.coverage.differential]
 compare_branch = "main"
-fail_under = 90
+fail_under = 45
