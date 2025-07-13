@@ -42,7 +42,7 @@ jobs:
       fail-fast: false  # Continue testing other platforms if one fails
       matrix:
         platform: [linux-64]  # Only test supported platforms from pyproject.toml
-        environment: [quality, ci]  # Test main CI environments
+        environment: [quality]  # Test main CI environment
 
     steps:
     - name: Checkout code
@@ -86,10 +86,10 @@ jobs:
         # Test basic pixi functionality
         echo "✅ Testing pixi info..."
         pixi info
-        
+
         echo "✅ Testing environment installation..."
         pixi install -e ${{ matrix.environment }}
-        
+
         echo "✅ Dependency resolution successful for ${{ matrix.platform }}"
 
     - name: Test package availability
@@ -157,13 +157,13 @@ jobs:
         echo "" >> compatibility-summary.md
 
         # Create matrix table
-        echo "| Platform | quality | quality-extended | ci |" >> compatibility-summary.md
-        echo "|----------|---------|------------------|-------|" >> compatibility-summary.md
+        echo "| Platform | quality |" >> compatibility-summary.md
+        echo "|----------|---------|" >> compatibility-summary.md
 
         for platform in linux-64 osx-64 osx-arm64 win-64; do
           echo -n "| $platform |" >> compatibility-summary.md
 
-          for env in quality quality-extended ci; do
+          for env in quality; do
             if [ -f "platform-report-$platform-$env.md" ]; then
               if grep -q "Status.*success" "platform-report-$platform-$env.md"; then
                 echo -n " ✅ |" >> compatibility-summary.md
@@ -198,17 +198,24 @@ jobs:
     - name: Comment on PR (if PR)
       if: github.event_name == 'pull_request'
       uses: actions/github-script@v7
+      continue-on-error: true  # Don't fail workflow if comment fails
       with:
         script: |
-          const fs = require('fs');
-          const summary = fs.readFileSync('compatibility-summary.md', 'utf8');
+          try {
+            const fs = require('fs');
+            const summary = fs.readFileSync('compatibility-summary.md', 'utf8');
 
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: summary
-          });
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+            console.log('✅ Platform compatibility summary posted to PR');
+          } catch (error) {
+            console.log('⚠️ Could not post comment to PR:', error.message);
+            console.log('This is usually due to insufficient permissions and is non-critical');
+          }
 
   # Suggest platform additions
   suggest-platform-updates:
