@@ -167,7 +167,7 @@ dev = "echo 'Development environment ready'"
 
 # Testing (ZERO-TOLERANCE QUALITY GATES)
 test = "pytest tests/ -v"
-test-cov = "pytest tests/ --cov=src/uckn --cov-report=term-missing --cov-report=xml"
+test-cov = "pytest tests/ --cov=src/uckn --cov-report=term-missing --cov-report=xml --ignore=tests/benchmarks/"
 test-unit = "pytest tests/unit/ -v"
 test-integration = "pytest tests/integration/ -v"
 test-e2e = "pytest tests/e2e/ -v"
@@ -199,8 +199,8 @@ check-all = { depends-on = ["quality", "static-analysis"] }
 # ===== TIER 3: CI/CD & DEPLOYMENT TASKS =====
 # CI-specific variants
 ci-install = "pip install -e ."
-ci-test = { cmd = "pytest tests/ --cov=src/uckn --cov-report=xml --timeout=90", env = { ENVIRONMENT = "ci" } }
-ci-test-matrix = "pytest tests/"
+ci-test = { cmd = "pytest tests/ --cov=src/uckn --cov-report=xml --timeout=90 --ignore=tests/benchmarks/", env = { ENVIRONMENT = "ci" } }
+ci-test-matrix = "pytest tests/ --ignore=tests/benchmarks/"
 ci-lint = "ruff check src/ tests/ --output-format=github"
 ci-format-check = "ruff format --check src/ tests/"
 
