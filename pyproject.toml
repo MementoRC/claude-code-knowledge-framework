@@ -52,6 +52,7 @@ platforms = ["linux-64"]  # Development environment stays lean
 
 [tool.pixi.dependencies]
 # Core dependencies for linux-64 CI environment
+python = ">=3.10"
 alembic = "*"
 click = "*"
 fastapi = "*"
@@ -65,6 +66,9 @@ ruff = "*"
 sqlalchemy = "*"
 toml = "*"
 uvicorn = "*"
+
+[tool.pixi.pypi-dependencies]
+uckn-framework = { path = ".", editable = true }
 
 # ML/Heavy packages - test if they work with single platform:
 # chromadb = "*"  # May still cause issues
@@ -287,6 +291,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+pythonpath = ["src"]
 addopts = [
     "--strict-markers",
     "--strict-config",

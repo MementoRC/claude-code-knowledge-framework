@@ -40,7 +40,7 @@ jobs:
     - name: Run tests
       shell: bash
       run: |
-        PYTHONPATH=src pixi run -e quality pytest tests/ --cov=src/uckn --cov-report=xml -v
+        pixi run -e quality pytest tests/ --cov=src/uckn --cov-report=xml -v
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
