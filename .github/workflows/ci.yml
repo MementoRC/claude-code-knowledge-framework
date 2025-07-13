@@ -31,10 +31,6 @@ jobs:
         environments: quality
         cache: false
 
-    - name: Install project in editable mode
-      shell: bash
-      run: pixi run -e quality install-editable
-
     - name: Verify environment
       shell: bash
       run: |
@@ -44,7 +40,7 @@ jobs:
     - name: Run tests
       shell: bash
       run: |
-        pixi run -e quality pytest tests/ --cov=src/uckn --cov-report=xml -v
+        PYTHONPATH=src pixi run -e quality pytest tests/ --cov=src/uckn --cov-report=xml -v
 
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
@@ -68,10 +64,6 @@ jobs:
         manifest-path: pyproject.toml
         environments: quality
         cache: false
-
-    - name: Install project in editable mode
-      shell: bash
-      run: pixi run -e quality install-editable
 
     - name: Verify environment
       shell: bash
