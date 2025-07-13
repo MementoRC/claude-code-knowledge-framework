@@ -90,31 +90,31 @@ jobs:
           eval "$(pixi shell --env-hook bash)"
 
       - name: Install dev dependencies
-        run: pixi run -e ci install-editable
+        run: pixi run -e quality install-editable
 
       - name: Lint
-        run: pixi run -e ci lint
+        run: pixi run -e quality lint
 
       - name: Typecheck
-        run: pixi run -e ci typecheck
+        run: pixi run -e quality typecheck
 
       - name: Run unit tests
-        run: pixi run -e ci pytest tests/ -m unit --json-report --json-report-file=pytest-unit.json
+        run: pixi run -e quality pytest tests/ -m unit --json-report --json-report-file=pytest-unit.json
 
       - name: Run integration tests
         run: |
           echo "⚠️ Integration tests temporarily disabled due to database setup issues"
           # TODO: Enable after database migration setup
-          # pixi run -e ci pytest tests/ -m integration --json-report --json-report-file=pytest-integration.json
+          # pixi run -e quality pytest tests/ -m integration --json-report --json-report-file=pytest-integration.json
 
       - name: Run e2e tests
         run: |
           echo "⚠️ E2E tests temporarily disabled (no e2e tests found)"
           # TODO: Enable when e2e tests are implemented
-          # pixi run -e ci pytest tests/ -m e2e --json-report --json-report-file=pytest-e2e.json
+          # pixi run -e quality pytest tests/ -m e2e --json-report --json-report-file=pytest-e2e.json
 
       - name: Run all tests with coverage
-        run: pixi run -e ci test-coverage-json
+        run: pixi run -e quality test-coverage-json
 
       - name: Upload coverage and test artifacts
         uses: actions/upload-artifact@v4
@@ -131,18 +131,18 @@ jobs:
         run: |
           echo "⚠️ Quality gate temporarily disabled due to import issues"
           # TODO: Fix import issues in quality_dashboard.py
-          # pixi run -e ci quality-gate
+          # pixi run -e quality quality-gate
 
       - name: Regression Testing & Baseline Comparison
         run: |
           if [ -f coverage.json ]; then
-            pixi run -e ci coverage-trend
+            pixi run -e quality coverage-trend
           fi
 
       - name: Coverage Diff Analysis
         run: |
           if [ -f coverage.json ]; then
-            pixi run -e ci test-coverage-json
+            pixi run -e quality test-coverage-json
           fi
 
       - name: Notify Results (GitHub API)
