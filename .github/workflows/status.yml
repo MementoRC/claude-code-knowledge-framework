@@ -9,8 +9,6 @@ jobs:
   quick-check:
     name: Quick Status Check
     runs-on: ubuntu-latest
-    env:
-      PIXI_ENV: quality # Ensure pixi targets the 'quality' environment
 
     steps:
     - name: Checkout code
@@ -29,21 +27,17 @@ jobs:
         until [ "$n" -ge 3 ]
         do
           # Try locked first, then fallback to update if needed
-          if pixi install; then # PIXI_ENV will make this target 'quality'
+          if pixi install -e quality; then
             echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
             echo "⚠️ Install failed, retrying..."
-            pixi install && break # PIXI_ENV will make this target 'quality'
+            pixi install -e quality && break
           fi
           n=$((n+1))
           echo "pixi install failed, retrying ($n/3)..."
           sleep 5
         done
-
-    - name: Activate pixi environment
-      run: |
-        eval "$(pixi shell --env-hook bash)"
 
     - name: Install project dependencies
       run: |
