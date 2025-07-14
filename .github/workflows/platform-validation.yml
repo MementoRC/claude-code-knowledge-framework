@@ -70,6 +70,11 @@ jobs:
         echo "💾 Available memory:"
         free -h
 
+    - name: Backup original configuration
+      run: |
+        echo "💾 Creating backup of pyproject.toml..."
+        cp pyproject.toml pyproject.toml.backup
+
     - name: Verify platform compatibility
       run: |
         echo "🎯 Testing platform: ${{ matrix.platform }}"
@@ -133,7 +138,12 @@ jobs:
     - name: Restore original pyproject.toml
       if: always()
       run: |
-        mv pyproject.toml.backup pyproject.toml
+        if [ -f pyproject.toml.backup ]; then
+          echo "🔄 Restoring original pyproject.toml..."
+          mv pyproject.toml.backup pyproject.toml
+        else
+          echo "⚠️ No backup found, keeping current pyproject.toml"
+        fi
 
   # Cross-platform compatibility summary
   compatibility-summary:
