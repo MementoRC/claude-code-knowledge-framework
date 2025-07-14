@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pytest
 
@@ -11,6 +12,9 @@ try:
     ML_DEPENDENCIES_AVAILABLE = True
 except ImportError:
     ML_DEPENDENCIES_AVAILABLE = False
+
+# Skip ML model tests in CI environment to avoid network requests and timeouts
+SKIP_ML_TESTS = os.getenv("ENVIRONMENT") == "ci" or os.getenv("CI") == "true" or not ML_DEPENDENCIES_AVAILABLE
 
 
 class DummyChromaDBConnector:
@@ -35,12 +39,14 @@ class DummyChromaDBConnector:
 
 @pytest.fixture(scope="module")
 def mm_embedder():
+    if SKIP_ML_TESTS:
+        pytest.skip("Skipping ML model tests in CI environment")
     return MultiModalEmbeddings()
 
 
 @pytest.mark.skipif(
-    not ML_DEPENDENCIES_AVAILABLE,
-    reason="ML dependencies (transformers, sentence-transformers) not available",
+    SKIP_ML_TESTS,
+    reason="ML dependencies not available or running in CI environment",
 )
 def test_code_embedding_quality(mm_embedder):
     code1 = "def add(a, b):\n    return a + b"
@@ -53,8 +59,8 @@ def test_code_embedding_quality(mm_embedder):
 
 
 @pytest.mark.skipif(
-    not ML_DEPENDENCIES_AVAILABLE,
-    reason="ML dependencies (transformers, sentence-transformers) not available",
+    SKIP_ML_TESTS,
+    reason="ML dependencies not available or running in CI environment",
 )
 def test_text_embedding_quality(mm_embedder):
     text1 = "Add two numbers"
@@ -67,8 +73,8 @@ def test_text_embedding_quality(mm_embedder):
 
 
 @pytest.mark.skipif(
-    not ML_DEPENDENCIES_AVAILABLE,
-    reason="ML dependencies (transformers, sentence-transformers) not available",
+    SKIP_ML_TESTS,
+    reason="ML dependencies not available or running in CI environment",
 )
 def test_config_embedding(mm_embedder):
     config1 = "setting1 = true\nsetting2 = 42"
@@ -81,8 +87,8 @@ def test_config_embedding(mm_embedder):
 
 
 @pytest.mark.skipif(
-    not ML_DEPENDENCIES_AVAILABLE,
-    reason="ML dependencies (transformers, sentence-transformers) not available",
+    SKIP_ML_TESTS,
+    reason="ML dependencies not available or running in CI environment",
 )
 def test_error_embedding(mm_embedder):
     error1 = 'Traceback (most recent call last):\n  File "main.py", line 1, in <module>\nZeroDivisionError: division by zero'
@@ -95,8 +101,8 @@ def test_error_embedding(mm_embedder):
 
 
 @pytest.mark.skipif(
-    not ML_DEPENDENCIES_AVAILABLE,
-    reason="ML dependencies (transformers, sentence-transformers) not available",
+    SKIP_ML_TESTS,
+    reason="ML dependencies not available or running in CI environment",
 )
 def test_batch_processing(mm_embedder):
     items = [
@@ -111,8 +117,8 @@ def test_batch_processing(mm_embedder):
 
 
 @pytest.mark.skipif(
-    not ML_DEPENDENCIES_AVAILABLE,
-    reason="ML dependencies (transformers, sentence-transformers) not available",
+    SKIP_ML_TESTS,
+    reason="ML dependencies not available or running in CI environment",
 )
 def test_multi_modal_combination(mm_embedder):
     code = "def foo(): return 1"
@@ -136,8 +142,8 @@ def test_caching(mm_embedder):
 
 
 @pytest.mark.skipif(
-    not ML_DEPENDENCIES_AVAILABLE,
-    reason="ML dependencies (transformers, sentence-transformers) not available",
+    SKIP_ML_TESTS,
+    reason="ML dependencies not available or running in CI environment",
 )
 def test_search_integration(mm_embedder):
     chroma = DummyChromaDBConnector()
