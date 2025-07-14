@@ -1,0 +1,16 @@
+{
+  "versions": [
+    {
+      "version": "latest",
+      "title": "Latest (Development)",
+      "aliases": ["main", "master"],
+      "default": true
+    },
+    {
+      "version": "v1.0.0",
+      "title": "v1.0.0 (Stable)",
+      "aliases": ["1.0", "1.0.0"],
+      "default": false
+    }
+  ]
+}
