@@ -41,7 +41,8 @@ jobs:
 
     - name: Install project dependencies
       run: |
-        pixi run -e quality ci-install
+        echo "📦 Installing project in editable mode..."
+        pixi run -e quality pip install -e .
 
     - name: Quick smoke test
       run: |
