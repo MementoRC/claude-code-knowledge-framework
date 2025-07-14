@@ -10,7 +10,7 @@ jobs:
     name: Quick Status Check
     runs-on: ubuntu-latest
     env:
-      PIXI_ENV: ci # Ensure pixi targets the 'ci' environment
+      PIXI_ENV: quality # Ensure pixi targets the 'quality' environment
 
     steps:
     - name: Checkout code
@@ -29,12 +29,12 @@ jobs:
         until [ "$n" -ge 3 ]
         do
           # Try locked first, then fallback to update if needed
-          if pixi install; then # PIXI_ENV will make this target 'ci'
+          if pixi install; then # PIXI_ENV will make this target 'quality'
             echo "✅ Installation successful"
             break
           elif [ "$n" -eq 2 ]; then
             echo "⚠️ Install failed, retrying..."
-            pixi install && break # PIXI_ENV will make this target 'ci'
+            pixi install && break # PIXI_ENV will make this target 'quality'
           fi
           n=$((n+1))
           echo "pixi install failed, retrying ($n/3)..."
@@ -47,7 +47,7 @@ jobs:
 
     - name: Install project dependencies
       run: |
-        pixi run ci-install
+        pixi run -e quality ci-install
 
     - name: Quick smoke test
       run: |
@@ -64,7 +64,7 @@ jobs:
 
         # Quick import test
         echo "🔍 Testing imports..."
-        pixi run python -c "
+        pixi run -e quality python -c "
         try:
             import sys
             sys.path.insert(0, 'src')
@@ -77,7 +77,7 @@ jobs:
 
         # Basic lint check
         echo "🔍 Quick lint check..."
-        pixi run ruff check src/ --select=F,E9 --quiet || echo "⚠️ Some lint issues found"
+        pixi run -e quality ruff check src/ --select=F,E9 --quiet || echo "⚠️ Some lint issues found"
         echo "✅ Critical lint check completed"
 
         echo "🎉 Quick check passed!"
