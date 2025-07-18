@@ -85,7 +85,8 @@
       "Bash(python -m pytest tests/test_unified_interface.py -v)",
       "Bash(python:*)",
       "mcp__pytest-analyzer__get_failure_summary",
-      "mcp__pytest-analyzer__nl_query"
+      "mcp__pytest-analyzer__nl_query",
+      "mcp__git__git_diff_branches"
     ],
     "deny": [
       "Bash(/usr/bin/:*)"
