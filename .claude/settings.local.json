@@ -87,7 +87,8 @@
       "mcp__pytest-analyzer__get_failure_summary",
       "mcp__pytest-analyzer__nl_query",
       "mcp__git__git_rebase",
-      "mcp__git__git_merge"
+      "mcp__git__git_merge",
+      "mcp__git__git_diff_branches"
     ],
     "deny": [
       "Bash(/usr/bin/:*)"
