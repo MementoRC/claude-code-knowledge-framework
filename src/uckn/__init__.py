@@ -7,12 +7,12 @@ __version__ = "1.0.0"
 __author__ = "Claude Code Community"
 __email__ = "noreply@anthropic.com"
 
-from .core import KnowledgeManager, SemanticSearch
 from .cli import main as cli_main
+from .core import KnowledgeManager, SemanticSearch
 
 __all__ = [
     "KnowledgeManager",
-    "SemanticSearch", 
+    "SemanticSearch",
     "cli_main",
     "__version__",
 ]

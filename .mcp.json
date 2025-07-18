@@ -1,0 +1,75 @@
+{
+  "mcpServers": {
+    "uckn-knowledge": {
+      "command": "pixi",
+      "args": [
+        "run",
+        "--manifest-path",
+        "/home/memento/ClaudeCode/claude-code-knowledge-framework",
+        "mcp-server"
+      ],
+      "env": {
+        "UCKN_KNOWLEDGE_DIR": "/home/memento/ClaudeCode/.uckn/knowledge",
+        "UCKN_DATABASE_URL": "postgresql://uckn:uckn_secure_password@localhost:5432/shared_uckn",
+        "UCKN_LOG_LEVEL": "INFO"
+      }
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ]
+    },
+    "task-master-ai": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "--package=task-master-ai",
+        "task-master-ai"
+      ]
+    },
+    "git": {
+      "command": "pixi",
+      "args": [
+        "run",
+        "--manifest-path",
+        "/home/memento/ClaudeCode/Servers/git/development",
+        "mcp-server-git",
+        "--repository",
+        "/home/memento/ClaudeCode/Servers/claude-code-knowledge-framework/worktrees/feat-ci-integration"
+      ],
+      "env": {
+        "MCP_SERVER_ACTIVE": "true"
+      }
+    },
+    "pytest-analyzer": {
+      "command": "pixi",
+      "args": [
+        "run",
+         "--manifest-path",
+        "/home/memento/ClaudeCode/Servers/pytest-analyzer/development",
+        "mcp-server",
+        "--project-root",
+        "/home/memento/ClaudeCode/Servers/claude-code-knowledge-framework/worktrees/feat-ci-integration"
+      ]
+    },
+    "aider": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/home/memento/ClaudeCode/Servers/aider/development",
+        "run",
+        "mcp-aider-server",
+        "--server-mode",
+        "stdio",
+        "--current-working-dir",
+        "/home/memento/ClaudeCode/Servers/claude-code-knowledge-framework/worktrees/feat-ci-integration"
+      ],
+      "env": {
+        "MCP_SERVER_ACTIVE": "true"
+      }
+    }
+  }
+}

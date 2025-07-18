@@ -24,16 +24,18 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Setup Pixi
-      uses: prefix-dev/setup-pixi@v0.4.1
+    - name: Setup pixi
+      uses: prefix-dev/setup-pixi@v0.8.11
       with:
-        pixi-version: latest
+        pixi-version: v0.49.0
+        cache: true
+        manifest-path: pyproject.toml
         
     - name: Install dependencies
-      run: pixi install --environment ci
+      run: pixi install -e ci
       
-    - name: Run tests
-      run: pixi run --environment ci ci-test
+    - name: Run tests with coverage
+      run: pixi run -e ci ci-test
       
     - name: Upload coverage to Codecov
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
@@ -51,20 +53,33 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Setup Pixi
-      uses: prefix-dev/setup-pixi@v0.4.1
+    - name: Setup pixi
+      uses: prefix-dev/setup-pixi@v0.8.11
+      with:
+        pixi-version: v0.49.0
+        cache: true
+        manifest-path: pyproject.toml
       
     - name: Install dependencies
-      run: pixi install --environment ci
+      run: pixi install -e ci
       
-    - name: Run linting
-      run: pixi run --environment ci ci-lint
+    - name: Run comprehensive quality check
+      run: pixi run -e ci quality
+      
+    - name: Run linting (ZERO-TOLERANCE)
+      run: |
+        echo "🔍 Running critical linting..."
+        pixi run -e ci ci-lint
+        if [ $? -ne 0 ]; then
+          echo "::error::Critical lint violations detected - ZERO TOLERANCE POLICY"
+          exit 1
+        fi
       
     - name: Check formatting
-      run: pixi run --environment ci ci-format-check
+      run: pixi run -e ci ci-format-check
       
     - name: Type checking
-      run: pixi run --environment ci typecheck
+      run: pixi run -e ci typecheck
 
   security:
     name: Security Scan
