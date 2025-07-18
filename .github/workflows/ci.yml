@@ -65,7 +65,7 @@ jobs:
       
     - name: Run comprehensive quality check
       run: pixi run -e ci quality
-      
+
     - name: Run linting (ZERO-TOLERANCE)
       run: |
         echo "🔍 Running critical linting..."
