@@ -86,7 +86,8 @@
       "Bash(python:*)",
       "mcp__pytest-analyzer__get_failure_summary",
       "mcp__pytest-analyzer__nl_query",
-      "mcp__git__git_diff_branches"
+      "mcp__git__git_diff_branches",
+      "mcp__git__git_cherry_pick"
     ],
     "deny": [
       "Bash(/usr/bin/:*)"
