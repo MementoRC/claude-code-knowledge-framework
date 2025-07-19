@@ -1,0 +1,102 @@
+{
+  "total_issues": 4,
+  "quality_issues": [
+    {
+      "type": "test_import",
+      "file": "tests/test_chromadb_storage.py", 
+      "error": "AttributeError: SemanticSearchEngine import issues",
+      "fix_complexity": "manual",
+      "auto_fix_available": false,
+      "priority": 1,
+      "status": "completed"
+    },
+    {
+      "type": "test_mock",
+      "file": "tests/test_unified_interface.py",
+      "error": "AttributeError: missing methods in KnowledgeManager",
+      "fix_complexity": "manual", 
+      "auto_fix_available": false,
+      "priority": 1,
+      "status": "completed"
+    },
+    {
+      "type": "mypy_type_errors",
+      "file": "multiple files",
+      "error": "29 type annotation errors across 6 files",
+      "fix_complexity": "auto",
+      "auto_fix_available": true,
+      "auto_fix_tool": "manual_annotation",
+      "priority": 2,
+      "status": "completed"
+    },
+    {
+      "type": "test_functionality", 
+      "file": "semantic search tests",
+      "error": "Multiple test failures due to missing dependencies/implementations",
+      "fix_complexity": "manual",
+      "auto_fix_available": false,
+      "priority": 3,
+      "status": "partial"
+    }
+  ],
+  "current_issue_index": 4,
+  "completed_issues": [
+    {
+      "issue_type": "test_import",
+      "file": "tests/test_chromadb_storage.py",
+      "error": "SemanticSearchEngine import path fix",
+      "attempts_needed": 1,
+      "fixed_at": "2025-01-19T16:30:00Z"
+    },
+    {
+      "issue_type": "test_mock",
+      "file": "src/uckn/core/organisms/knowledge_manager.py", 
+      "error": "Added missing interface methods",
+      "attempts_needed": 2,
+      "fixed_at": "2025-01-19T16:45:00Z"
+    },
+    {
+      "issue_type": "mypy_type_errors",
+      "file": "multiple files",
+      "error": "All 29 type errors resolved",
+      "attempts_needed": 3,
+      "fixed_at": "2025-01-19T17:00:00Z"
+    }
+  ],
+  "failed_to_fix": [],
+  "started_at": "2025-01-19T16:00:00Z",
+  "status": "nearly_complete",
+  "total_iterations_used": 6,
+  "auto_fix_stats": {
+    "attempted": 1,
+    "succeeded": 1, 
+    "failed": 0,
+    "tools_used": {
+      "ruff --fix": 1
+    }
+  },
+  "fix_effectiveness_tracking": [
+    {
+      "issue_id": "import_fixes",
+      "fix_attempt": 1,
+      "tool_used": "manual",
+      "success": true,
+      "time_taken": "30min"
+    },
+    {
+      "issue_id": "interface_methods",
+      "fix_attempt": 2,
+      "tool_used": "manual", 
+      "success": true,
+      "time_taken": "15min"
+    },
+    {
+      "issue_id": "mypy_types",
+      "fix_attempt": 3,
+      "tool_used": "manual",
+      "success": true,
+      "time_taken": "30min"
+    }
+  ],
+  "consequence_fixes": []
+}
