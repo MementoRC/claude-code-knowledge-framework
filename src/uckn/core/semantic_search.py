@@ -11,6 +11,7 @@ import logging
 import numpy as np
 from pathlib import Path
 from typing import Dict, List, Optional, Any
+import numpy.typing as npt
 from datetime import datetime
 
 try:
@@ -93,7 +94,7 @@ class SemanticSearchEngine:
         """Check if semantic search is fully available."""
         return self.sentence_model is not None
         
-    def generate_session_embedding(self, session_data: Dict[str, Any]) -> Optional[np.ndarray]:
+    def generate_session_embedding(self, session_data: Dict[str, Any]) -> Optional[npt.NDArray[np.float32]]:
         """Generate embedding for a session."""
         if not self.sentence_model:
             return None
@@ -161,10 +162,12 @@ class SemanticSearchEngine:
             self._logger.error(f"Semantic search failed: {e}")
             return []
             
-    def _search_chromadb(self, query_embedding: np.ndarray, max_results: int, 
+    def _search_chromadb(self, query_embedding: npt.NDArray[np.float32], max_results: int, 
                         similarity_threshold: float) -> List[Dict[str, Any]]:
         """Search using ChromaDB vector database."""
         try:
+            if not self.collection:
+                return []
             results = self.collection.query(
                 query_embeddings=[query_embedding.tolist()],
                 n_results=max_results,
@@ -173,9 +176,9 @@ class SemanticSearchEngine:
             
             search_results = []
             
-            if results['ids'] and len(results['ids'][0]) > 0:
+            if results.get('ids') and results['ids'] and len(results['ids'][0]) > 0:
                 for i, session_id in enumerate(results['ids'][0]):
-                    distance = results['distances'][0][i]
+                    distance = results['distances'][0][i] if results.get('distances') and results['distances'] else 0
                     # Convert distance to similarity (lower distance = higher similarity)
                     similarity = 1.0 / (1.0 + distance)
                     
@@ -183,8 +186,8 @@ class SemanticSearchEngine:
                         search_results.append({
                             "session_id": session_id,
                             "similarity_score": similarity,
-                            "metadata": results['metadatas'][0][i],
-                            "document": results['documents'][0][i],
+                            "metadata": results['metadatas'][0][i] if results.get('metadatas') and results['metadatas'] else {},
+                            "document": results['documents'][0][i] if results.get('documents') and results['documents'] else "",
                             "search_type": "semantic"
                         })
                         
@@ -194,7 +197,7 @@ class SemanticSearchEngine:
             self._logger.error(f"ChromaDB search failed: {e}")
             return []
             
-    def _search_numpy_fallback(self, query_embedding: np.ndarray, max_results: int,
+    def _search_numpy_fallback(self, query_embedding: npt.NDArray[np.float32], max_results: int,
                              similarity_threshold: float) -> List[Dict[str, Any]]:
         """Fallback search using numpy similarity computation."""
         try:
@@ -231,7 +234,7 @@ class SemanticSearchEngine:
             self._logger.error(f"Numpy fallback search failed: {e}")
             return []
             
-    def _store_embedding_numpy(self, session_id: str, embedding: np.ndarray, 
+    def _store_embedding_numpy(self, session_id: str, embedding: npt.NDArray[np.float32], 
                               session_data: Dict[str, Any]) -> None:
         """Store embedding using numpy fallback."""
         embeddings_file = self.embeddings_dir / "session_embeddings.json"

@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union
 
 try:
     import chromadb
@@ -8,9 +8,9 @@ try:
     from chromadb.utils import embedding_functions
     CHROMADB_AVAILABLE = True
 except ImportError:
-    chromadb = None
-    Settings = None
-    embedding_functions = None
+    chromadb = None  # type: ignore
+    Settings = None  # type: ignore
+    embedding_functions = None  # type: ignore
     CHROMADB_AVAILABLE = False
 
 # Assuming SentenceTransformer is available via framework/core/semantic_search.py
@@ -60,7 +60,7 @@ class ChromaDBConnector:
         self.db_path = Path(db_path)
         self.db_path.mkdir(parents=True, exist_ok=True)
         self._logger = logging.getLogger(__name__)
-        self.client: Optional[chromadb.PersistentClient] = None
+        self.client: Optional[Any] = None
         self.collections: Dict[str, Any] = {}
         self._connect_to_chromadb()
 
@@ -102,7 +102,7 @@ class ChromaDBConnector:
             return False
 
         required = schema["required_metadata"]
-        types = schema["metadata_types"]
+        types: Any = schema["metadata_types"]
 
         for key in required:
             if key not in metadata:
@@ -391,7 +391,8 @@ class ChromaDBConnector:
             self._logger.warning("ChromaDB not available, cannot reset.")
             return False
         try:
-            self.client.reset()
+            if self.client:
+                self.client.reset()
             self._logger.info("ChromaDB reset successfully.")
             # Re-initialize collections after reset
             self._connect_to_chromadb()

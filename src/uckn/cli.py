@@ -13,7 +13,7 @@ console = Console()
 
 @click.group()
 @click.version_option(version="1.0.0", prog_name="uckn")
-def main():
+def main() -> None:
     """Universal Claude Code Knowledge Network (UCKN) CLI"""
     pass
 
@@ -21,7 +21,7 @@ def main():
 @main.command()
 @click.option("--template", default="python-ml", help="Project template to use")
 @click.argument("project_name", required=False)
-def init(template: str, project_name: str):
+def init(template: str, project_name: str) -> None:
     """Initialize a new UCKN-enabled project"""
     if not project_name:
         project_name = Path.cwd().name
@@ -35,7 +35,7 @@ def init(template: str, project_name: str):
 
 @main.command()
 @click.argument("path", default=".")
-def analyze(path: str):
+def analyze(path: str) -> None:
     """Analyze project for technology stack and patterns"""
     console.print(f"🔍 Analyzing project at: {path}")
 
@@ -55,7 +55,7 @@ def analyze(path: str):
 @main.command()
 @click.argument("query")
 @click.option("--limit", default=10, help="Number of results to return")
-def search(query: str, limit: int):
+def search(query: str, limit: int) -> None:
     """Search knowledge patterns"""
     console.print(f"🔍 Searching for: {query}")
 
@@ -69,7 +69,7 @@ def search(query: str, limit: int):
 @main.command()
 @click.option("--source", help="Source knowledge directory")
 @click.option("--target", help="Target database")
-def migrate(source: str, target: str):
+def migrate(source: str, target: str) -> None:
     """Migrate existing knowledge patterns to UCKN format"""
     console.print(f"📦 Migrating patterns from {source} to {target}")
 

@@ -2,19 +2,20 @@
 UCKN Semantic Search Atom
 """
 
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Type, Any
 import logging
 
 try:
     from ..semantic_search import SemanticSearchEngine
     SEMANTIC_SEARCH_ENGINE_AVAILABLE = True
+    SearchEngineClass: Optional[Type[Any]] = SemanticSearchEngine
 except ImportError:
     logging.getLogger(__name__).warning(
         "SemanticSearchEngine not found. "
         "Semantic search capabilities will be limited."
     )
-    SemanticSearchEngine = None
     SEMANTIC_SEARCH_ENGINE_AVAILABLE = False
+    SearchEngineClass = None
 
 
 class SemanticSearch:
@@ -24,10 +25,10 @@ class SemanticSearch:
 
     def __init__(self, knowledge_dir: str = ".uckn/knowledge"):
         self._logger = logging.getLogger(__name__)
-        if SEMANTIC_SEARCH_ENGINE_AVAILABLE:
-            self.engine = SemanticSearchEngine(knowledge_dir=knowledge_dir)
+        self.engine: Optional[Any] = None
+        if SEMANTIC_SEARCH_ENGINE_AVAILABLE and SearchEngineClass:
+            self.engine = SearchEngineClass(knowledge_dir=knowledge_dir)
         else:
-            self.engine = None
             self._logger.warning("SemanticSearchEngine not available, semantic encoding/search will be disabled.")
 
     def is_available(self) -> bool:
@@ -44,7 +45,7 @@ class SemanticSearch:
         try:
             # The engine's generate_session_embedding expects a dict, but we just need encode
             # We can directly access the model if it's loaded.
-            if self.engine.sentence_model:
+            if self.engine and hasattr(self.engine, 'sentence_model') and self.engine.sentence_model:
                 embedding = self.engine.sentence_model.encode(text, convert_to_numpy=True)
                 return embedding.tolist()
             else:
@@ -54,7 +55,7 @@ class SemanticSearch:
             self._logger.error(f"Failed to encode text: {e}")
             return None
 
-    def search(self, query: str, collection_name: str, limit: int = 10, min_similarity: float = 0.7) -> List[Dict]:
+    def search(self, query: str, collection_name: str, limit: int = 10, min_similarity: float = 0.7) -> List[Dict[str, Any]]:
         """
         Perform semantic search using the underlying engine's capabilities.
         Note: This method is primarily for direct semantic search on raw text.

@@ -25,7 +25,7 @@ class AtomicComponent:
     name: str
     level: TemplateLevel
     config: Dict[str, Any]
-    dependencies: List[str] = None
+    dependencies: Optional[List[str]] = None
 
 
 class FlagConfigurationTemplate:
@@ -36,7 +36,7 @@ class FlagConfigurationTemplate:
     knowledge management components in the framework.
     """
     
-    def __init__(self):
+    def __init__(self) -> None:
         self._components: Dict[str, AtomicComponent] = {}
         
     def add_component(self, component: AtomicComponent) -> None:
@@ -49,7 +49,7 @@ class FlagConfigurationTemplate:
         
     def compose_template(self) -> Dict[str, Any]:
         """Compose complete template from atomic components."""
-        template = {
+        template: Dict[str, List[Dict[str, Any]]] = {
             "atoms": [],
             "molecules": [],
             "organisms": [],

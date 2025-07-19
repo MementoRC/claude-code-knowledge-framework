@@ -13,7 +13,7 @@ class TechStackDetector:
         """Analyze project for technology stack"""
         path = Path(project_path)
 
-        stack = {
+        stack: Dict[str, list[str]] = {
             "languages": [],
             "package_managers": [],
             "frameworks": [],
