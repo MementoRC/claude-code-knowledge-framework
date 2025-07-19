@@ -27,6 +27,9 @@ jobs:
     - name: Install dependencies
       run: pixi install -e dev
 
+    - name: Install package in editable mode
+      run: pixi run -e dev dev-setup
+
     - name: Run format check
       run: |
         echo "🎨 Running format check..."
@@ -64,6 +67,9 @@ jobs:
 
     - name: Install dependencies
       run: pixi install -e dev
+
+    - name: Install package in editable mode
+      run: pixi run -e dev dev-setup
 
     - name: Generate coverage report
       run: |

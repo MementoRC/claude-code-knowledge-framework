@@ -57,6 +57,9 @@ jobs:
       - name: Install dependencies
         run: pixi install -e dev
 
+      - name: Install package in editable mode
+        run: pixi run -e dev dev-setup
+
       - name: Lint
         run: pixi run -e dev lint
 

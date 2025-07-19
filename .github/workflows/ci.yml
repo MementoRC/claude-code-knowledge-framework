@@ -34,6 +34,9 @@ jobs:
     - name: Install dependencies
       run: pixi install -e ci
       
+    - name: Install package in editable mode
+      run: pixi run -e ci dev-setup
+      
     - name: Run tests with coverage
       run: pixi run -e ci ci-test
       
@@ -63,6 +66,9 @@ jobs:
     - name: Install dependencies
       run: pixi install -e ci
       
+    - name: Install package in editable mode
+      run: pixi run -e ci dev-setup
+      
     - name: Run comprehensive quality check
       run: pixi run -e ci quality
 
@@ -89,15 +95,24 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Run Bandit Security Scan
-      uses: securecodewarrior/github-action-bandit@v1.1.1
+    - name: Setup pixi
+      uses: prefix-dev/setup-pixi@v0.8.11
       with:
-        directory: src/
+        pixi-version: v0.49.0
+        cache: true
+        manifest-path: pyproject.toml
+        
+    - name: Install dependencies
+      run: pixi install -e quality-extended
+      
+    - name: Install package in editable mode
+      run: pixi run -e quality-extended dev-setup
+      
+    - name: Run Bandit Security Scan
+      run: pixi run -e quality-extended security-scan
         
     - name: Safety Check
-      run: |
-        pip install safety
-        safety check --json --output safety-report.json || true
+      run: pixi run -e quality-extended safety-check
         
     - name: Upload security reports
       uses: actions/upload-artifact@v4
@@ -124,6 +139,9 @@ jobs:
       
     - name: Install framework
       run: pixi install --environment dev
+      
+    - name: Install package in editable mode
+      run: pixi run -e dev dev-setup
       
     - name: Test framework installation
       run: |

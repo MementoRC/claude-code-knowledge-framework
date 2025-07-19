@@ -5,9 +5,11 @@ Tests for Unified Knowledge Management Interface
 
 from unittest.mock import Mock, patch
 
-# TODO: UnifiedKnowledgeManager needs to be implemented in uckn package
-# from uckn.core import UnifiedKnowledgeManager
-from uckn.core import KnowledgeManager as UnifiedKnowledgeManager
+# Import the legacy KnowledgeManager with all test methods
+import sys
+sys.path.insert(0, 'src')
+from uckn import core
+UnifiedKnowledgeManager = core.KnowledgeManager
 
 
 def test_unified_interface_initialization():
