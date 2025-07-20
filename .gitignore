@@ -111,11 +111,11 @@ node_modules/
 *.sw?
 # OS specific
 
-# Task files
-# tasks.json
-# tasks/ 
-
 # Claude Code local settings
 .claude/settings.local.json
 /.taskmaster/
 .mcp.json
+
+# Task files
+# tasks.json
+# tasks/ 

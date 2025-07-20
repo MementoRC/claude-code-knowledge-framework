@@ -3,24 +3,24 @@ UCKN Pattern Manager Molecule
 Handles CRUD operations for knowledge patterns
 """
 
-from typing import Dict, List, Optional, Any
+import logging
 import uuid
 from datetime import datetime
-import logging
+from typing import Any
 
-from ..atoms.semantic_search import SemanticSearch
 from ...storage import ChromaDBConnector
+from ..atoms.semantic_search import SemanticSearch
 
 
 class PatternManager:
     """Manages knowledge patterns with ChromaDB storage and semantic search"""
-    
+
     def __init__(self, chroma_connector: ChromaDBConnector, semantic_search: SemanticSearch):
         self.chroma_connector = chroma_connector
         self.semantic_search = semantic_search
         self._logger = logging.getLogger(__name__)
-    
-    def add_pattern(self, pattern_data: Dict[str, Any]) -> Optional[str]:
+
+    def add_pattern(self, pattern_data: dict[str, Any]) -> str | None:
         """
         Add a new knowledge pattern to the 'code_patterns' collection.
 
@@ -68,7 +68,7 @@ class PatternManager:
         )
         return pattern_id if success else None
 
-    def get_pattern(self, pattern_id: str) -> Optional[Dict[str, Any]]:
+    def get_pattern(self, pattern_id: str) -> dict[str, Any] | None:
         """
         Retrieve a specific pattern from the 'code_patterns' collection.
 
@@ -83,7 +83,7 @@ class PatternManager:
             return None
         return self.chroma_connector.get_document(collection_name="code_patterns", doc_id=pattern_id)
 
-    def update_pattern(self, pattern_id: str, updates: Dict[str, Any]) -> bool:
+    def update_pattern(self, pattern_id: str, updates: dict[str, Any]) -> bool:
         """
         Update an existing pattern in the 'code_patterns' collection.
 
@@ -142,8 +142,8 @@ class PatternManager:
         query: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[Dict[str, Any]] = None
-    ) -> List[Dict[str, Any]]:
+        metadata_filter: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
         """
         Search for knowledge patterns using semantic similarity.
 

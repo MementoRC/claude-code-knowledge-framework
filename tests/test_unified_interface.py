@@ -3,12 +3,13 @@
 Tests for Unified Knowledge Management Interface
 """
 
-from unittest.mock import Mock, patch
-
 # Import the legacy KnowledgeManager with all test methods
 import sys
+from unittest.mock import Mock, patch
+
 sys.path.insert(0, 'src')
 from uckn import core
+
 UnifiedKnowledgeManager = core.KnowledgeManager
 
 

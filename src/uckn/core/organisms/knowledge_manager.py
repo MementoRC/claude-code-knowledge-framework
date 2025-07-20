@@ -3,24 +3,24 @@ UCKN Knowledge Manager Organism
 Main orchestrator for the knowledge management system
 """
 
-from pathlib import Path
-from typing import Dict, List, Optional, Any
 import logging
+from pathlib import Path
+from typing import Any
 
+from ...storage import ChromaDBConnector
 from ..atoms.semantic_search import SemanticSearch
 from ..atoms.tech_stack_detector import TechStackDetector
-from ..molecules.pattern_manager import PatternManager
 from ..molecules.error_solution_manager import ErrorSolutionManager
-from ...storage import ChromaDBConnector
+from ..molecules.pattern_manager import PatternManager
 
 
 class KnowledgeManager:
     """Core knowledge management system using ChromaDB for storage."""
-    
+
     # Known capabilities for testing compatibility
     KNOWN_CAPABILITIES = [
         "semantic_search",
-        "pattern_extraction", 
+        "pattern_extraction",
         "session_analysis",
         "error_solutions",
         "tech_stack_detection"
@@ -44,20 +44,20 @@ class KnowledgeManager:
         # Initialize molecules
         self.pattern_manager = PatternManager(self.chroma_connector, self.semantic_search)
         self.error_solution_manager = ErrorSolutionManager(self.chroma_connector, self.semantic_search)
-        
+
         # Initialize atoms
         self.tech_detector = TechStackDetector()
 
     # Pattern management methods
-    def add_pattern(self, pattern_data: Dict[str, Any]) -> Optional[str]:
+    def add_pattern(self, pattern_data: dict[str, Any]) -> str | None:
         """Add a new knowledge pattern."""
         return self.pattern_manager.add_pattern(pattern_data)
 
-    def get_pattern(self, pattern_id: str) -> Optional[Dict[str, Any]]:
+    def get_pattern(self, pattern_id: str) -> dict[str, Any] | None:
         """Retrieve a specific pattern."""
         return self.pattern_manager.get_pattern(pattern_id)
 
-    def update_pattern(self, pattern_id: str, updates: Dict[str, Any]) -> bool:
+    def update_pattern(self, pattern_id: str, updates: dict[str, Any]) -> bool:
         """Update an existing pattern."""
         return self.pattern_manager.update_pattern(pattern_id, updates)
 
@@ -70,17 +70,17 @@ class KnowledgeManager:
         query: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[Dict[str, Any]] = None
-    ) -> List[Dict[str, Any]]:
+        metadata_filter: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
         """Search for knowledge patterns using semantic similarity."""
         return self.pattern_manager.search_patterns(query, limit, min_similarity, metadata_filter)
 
     # Error solution management methods
-    def add_error_solution(self, solution_data: Dict[str, Any]) -> Optional[str]:
+    def add_error_solution(self, solution_data: dict[str, Any]) -> str | None:
         """Add a new error solution."""
         return self.error_solution_manager.add_error_solution(solution_data)
 
-    def get_error_solution(self, solution_id: str) -> Optional[Dict[str, Any]]:
+    def get_error_solution(self, solution_id: str) -> dict[str, Any] | None:
         """Retrieve a specific error solution."""
         return self.error_solution_manager.get_error_solution(solution_id)
 
@@ -89,18 +89,18 @@ class KnowledgeManager:
         error_query: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[Dict[str, Any]] = None
-    ) -> List[Dict[str, Any]]:
+        metadata_filter: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
         """Search for error solutions using semantic similarity."""
         return self.error_solution_manager.search_error_solutions(error_query, limit, min_similarity, metadata_filter)
 
     # Tech stack analysis
-    def analyze_project_stack(self, project_path: str) -> Dict[str, Any]:
+    def analyze_project_stack(self, project_path: str) -> dict[str, Any]:
         """Analyze project technology stack."""
         return self.tech_detector.analyze_project(project_path)
 
     # Health and utility methods
-    def get_health_status(self) -> Dict[str, Any]:
+    def get_health_status(self) -> dict[str, Any]:
         """Get the health status of all components."""
         capabilities = self.get_capabilities()
         return {
@@ -113,12 +113,12 @@ class KnowledgeManager:
             "knowledge_dir": str(self.knowledge_dir),
             "components": {
                 "pattern_manager": "healthy",
-                "error_solution_manager": "healthy", 
+                "error_solution_manager": "healthy",
                 "tech_detector": "healthy"
             }
         }
-    
-    def get_capabilities(self) -> Dict[str, bool]:
+
+    def get_capabilities(self) -> dict[str, bool]:
         """Get current capabilities status."""
         return {
             "semantic_search": self.semantic_search.is_available(),
@@ -127,15 +127,15 @@ class KnowledgeManager:
             "error_solutions": self.chroma_connector.is_available(),
             "tech_stack_detection": True  # Always available
         }
-    
-    def capture_session_knowledge(self, session_data: Dict[str, Any]) -> str:
+
+    def capture_session_knowledge(self, session_data: dict[str, Any]) -> str:
         """Capture knowledge from a session."""
         session_id = session_data.get("session_id", "unknown")
         # In a real implementation, this would store session data
         # For now, just return the session ID for testing
         return session_id
-    
-    def search_knowledge(self, query: str) -> List[Dict[str, Any]]:
+
+    def search_knowledge(self, query: str) -> list[dict[str, Any]]:
         """Search knowledge base."""
         if not self.semantic_search.is_available():
             return []
@@ -143,21 +143,21 @@ class KnowledgeManager:
         patterns = self.search_patterns(query, limit=5)
         solutions = self.search_error_solutions(query, limit=5)
         return patterns + solutions
-    
-    def get_session_context_summary(self) -> Dict[str, Any]:
+
+    def get_session_context_summary(self) -> dict[str, Any]:
         """Get session context summary."""
         return {
             "total_sessions": 0,
             "active_sessions": 0,
             "knowledge_items": 0
         }
-    
-    def suggest_solutions(self, context: Dict[str, Any], error: str) -> List[Dict[str, Any]]:
+
+    def suggest_solutions(self, context: dict[str, Any], error: str) -> list[dict[str, Any]]:
         """Suggest solutions for an error."""
         if not self.chroma_connector.is_available():
             return []
         return self.search_error_solutions(error, limit=3)
-    
+
     def backup_knowledge_base(self, backup_path: str) -> bool:
         """Backup the knowledge base to a specified path."""
         capabilities = self.get_capabilities()
