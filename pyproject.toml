@@ -87,7 +87,7 @@ mypy = ">=1.0.0"
 # TIER 2: Extended Quality & Security
 [tool.pixi.feature.quality-extended.dependencies]
 bandit = ">=1.7.0"
-safety = ">=2.3.0"
+safety = ">=2.3.0,<3.0.0"
 pre-commit = ">=3.0.0"
 hypothesis = ">=6.0.0"
 
