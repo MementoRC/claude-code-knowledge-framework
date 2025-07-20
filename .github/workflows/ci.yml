@@ -145,20 +145,20 @@ jobs:
       
     - name: Test framework installation
       run: |
-        pixi run install
-        pixi run uckn --version
+        pixi run -e dev install
+        pixi run -e dev uckn --version
         
     - name: Test project initialization
       run: |
         mkdir test-project
         cd test-project
-        pixi run --environment dev init-project
+        pixi run -e dev init-project
         ls -la
         
     - name: Test knowledge analysis
       run: |
         cd test-project
-        pixi run --environment dev analyze-project
+        pixi run -e dev analyze-project
 
   build:
     name: Build Package

@@ -149,6 +149,7 @@ docs = {features = ["docs"], solve-group = "default"}
 
 [tool.pixi.tasks]
 # Development tasks (STRICT COMPLIANCE: Use pip module with python)
+install = "python -m pip install -e ."
 install-editable = "python -m pip install -e ."
 dev-setup = "python -m pip install -e ."
 
@@ -188,8 +189,12 @@ ci-format-check = "ruff format --check src/ tests/"
 # Framework tasks
 start-server = "python -m uckn.server"
 analyze-project = "uckn analyze ."
-migrate-patterns = "uckn migrate --source .claude/knowledge"
+migrate-patterns = "uckn migrate --source .claude/knowledge" 
 init-project = "uckn init"
+
+# Framework tasks with explicit environment (for CI)
+uckn-version = { cmd = "uckn --version", env = "dev" }
+test-framework = { cmd = "uckn --version", env = "dev" }
 
 # Documentation
 docs-serve = "mkdocs serve"
