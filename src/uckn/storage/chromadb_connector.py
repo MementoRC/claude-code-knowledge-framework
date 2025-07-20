@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Union
+from typing import Any
 
 try:
     import chromadb
@@ -60,8 +60,8 @@ class ChromaDBConnector:
         self.db_path = Path(db_path)
         self.db_path.mkdir(parents=True, exist_ok=True)
         self._logger = logging.getLogger(__name__)
-        self.client: Optional[Any] = None
-        self.collections: Dict[str, Any] = {}
+        self.client: Any | None = None
+        self.collections: dict[str, Any] = {}
         self._connect_to_chromadb()
 
     def _connect_to_chromadb(self) -> None:
@@ -73,7 +73,7 @@ class ChromaDBConnector:
         try:
             self.client = chromadb.PersistentClient(
                 path=str(self.db_path),
-                settings=Settings(anonymized_telemetry=False)
+                settings=Settings(anonymized_telemetry=False, allow_reset=True)
             )
             self._logger.info(f"ChromaDB client initialized at {self.db_path}")
 
@@ -94,7 +94,7 @@ class ChromaDBConnector:
         """Checks if ChromaDB is connected and ready."""
         return self.client is not None and bool(self.collections)
 
-    def _validate_metadata(self, collection_name: str, metadata: Dict[str, Any]) -> bool:
+    def _validate_metadata(self, collection_name: str, metadata: dict[str, Any]) -> bool:
         """Validates metadata against the predefined schema for a collection."""
         schema = self._COLLECTION_SCHEMAS.get(collection_name)
         if not schema:
@@ -117,13 +117,77 @@ class ChromaDBConnector:
                 return False
         return True
 
+    def _validate_partial_metadata(self, collection_name: str, metadata: dict[str, Any]) -> bool:
+        """Validates partial metadata (for updates) against the predefined schema for a collection."""
+        schema = self._COLLECTION_SCHEMAS.get(collection_name)
+        if not schema:
+            self._logger.error(f"No schema defined for collection: {collection_name}")
+            return False
+
+        metadata_types = schema["metadata_types"]
+        
+        # Only validate the fields that are provided, don't require all fields for updates
+        for key, value in metadata.items():
+            expected_type = metadata_types.get(key)
+            if expected_type and not isinstance(value, expected_type):
+                self._logger.error(
+                    f"Metadata key '{key}' in '{collection_name}' has incorrect type. "
+                    f"Expected {expected_type}, got {type(value)}"
+                )
+                return False
+        return True
+
+    def _process_metadata_for_chromadb(self, metadata: dict[str, Any]) -> dict[str, Any]:
+        """Process metadata to make it compatible with ChromaDB constraints."""
+        processed = {}
+        for key, value in metadata.items():
+            if isinstance(value, list):
+                # Convert lists to comma-separated strings for ChromaDB compatibility
+                processed[key] = ",".join(str(item) for item in value)
+            elif isinstance(value, dict):
+                # Convert dicts to JSON strings
+                import json
+                processed[key] = json.dumps(value)
+            elif isinstance(value, (str, int, float, bool)):
+                # These types are allowed as-is
+                processed[key] = value
+            else:
+                # Convert other types to strings
+                processed[key] = str(value)
+        return processed
+
+    def _restore_metadata_from_chromadb(self, collection_name: str, metadata: dict[str, Any]) -> dict[str, Any]:
+        """Restore metadata from ChromaDB format to original format."""
+        schema = self._COLLECTION_SCHEMAS.get(collection_name)
+        if not schema:
+            return metadata
+        
+        restored = {}
+        metadata_types = schema["metadata_types"]
+        
+        for key, value in metadata.items():
+            expected_type = metadata_types.get(key)
+            if expected_type == list and isinstance(value, str):
+                # Convert comma-separated string back to list
+                restored[key] = [item.strip() for item in value.split(",") if item.strip()]
+            elif expected_type == dict and isinstance(value, str):
+                # Convert JSON string back to dict
+                try:
+                    import json
+                    restored[key] = json.loads(value)
+                except json.JSONDecodeError:
+                    restored[key] = value
+            else:
+                restored[key] = value
+        return restored
+
     def add_document(
         self,
         collection_name: str,
         doc_id: str,
         document: str,
-        embedding: List[float],
-        metadata: Dict[str, Any]
+        embedding: list[float],
+        metadata: dict[str, Any]
     ) -> bool:
         """
         Adds a document to the specified ChromaDB collection.
@@ -152,11 +216,12 @@ class ChromaDBConnector:
 
         try:
             collection = self.collections[collection_name]
+            processed_metadata = self._process_metadata_for_chromadb(metadata)
             collection.add(
                 ids=[doc_id],
                 documents=[document],
                 embeddings=[embedding],
-                metadatas=[metadata]
+                metadatas=[processed_metadata]
             )
             self._logger.info(f"Document '{doc_id}' added to '{collection_name}'.")
             return True
@@ -164,7 +229,7 @@ class ChromaDBConnector:
             self._logger.error(f"Failed to add document '{doc_id}' to '{collection_name}': {e}")
             return False
 
-    def get_document(self, collection_name: str, doc_id: str) -> Optional[Dict[str, Any]]:
+    def get_document(self, collection_name: str, doc_id: str) -> dict[str, Any] | None:
         """
         Retrieves a document from the specified ChromaDB collection by ID.
 
@@ -190,11 +255,15 @@ class ChromaDBConnector:
                 include=["documents", "embeddings", "metadatas"]
             )
             if results and results["ids"]:
+                embedding = results["embeddings"][0]
+                # Ensure embedding is returned as a list for consistency
+                if hasattr(embedding, 'tolist'):
+                    embedding = embedding.tolist()
                 return {
                     "id": results["ids"][0],
                     "document": results["documents"][0],
-                    "embedding": results["embeddings"][0],
-                    "metadata": results["metadatas"][0]
+                    "embedding": embedding,
+                    "metadata": self._restore_metadata_from_chromadb(collection_name, results["metadatas"][0])
                 }
             return None
         except Exception as e:
@@ -205,9 +274,9 @@ class ChromaDBConnector:
         self,
         collection_name: str,
         doc_id: str,
-        document: Optional[str] = None,
-        embedding: Optional[List[float]] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        document: str | None = None,
+        embedding: list[float] | None = None,
+        metadata: dict[str, Any] | None = None
     ) -> bool:
         """
         Updates an existing document in the specified ChromaDB collection.
@@ -230,17 +299,26 @@ class ChromaDBConnector:
             self._logger.error(f"Collection '{collection_name}' does not exist.")
             return False
 
-        if metadata and not self._validate_metadata(collection_name, metadata):
+        # For updates, we only validate the provided metadata fields, not requiring all fields
+        if metadata and not self._validate_partial_metadata(collection_name, metadata):
             self._logger.error(f"Metadata validation failed for collection '{collection_name}'.")
             return False
 
         try:
             collection = self.collections[collection_name]
+            
+            # Auto-update the updated_at timestamp if metadata is being updated
+            if metadata is not None:
+                from datetime import datetime
+                metadata = metadata.copy()  # Don't modify the original
+                metadata["updated_at"] = datetime.now().isoformat()
+            
+            processed_metadata = self._process_metadata_for_chromadb(metadata) if metadata is not None else None
             collection.update(
                 ids=[doc_id],
                 documents=[document] if document is not None else None,
                 embeddings=[embedding] if embedding is not None else None,
-                metadatas=[metadata] if metadata is not None else None
+                metadatas=[processed_metadata] if processed_metadata is not None else None
             )
             self._logger.info(f"Document '{doc_id}' updated in '{collection_name}'.")
             return True
@@ -279,11 +357,11 @@ class ChromaDBConnector:
     def search_documents(
         self,
         collection_name: str,
-        query_embedding: List[float],
+        query_embedding: list[float],
         n_results: int = 10,
         min_similarity: float = 0.7,
-        where_clause: Optional[Dict[str, Any]] = None
-    ) -> List[Dict[str, Any]]:
+        where_clause: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
         """
         Searches for similar documents in the specified ChromaDB collection.
 
@@ -330,7 +408,7 @@ class ChromaDBConnector:
                         search_results.append({
                             "id": doc_id,
                             "document": results['documents'][0][i],
-                            "metadata": results['metadatas'][0][i],
+                            "metadata": self._restore_metadata_from_chromadb(collection_name, results['metadatas'][0][i]),
                             "similarity_score": similarity
                         })
             return search_results
@@ -353,7 +431,7 @@ class ChromaDBConnector:
             self._logger.error(f"Failed to count documents in '{collection_name}': {e}")
             return 0
 
-    def get_all_documents(self, collection_name: str) -> List[Dict[str, Any]]:
+    def get_all_documents(self, collection_name: str) -> list[dict[str, Any]]:
         """
         Retrieves all documents from a specified collection.
         Use with caution for large collections.
@@ -371,11 +449,15 @@ class ChromaDBConnector:
             all_docs = []
             if results and results["ids"]:
                 for i, doc_id in enumerate(results["ids"]):
+                    embedding = results["embeddings"][i]
+                    # Ensure embedding is returned as a list for consistency
+                    if hasattr(embedding, 'tolist'):
+                        embedding = embedding.tolist()
                     all_docs.append({
                         "id": doc_id,
                         "document": results["documents"][i],
-                        "embedding": results["embeddings"][i],
-                        "metadata": results["metadatas"][i]
+                        "embedding": embedding,
+                        "metadata": self._restore_metadata_from_chromadb(collection_name, results["metadatas"][i])
                     })
             return all_docs
         except Exception as e:
@@ -401,6 +483,6 @@ class ChromaDBConnector:
             self._logger.error(f"Failed to reset ChromaDB: {e}")
             return False
 
-    def _get_collection_names(self) -> List[str]:
+    def _get_collection_names(self) -> list[str]:
         """Returns a list of collection names managed by this connector."""
         return list(self._COLLECTION_SCHEMAS.keys())

@@ -1,9 +1,10 @@
-import pytest
 import os
 import shutil
-from unittest.mock import patch, MagicMock
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Mock imports for graceful degradation testing
 try:
@@ -15,6 +16,7 @@ except ImportError:
 
 # Import the connector
 from uckn.storage.chromadb_connector import ChromaDBConnector
+
 
 # Mock the SemanticSearchEngine for tests that don't need actual embeddings
 # This is crucial because SemanticSearchEngine tries to load a model.
@@ -95,7 +97,9 @@ class TestChromaDBConnector:
         assert retrieved["id"] == doc_id
         assert retrieved["document"] == document
         assert retrieved["metadata"] == metadata
-        assert retrieved["embedding"] == embedding
+        import numpy as np
+        # Use approximate equality for floating point embeddings
+        np.testing.assert_allclose(retrieved["embedding"], embedding, rtol=1e-6)
 
     def test_add_document_error_solutions(self, chroma_connector):
         doc_id = "error_sol_456"
@@ -117,7 +121,9 @@ class TestChromaDBConnector:
         assert retrieved["id"] == doc_id
         assert retrieved["document"] == document
         assert retrieved["metadata"] == metadata
-        assert retrieved["embedding"] == embedding
+        import numpy as np
+        # Use approximate equality for floating point embeddings
+        np.testing.assert_allclose(retrieved["embedding"], embedding, rtol=1e-6)
 
     def test_add_document_invalid_metadata(self, chroma_connector):
         doc_id = "invalid_pattern"

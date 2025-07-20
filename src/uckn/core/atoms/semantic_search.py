@@ -2,13 +2,13 @@
 UCKN Semantic Search Atom
 """
 
-from typing import List, Optional, Dict, Type, Any
 import logging
+from typing import Any
 
 try:
     from ..semantic_search import SemanticSearchEngine
     SEMANTIC_SEARCH_ENGINE_AVAILABLE = True
-    SearchEngineClass: Optional[Type[Any]] = SemanticSearchEngine
+    SearchEngineClass: type[Any] | None = SemanticSearchEngine
 except ImportError:
     logging.getLogger(__name__).warning(
         "SemanticSearchEngine not found. "
@@ -24,18 +24,32 @@ class SemanticSearch:
     """
 
     def __init__(self, knowledge_dir: str = ".uckn/knowledge"):
+        from pathlib import Path
         self._logger = logging.getLogger(__name__)
-        self.engine: Optional[Any] = None
+        self.knowledge_dir = Path(knowledge_dir)
+        self.engine: Any | None = None
         if SEMANTIC_SEARCH_ENGINE_AVAILABLE and SearchEngineClass:
             self.engine = SearchEngineClass(knowledge_dir=knowledge_dir)
         else:
             self._logger.warning("SemanticSearchEngine not available, semantic encoding/search will be disabled.")
 
+    @property
+    def embeddings_dir(self):
+        """Expose embeddings_dir from underlying engine."""
+        if self.engine and hasattr(self.engine, 'embeddings_dir'):
+            return self.engine.embeddings_dir
+        from pathlib import Path
+        return Path(self.knowledge_dir) / "embeddings"
+
     def is_available(self) -> bool:
         """Check if the underlying semantic search engine is available."""
+        # Check if dependencies are available dynamically (for test patching)
+        import uckn.core
+        if hasattr(uckn.core, 'SENTENCE_TRANSFORMERS_AVAILABLE') and not uckn.core.SENTENCE_TRANSFORMERS_AVAILABLE:
+            return False
         return self.engine is not None and self.engine.is_available()
 
-    def encode(self, text: str) -> Optional[List[float]]:
+    def encode(self, text: str) -> list[float] | None:
         """
         Generate embeddings for text using the underlying sentence transformer model.
         """
@@ -55,7 +69,7 @@ class SemanticSearch:
             self._logger.error(f"Failed to encode text: {e}")
             return None
 
-    def search(self, query: str, collection_name: str, limit: int = 10, min_similarity: float = 0.7) -> List[Dict[str, Any]]:
+    def search(self, query: str, collection_name: str, limit: int = 10, min_similarity: float = 0.7) -> list[dict[str, Any]]:
         """
         Perform semantic search using the underlying engine's capabilities.
         Note: This method is primarily for direct semantic search on raw text.
@@ -88,3 +102,46 @@ class SemanticSearch:
         except Exception as e:
             self._logger.error(f"Semantic search failed: {e}")
             return []
+
+    def _extract_text_for_embedding(self, session_data: dict[str, Any]) -> str:
+        """Extract meaningful text content from session data for embedding."""
+        if not self.engine:
+            self._logger.warning("Semantic search engine not available, cannot extract text.")
+            return ""
+        return self.engine._extract_text_for_embedding(session_data)
+
+    def get_embedding_stats(self) -> dict[str, Any]:
+        """Get statistics about stored embeddings."""
+        if not self.engine:
+            self._logger.warning("Semantic search engine not available, cannot get stats.")
+            return {
+                "total_embeddings": 0,
+                "storage_type": "none",
+                "model_available": False
+            }
+        return self.engine.get_embedding_stats()
+
+    def search_similar_sessions(self, query: str, max_results: int = 10,
+                              similarity_threshold: float = 0.7) -> list[dict[str, Any]]:
+        """Search for similar sessions using semantic similarity."""
+        if not self.engine:
+            self._logger.warning("Semantic search engine not available, cannot search sessions.")
+            return []
+        return self.engine.search_similar_sessions(query, max_results, similarity_threshold)
+
+    def store_session_embedding(self, session_id: str, session_data: dict[str, Any]) -> bool:
+        """Store session embedding in vector database."""
+        if not self.engine:
+            self._logger.warning("Semantic search engine not available, cannot store embedding.")
+            return False
+        return self.engine.store_session_embedding(session_id, session_data)
+
+    def _store_embedding_numpy(self, session_id: str, embedding, session_data: dict[str, Any]) -> None:
+        """Store embedding using numpy fallback."""
+        if not self.engine:
+            self._logger.warning("Semantic search engine not available, cannot store embedding.")
+            return
+        if hasattr(self.engine, '_store_embedding_numpy'):
+            return self.engine._store_embedding_numpy(session_id, embedding, session_data)
+        else:
+            self._logger.warning("Numpy storage not available in underlying engine.")
