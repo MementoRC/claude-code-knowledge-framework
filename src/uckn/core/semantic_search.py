@@ -172,7 +172,7 @@ class SemanticSearchEngine:
             results = self.collection.query(
                 query_embeddings=[query_embedding.tolist()],
                 n_results=max_results,
-                include=["metadatas", "documents", "distances"]
+                include=["metadatas", "documents", "distances"]  # type: ignore
             )
 
             search_results = []

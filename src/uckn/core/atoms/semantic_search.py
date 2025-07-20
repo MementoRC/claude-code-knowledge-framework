@@ -4,6 +4,7 @@ UCKN Semantic Search Atom
 
 import logging
 from typing import Any
+from pathlib import Path
 
 try:
     from ..semantic_search import SemanticSearchEngine
@@ -34,11 +35,10 @@ class SemanticSearch:
             self._logger.warning("SemanticSearchEngine not available, semantic encoding/search will be disabled.")
 
     @property
-    def embeddings_dir(self):
+    def embeddings_dir(self) -> Path:
         """Expose embeddings_dir from underlying engine."""
         if self.engine and hasattr(self.engine, 'embeddings_dir'):
             return self.engine.embeddings_dir
-        from pathlib import Path
         return Path(self.knowledge_dir) / "embeddings"
 
     def is_available(self) -> bool:
@@ -136,7 +136,7 @@ class SemanticSearch:
             return False
         return self.engine.store_session_embedding(session_id, session_data)
 
-    def _store_embedding_numpy(self, session_id: str, embedding, session_data: dict[str, Any]) -> None:
+    def _store_embedding_numpy(self, session_id: str, embedding: Any, session_data: dict[str, Any]) -> None:
         """Store embedding using numpy fallback."""
         if not self.engine:
             self._logger.warning("Semantic search engine not available, cannot store embedding.")

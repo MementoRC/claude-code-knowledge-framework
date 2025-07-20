@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Dict, List, Union, Type
 
 try:
     import chromadb
@@ -124,7 +124,7 @@ class ChromaDBConnector:
             self._logger.error(f"No schema defined for collection: {collection_name}")
             return False
 
-        metadata_types = schema["metadata_types"]
+        metadata_types: Dict[str, Any] = schema["metadata_types"]  # type: ignore
         
         # Only validate the fields that are provided, don't require all fields for updates
         for key, value in metadata.items():
@@ -137,9 +137,9 @@ class ChromaDBConnector:
                 return False
         return True
 
-    def _process_metadata_for_chromadb(self, metadata: dict[str, Any]) -> dict[str, Any]:
+    def _process_metadata_for_chromadb(self, metadata: dict[str, Any]) -> dict[str, Union[str, int, float]]:
         """Process metadata to make it compatible with ChromaDB constraints."""
-        processed = {}
+        processed: Dict[str, Union[str, int, float]] = {}
         for key, value in metadata.items():
             if isinstance(value, list):
                 # Convert lists to comma-separated strings for ChromaDB compatibility
@@ -162,8 +162,8 @@ class ChromaDBConnector:
         if not schema:
             return metadata
         
-        restored = {}
-        metadata_types = schema["metadata_types"]
+        restored: Dict[str, Any] = {}
+        metadata_types: Dict[str, Any] = schema["metadata_types"]  # type: ignore
         
         for key, value in metadata.items():
             expected_type = metadata_types.get(key)
