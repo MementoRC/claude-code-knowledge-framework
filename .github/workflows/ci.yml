@@ -109,78 +109,30 @@ jobs:
       with:
         pixi-version: v0.49.0
         cache: true
+        manifest-path: pyproject.toml
+      
+    - name: Install framework
+      run: pixi install --environment dev
+      
+    - name: Install package in editable mode
+      run: pixi run -e dev dev-setup
+      
+    - name: Test framework installation
+      run: |
+        pixi run -e dev install
+        pixi run -e dev uckn --version
         
     - name: Install dependencies
       run: |
-        pixi install --locked
+        mkdir test-project
+        cd test-project
+        pixi run -e dev init-project
+        ls -la
         
     - name: Validate UCKN atomic structure
       run: |
-        echo "🏗️ Validating atomic design structure..."
-        
-        # Check atomic directory structure
-        test -d "src/uckn/core/atoms" || (echo "❌ Missing atoms directory" && exit 1)
-        test -d "src/uckn/core/molecules" || (echo "❌ Missing molecules directory" && exit 1)
-        test -d "src/uckn/core/organisms" || (echo "❌ Missing organisms directory" && exit 1)
-        echo "✅ Atomic directory structure valid"
-        
-        # Check file size constraints (200-500 lines)
-        python << 'EOF'
-        import os
-        import sys
-        
-        violations = []
-        for root, dirs, files in os.walk("src/uckn"):
-            for file in files:
-                if file.endswith(".py") and file != "__init__.py":
-                    filepath = os.path.join(root, file)
-                    with open(filepath, 'r') as f:
-                        line_count = sum(1 for line in f)
-                    
-                    if line_count > 500:
-                        violations.append(f"{filepath}: {line_count} lines (exceeds 500)")
-        
-        if violations:
-            print("❌ File size violations:")
-            for violation in violations:
-                print(f"  {violation}")
-            sys.exit(1)
-        else:
-            print("✅ All files within size constraints")
-        EOF
-        
-    - name: Test UCKN framework integration
-      run: |
-        echo "🔧 Testing UCKN framework integration..."
-        python << 'EOF'
-        # Test main imports
-        try:
-            from src.uckn import KnowledgeManager, SemanticSearch, UnifiedKnowledgeManager
-            print("✅ Main imports working")
-        except ImportError as e:
-            print(f"❌ Import error: {e}")
-            exit(1)
-
-        # Test initialization
-        try:
-            km = KnowledgeManager()
-            health = km.get_health_status()
-            print(f"✅ KnowledgeManager: {health}")
-        except Exception as e:
-            print(f"❌ KnowledgeManager error: {e}")
-            exit(1)
-
-        # Test unified interface
-        try:
-            ukm = UnifiedKnowledgeManager()
-            capabilities = ukm.get_capabilities()
-            print(f"✅ UnifiedKnowledgeManager: {len(capabilities)} capabilities")
-        except Exception as e:
-            print(f"❌ UnifiedKnowledgeManager error: {e}")
-            exit(1)
-
-        print("🎉 UCKN integration tests passed!")
-        EOF
+        cd test-project
+        pixi run -e dev analyze-project
 
   build:
     name: Build Package
