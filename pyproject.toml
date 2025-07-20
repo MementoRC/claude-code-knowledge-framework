@@ -118,6 +118,29 @@ pip = "*"
 [tool.pixi.pypi-dependencies]
 uckn-framework = {path = ".", editable = true}
 
+# TIER 1: Essential Quality Gates (ZERO-TOLERANCE)
+[tool.pixi.feature.quality.dependencies]
+pytest = ">=8.0.0"
+pytest-cov = ">=4.0.0"
+pytest-timeout = ">=2.1.0"
+pytest-asyncio = ">=0.21.0"
+ruff = ">=0.7.3"
+mypy = ">=1.0.0"
+
+# TIER 2: Extended Quality & Security
+[tool.pixi.feature.quality-extended.dependencies]
+bandit = ">=1.7.0"
+safety = ">=2.3.0,<3.0.0"
+pre-commit = ">=3.0.0"
+hypothesis = ">=6.0.0"
+
+# TIER 3: CI/CD & Build Tools
+[tool.pixi.feature.quality-ci.dependencies]
+python-build = ">=1.0.0"
+twine = ">=4.0.0"
+coverage = ">=7.0.0"
+
+# Development Tools (specialized)
 [tool.pixi.feature.dev.dependencies]
 pytest = "*"
 pytest-cov = "*"
