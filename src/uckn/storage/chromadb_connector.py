@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Union, Type
+from typing import Any
 
 try:
     import chromadb
@@ -124,8 +124,8 @@ class ChromaDBConnector:
             self._logger.error(f"No schema defined for collection: {collection_name}")
             return False
 
-        metadata_types: Dict[str, Any] = schema["metadata_types"]  # type: ignore
-        
+        metadata_types: dict[str, Any] = schema["metadata_types"]  # type: ignore
+
         # Only validate the fields that are provided, don't require all fields for updates
         for key, value in metadata.items():
             expected_type = metadata_types.get(key)
@@ -137,9 +137,9 @@ class ChromaDBConnector:
                 return False
         return True
 
-    def _process_metadata_for_chromadb(self, metadata: dict[str, Any]) -> dict[str, Union[str, int, float]]:
+    def _process_metadata_for_chromadb(self, metadata: dict[str, Any]) -> dict[str, str | int | float]:
         """Process metadata to make it compatible with ChromaDB constraints."""
-        processed: Dict[str, Union[str, int, float]] = {}
+        processed: dict[str, str | int | float] = {}
         for key, value in metadata.items():
             if isinstance(value, list):
                 # Convert lists to comma-separated strings for ChromaDB compatibility
@@ -161,10 +161,10 @@ class ChromaDBConnector:
         schema = self._COLLECTION_SCHEMAS.get(collection_name)
         if not schema:
             return metadata
-        
-        restored: Dict[str, Any] = {}
-        metadata_types: Dict[str, Any] = schema["metadata_types"]  # type: ignore
-        
+
+        restored: dict[str, Any] = {}
+        metadata_types: dict[str, Any] = schema["metadata_types"]  # type: ignore
+
         for key, value in metadata.items():
             expected_type = metadata_types.get(key)
             if expected_type == list and isinstance(value, str):
@@ -306,13 +306,13 @@ class ChromaDBConnector:
 
         try:
             collection = self.collections[collection_name]
-            
+
             # Auto-update the updated_at timestamp if metadata is being updated
             if metadata is not None:
                 from datetime import datetime
                 metadata = metadata.copy()  # Don't modify the original
                 metadata["updated_at"] = datetime.now().isoformat()
-            
+
             processed_metadata = self._process_metadata_for_chromadb(metadata) if metadata is not None else None
             collection.update(
                 ids=[doc_id],

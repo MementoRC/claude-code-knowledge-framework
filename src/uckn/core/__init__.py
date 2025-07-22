@@ -1,6 +1,6 @@
 """UCKN Core Module - Main components for knowledge management."""
 
-from .atoms.semantic_search import SemanticSearch, SEMANTIC_SEARCH_ENGINE_AVAILABLE
+from .atoms.semantic_search import SEMANTIC_SEARCH_ENGINE_AVAILABLE, SemanticSearch
 from .organisms.knowledge_manager import KnowledgeManager
 
 # Expose for backward compatibility with tests

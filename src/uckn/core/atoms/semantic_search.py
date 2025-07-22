@@ -3,8 +3,8 @@ UCKN Semantic Search Atom
 """
 
 import logging
-from typing import Any
 from pathlib import Path
+from typing import Any
 
 try:
     from ..semantic_search import SemanticSearchEngine
