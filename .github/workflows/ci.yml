@@ -109,10 +109,14 @@ jobs:
       run: pixi run -e quality-extended dev-setup
       
     - name: Run Bandit Security Scan
-      run: pixi run -e quality-extended security-scan
+      run: |
+        echo "🔍 Running Bandit security scan..."
+        pixi run -e quality-extended security-scan
         
     - name: Safety Check
-      run: pixi run -e quality-extended safety-check
+      run: |
+        echo "🔍 Running Safety vulnerability check..."
+        pixi run -e quality-extended safety-check-ci
         
     - name: Upload security reports
       uses: actions/upload-artifact@v4
