@@ -2,7 +2,7 @@
 """
 Flag Configuration Template
 
-Template for atomic design in the codebase, demonstrating the pattern for 
+Template for atomic design in the codebase, demonstrating the pattern for
 feature flag configurations using atomic design principles.
 """
 
@@ -13,6 +13,7 @@ from typing import Any
 
 class TemplateLevel(Enum):
     """Atomic design template levels."""
+
     ATOM = "atom"
     MOLECULE = "molecule"
     ORGANISM = "organism"
@@ -22,6 +23,7 @@ class TemplateLevel(Enum):
 @dataclass
 class AtomicComponent:
     """Basic atomic component for templates."""
+
     name: str
     level: TemplateLevel
     config: dict[str, Any]
@@ -31,8 +33,8 @@ class AtomicComponent:
 class FlagConfigurationTemplate:
     """
     Template demonstrating atomic design pattern for feature flag configuration.
-    
-    This serves as a template for applying atomic design patterns to other 
+
+    This serves as a template for applying atomic design patterns to other
     knowledge management components in the framework.
     """
 
@@ -53,16 +55,18 @@ class FlagConfigurationTemplate:
             "atoms": [],
             "molecules": [],
             "organisms": [],
-            "templates": []
+            "templates": [],
         }
 
         for component in self._components.values():
             level_key = f"{component.level.value}s"
-            template[level_key].append({
-                "name": component.name,
-                "config": component.config,
-                "dependencies": component.dependencies or []
-            })
+            template[level_key].append(
+                {
+                    "name": component.name,
+                    "config": component.config,
+                    "dependencies": component.dependencies or [],
+                }
+            )
 
         return template
 
@@ -84,34 +88,42 @@ def create_example_template() -> FlagConfigurationTemplate:
     template = FlagConfigurationTemplate()
 
     # Atom level
-    template.add_component(AtomicComponent(
-        name="flag_value",
-        level=TemplateLevel.ATOM,
-        config={"type": "boolean", "default": False}
-    ))
+    template.add_component(
+        AtomicComponent(
+            name="flag_value",
+            level=TemplateLevel.ATOM,
+            config={"type": "boolean", "default": False},
+        )
+    )
 
     # Molecule level
-    template.add_component(AtomicComponent(
-        name="feature_flag",
-        level=TemplateLevel.MOLECULE,
-        config={"validation": True, "environment_aware": True},
-        dependencies=["flag_value"]
-    ))
+    template.add_component(
+        AtomicComponent(
+            name="feature_flag",
+            level=TemplateLevel.MOLECULE,
+            config={"validation": True, "environment_aware": True},
+            dependencies=["flag_value"],
+        )
+    )
 
     # Organism level
-    template.add_component(AtomicComponent(
-        name="flag_registry",
-        level=TemplateLevel.ORGANISM,
-        config={"storage": "memory", "persistence": True},
-        dependencies=["feature_flag"]
-    ))
+    template.add_component(
+        AtomicComponent(
+            name="flag_registry",
+            level=TemplateLevel.ORGANISM,
+            config={"storage": "memory", "persistence": True},
+            dependencies=["feature_flag"],
+        )
+    )
 
     # Template level
-    template.add_component(AtomicComponent(
-        name="progressive_rollout",
-        level=TemplateLevel.TEMPLATE,
-        config={"stages": ["canary", "gradual", "full"]},
-        dependencies=["flag_registry"]
-    ))
+    template.add_component(
+        AtomicComponent(
+            name="progressive_rollout",
+            level=TemplateLevel.TEMPLATE,
+            config={"stages": ["canary", "gradual", "full"]},
+            dependencies=["flag_registry"],
+        )
+    )
 
     return template

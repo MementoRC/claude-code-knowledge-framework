@@ -7,7 +7,7 @@ Tests for Unified Knowledge Management Interface
 import sys
 from unittest.mock import Mock, patch
 
-sys.path.insert(0, 'src')
+sys.path.insert(0, "src")
 from uckn import core
 
 UnifiedKnowledgeManager = core.KnowledgeManager

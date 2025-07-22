@@ -18,7 +18,7 @@ class TechStackDetector:
             "package_managers": [],
             "frameworks": [],
             "testing": [],
-            "ci_cd": []
+            "ci_cd": [],
         }
 
         # Detect Python

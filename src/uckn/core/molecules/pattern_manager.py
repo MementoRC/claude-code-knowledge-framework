@@ -15,7 +15,9 @@ from ..atoms.semantic_search import SemanticSearch
 class PatternManager:
     """Manages knowledge patterns with ChromaDB storage and semantic search"""
 
-    def __init__(self, chroma_connector: ChromaDBConnector, semantic_search: SemanticSearch):
+    def __init__(
+        self, chroma_connector: ChromaDBConnector, semantic_search: SemanticSearch
+    ):
         self.chroma_connector = chroma_connector
         self.semantic_search = semantic_search
         self._logger = logging.getLogger(__name__)
@@ -36,7 +38,9 @@ class PatternManager:
             self._logger.error("ChromaDB not available, cannot add pattern.")
             return None
         if not self.semantic_search.is_available():
-            self._logger.error("Semantic search not available, cannot generate embeddings for pattern.")
+            self._logger.error(
+                "Semantic search not available, cannot generate embeddings for pattern."
+            )
             return None
 
         pattern_id = pattern_data.get("pattern_id", str(uuid.uuid4()))
@@ -44,13 +48,17 @@ class PatternManager:
         metadata = pattern_data.get("metadata", {})
 
         if not document_text:
-            self._logger.error("Pattern data must include 'document' text for embedding.")
+            self._logger.error(
+                "Pattern data must include 'document' text for embedding."
+            )
             return None
 
         # Generate embedding
         embedding = self.semantic_search.encode(document_text)
         if embedding is None:
-            self._logger.error(f"Failed to generate embedding for pattern {pattern_id}.")
+            self._logger.error(
+                f"Failed to generate embedding for pattern {pattern_id}."
+            )
             return None
 
         # Add/update timestamps in metadata
@@ -64,7 +72,7 @@ class PatternManager:
             doc_id=pattern_id,
             document=document_text,
             embedding=embedding,
-            metadata=metadata
+            metadata=metadata,
         )
         return pattern_id if success else None
 
@@ -81,7 +89,9 @@ class PatternManager:
         if not self.chroma_connector.is_available():
             self._logger.warning("ChromaDB not available, cannot retrieve pattern.")
             return None
-        return self.chroma_connector.get_document(collection_name="code_patterns", doc_id=pattern_id)
+        return self.chroma_connector.get_document(
+            collection_name="code_patterns", doc_id=pattern_id
+        )
 
     def update_pattern(self, pattern_id: str, updates: dict[str, Any]) -> bool:
         """
@@ -105,10 +115,14 @@ class PatternManager:
         if document_text and self.semantic_search.is_available():
             embedding = self.semantic_search.encode(document_text)
             if embedding is None:
-                self._logger.error(f"Failed to generate new embedding for pattern {pattern_id} during update.")
+                self._logger.error(
+                    f"Failed to generate new embedding for pattern {pattern_id} during update."
+                )
                 return False
         elif document_text:
-            self._logger.warning("Semantic search not available, cannot re-generate embedding for updated document text.")
+            self._logger.warning(
+                "Semantic search not available, cannot re-generate embedding for updated document text."
+            )
 
         # Update timestamp in metadata if present
         if metadata is not None:
@@ -119,7 +133,7 @@ class PatternManager:
             doc_id=pattern_id,
             document=document_text,
             embedding=embedding,
-            metadata=metadata
+            metadata=metadata,
         )
 
     def delete_pattern(self, pattern_id: str) -> bool:
@@ -135,14 +149,16 @@ class PatternManager:
         if not self.chroma_connector.is_available():
             self._logger.warning("ChromaDB not available, cannot delete pattern.")
             return False
-        return self.chroma_connector.delete_document(collection_name="code_patterns", doc_id=pattern_id)
+        return self.chroma_connector.delete_document(
+            collection_name="code_patterns", doc_id=pattern_id
+        )
 
     def search_patterns(
         self,
         query: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: dict[str, Any] | None = None
+        metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """
         Search for knowledge patterns using semantic similarity.
@@ -160,7 +176,9 @@ class PatternManager:
             self._logger.warning("ChromaDB not available, cannot search patterns.")
             return []
         if not self.semantic_search.is_available():
-            self._logger.warning("Semantic search not available, cannot generate query embedding.")
+            self._logger.warning(
+                "Semantic search not available, cannot generate query embedding."
+            )
             return []
 
         query_embedding = self.semantic_search.encode(query)
@@ -173,6 +191,6 @@ class PatternManager:
             query_embedding=query_embedding,
             n_results=limit,
             min_similarity=min_similarity,
-            where_clause=metadata_filter
+            where_clause=metadata_filter,
         )
         return results

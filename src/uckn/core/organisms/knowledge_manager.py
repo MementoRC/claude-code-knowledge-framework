@@ -23,7 +23,7 @@ class KnowledgeManager:
         "pattern_extraction",
         "session_analysis",
         "error_solutions",
-        "tech_stack_detection"
+        "tech_stack_detection",
     ]
 
     def __init__(self, knowledge_dir: str = ".uckn/knowledge"):
@@ -32,18 +32,28 @@ class KnowledgeManager:
         self._logger = logging.getLogger(__name__)
 
         # Initialize ChromaDB connector
-        self.chroma_connector = ChromaDBConnector(db_path=str(self.knowledge_dir / "chroma_db"))
+        self.chroma_connector = ChromaDBConnector(
+            db_path=str(self.knowledge_dir / "chroma_db")
+        )
         if not self.chroma_connector.is_available():
-            self._logger.warning("ChromaDB is not available. Knowledge storage and retrieval will be limited.")
+            self._logger.warning(
+                "ChromaDB is not available. Knowledge storage and retrieval will be limited."
+            )
 
         # Initialize Semantic Search for embeddings
         self.semantic_search = SemanticSearch(knowledge_dir=str(self.knowledge_dir))
         if not self.semantic_search.is_available():
-            self._logger.warning("Semantic search model not available. Embeddings cannot be generated.")
+            self._logger.warning(
+                "Semantic search model not available. Embeddings cannot be generated."
+            )
 
         # Initialize molecules
-        self.pattern_manager = PatternManager(self.chroma_connector, self.semantic_search)
-        self.error_solution_manager = ErrorSolutionManager(self.chroma_connector, self.semantic_search)
+        self.pattern_manager = PatternManager(
+            self.chroma_connector, self.semantic_search
+        )
+        self.error_solution_manager = ErrorSolutionManager(
+            self.chroma_connector, self.semantic_search
+        )
 
         # Initialize atoms
         self.tech_detector = TechStackDetector()
@@ -70,10 +80,12 @@ class KnowledgeManager:
         query: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: dict[str, Any] | None = None
+        metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Search for knowledge patterns using semantic similarity."""
-        return self.pattern_manager.search_patterns(query, limit, min_similarity, metadata_filter)
+        return self.pattern_manager.search_patterns(
+            query, limit, min_similarity, metadata_filter
+        )
 
     # Error solution management methods
     def add_error_solution(self, solution_data: dict[str, Any]) -> str | None:
@@ -89,10 +101,12 @@ class KnowledgeManager:
         error_query: str,
         limit: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: dict[str, Any] | None = None
+        metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Search for error solutions using semantic similarity."""
-        return self.error_solution_manager.search_error_solutions(error_query, limit, min_similarity, metadata_filter)
+        return self.error_solution_manager.search_error_solutions(
+            error_query, limit, min_similarity, metadata_filter
+        )
 
     # Tech stack analysis
     def analyze_project_stack(self, project_path: str) -> dict[str, Any]:
@@ -114,8 +128,8 @@ class KnowledgeManager:
             "components": {
                 "pattern_manager": "healthy",
                 "error_solution_manager": "healthy",
-                "tech_detector": "healthy"
-            }
+                "tech_detector": "healthy",
+            },
         }
 
     def get_capabilities(self) -> dict[str, bool]:
@@ -125,7 +139,7 @@ class KnowledgeManager:
             "pattern_extraction": self.chroma_connector.is_available(),
             "session_analysis": True,  # Always available
             "error_solutions": self.chroma_connector.is_available(),
-            "tech_stack_detection": True  # Always available
+            "tech_stack_detection": True,  # Always available
         }
 
     def capture_session_knowledge(self, session_data: dict[str, Any]) -> str:
@@ -146,13 +160,11 @@ class KnowledgeManager:
 
     def get_session_context_summary(self) -> dict[str, Any]:
         """Get session context summary."""
-        return {
-            "total_sessions": 0,
-            "active_sessions": 0,
-            "knowledge_items": 0
-        }
+        return {"total_sessions": 0, "active_sessions": 0, "knowledge_items": 0}
 
-    def suggest_solutions(self, context: dict[str, Any], error: str) -> list[dict[str, Any]]:
+    def suggest_solutions(
+        self, context: dict[str, Any], error: str
+    ) -> list[dict[str, Any]]:
         """Suggest solutions for an error."""
         if not self.chroma_connector.is_available():
             return []

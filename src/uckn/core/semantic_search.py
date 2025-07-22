@@ -17,6 +17,7 @@ import numpy.typing as npt
 
 try:
     from sentence_transformers import SentenceTransformer
+
     SENTENCE_TRANSFORMERS_AVAILABLE = True
 except ImportError:
     SENTENCE_TRANSFORMERS_AVAILABLE = False
@@ -24,6 +25,7 @@ except ImportError:
 try:
     import chromadb
     from chromadb.config import Settings
+
     CHROMADB_AVAILABLE = True
 except ImportError:
     CHROMADB_AVAILABLE = False
@@ -32,7 +34,7 @@ except ImportError:
 class SemanticSearchEngine:
     """
     Semantic search engine using sentence transformers and ChromaDB.
-    
+
     Provides embedding-based similarity search for knowledge management
     with fallback to keyword search when embeddings are unavailable.
     """
@@ -51,13 +53,15 @@ class SemanticSearchEngine:
     def _init_sentence_transformer(self) -> None:
         """Initialize sentence transformer model."""
         if not SENTENCE_TRANSFORMERS_AVAILABLE:
-            self._logger.warning("sentence-transformers not available, using fallback search")
+            self._logger.warning(
+                "sentence-transformers not available, using fallback search"
+            )
             self.sentence_model = None
             return
 
         try:
             # Use a lightweight but effective model
-            self.sentence_model = SentenceTransformer('all-MiniLM-L6-v2')
+            self.sentence_model = SentenceTransformer("all-MiniLM-L6-v2")
             self._logger.info("Sentence transformer model loaded successfully")
         except Exception as e:
             self._logger.error(f"Failed to load sentence transformer: {e}")
@@ -75,13 +79,13 @@ class SemanticSearchEngine:
             # Initialize ChromaDB client
             self.chroma_client = chromadb.PersistentClient(
                 path=str(self.embeddings_dir / "chroma_db"),
-                settings=Settings(anonymized_telemetry=False)
+                settings=Settings(anonymized_telemetry=False),
             )
 
             # Get or create collection for sessions
             self.collection = self.chroma_client.get_or_create_collection(
                 name="session_embeddings",
-                metadata={"description": "Session knowledge embeddings"}
+                metadata={"description": "Session knowledge embeddings"},
             )
 
             self._logger.info("ChromaDB initialized successfully")
@@ -95,7 +99,9 @@ class SemanticSearchEngine:
         """Check if semantic search is fully available."""
         return self.sentence_model is not None
 
-    def generate_session_embedding(self, session_data: dict[str, Any]) -> npt.NDArray[np.float32] | None:
+    def generate_session_embedding(
+        self, session_data: dict[str, Any]
+    ) -> npt.NDArray[np.float32] | None:
         """Generate embedding for a session."""
         if not self.sentence_model:
             return None
@@ -112,7 +118,9 @@ class SemanticSearchEngine:
             self._logger.error(f"Failed to generate session embedding: {e}")
             return None
 
-    def store_session_embedding(self, session_id: str, session_data: dict[str, Any]) -> bool:
+    def store_session_embedding(
+        self, session_id: str, session_data: dict[str, Any]
+    ) -> bool:
         """Store session embedding in vector database."""
         try:
             embedding = self.generate_session_embedding(session_data)
@@ -124,13 +132,17 @@ class SemanticSearchEngine:
                 self.collection.add(
                     ids=[session_id],
                     embeddings=[embedding.tolist()],
-                    metadatas=[{
-                        "session_id": session_id,
-                        "timestamp": session_data.get("timestamp", ""),
-                        "final_status": session_data.get("final_status", "unknown"),
-                        "complexity": session_data.get("metadata", {}).get("session_complexity", "medium")
-                    }],
-                    documents=[self._extract_text_for_embedding(session_data)]
+                    metadatas=[
+                        {
+                            "session_id": session_id,
+                            "timestamp": session_data.get("timestamp", ""),
+                            "final_status": session_data.get("final_status", "unknown"),
+                            "complexity": session_data.get("metadata", {}).get(
+                                "session_complexity", "medium"
+                            ),
+                        }
+                    ],
+                    documents=[self._extract_text_for_embedding(session_data)],
                 )
             else:
                 # Fallback to numpy storage
@@ -142,11 +154,14 @@ class SemanticSearchEngine:
             self._logger.error(f"Failed to store session embedding: {e}")
             return False
 
-    def search_similar_sessions(self, query: str, max_results: int = 10,
-                              similarity_threshold: float = 0.7) -> list[dict[str, Any]]:
+    def search_similar_sessions(
+        self, query: str, max_results: int = 10, similarity_threshold: float = 0.7
+    ) -> list[dict[str, Any]]:
         """Search for similar sessions using semantic similarity."""
         if not self.sentence_model:
-            self._logger.warning("Semantic search not available, returning empty results")
+            self._logger.warning(
+                "Semantic search not available, returning empty results"
+            )
             return []
 
         try:
@@ -155,16 +170,24 @@ class SemanticSearchEngine:
 
             # Search using ChromaDB if available
             if self.collection is not None:
-                return self._search_chromadb(query_embedding, max_results, similarity_threshold)
+                return self._search_chromadb(
+                    query_embedding, max_results, similarity_threshold
+                )
             else:
-                return self._search_numpy_fallback(query_embedding, max_results, similarity_threshold)
+                return self._search_numpy_fallback(
+                    query_embedding, max_results, similarity_threshold
+                )
 
         except Exception as e:
             self._logger.error(f"Semantic search failed: {e}")
             return []
 
-    def _search_chromadb(self, query_embedding: npt.NDArray[np.float32], max_results: int,
-                        similarity_threshold: float) -> list[dict[str, Any]]:
+    def _search_chromadb(
+        self,
+        query_embedding: npt.NDArray[np.float32],
+        max_results: int,
+        similarity_threshold: float,
+    ) -> list[dict[str, Any]]:
         """Search using ChromaDB vector database."""
         try:
             if not self.collection:
@@ -172,25 +195,35 @@ class SemanticSearchEngine:
             results = self.collection.query(
                 query_embeddings=[query_embedding.tolist()],
                 n_results=max_results,
-                include=["metadatas", "documents", "distances"]  # type: ignore
+                include=["metadatas", "documents", "distances"],  # type: ignore
             )
 
             search_results = []
 
-            if results.get('ids') and results['ids'] and len(results['ids'][0]) > 0:
-                for i, session_id in enumerate(results['ids'][0]):
-                    distance = results['distances'][0][i] if results.get('distances') and results['distances'] else 0
+            if results.get("ids") and results["ids"] and len(results["ids"][0]) > 0:
+                for i, session_id in enumerate(results["ids"][0]):
+                    distance = (
+                        results["distances"][0][i]
+                        if results.get("distances") and results["distances"]
+                        else 0
+                    )
                     # Convert distance to similarity (lower distance = higher similarity)
                     similarity = 1.0 / (1.0 + distance)
 
                     if similarity >= similarity_threshold:
-                        search_results.append({
-                            "session_id": session_id,
-                            "similarity_score": similarity,
-                            "metadata": results['metadatas'][0][i] if results.get('metadatas') and results['metadatas'] else {},
-                            "document": results['documents'][0][i] if results.get('documents') and results['documents'] else "",
-                            "search_type": "semantic"
-                        })
+                        search_results.append(
+                            {
+                                "session_id": session_id,
+                                "similarity_score": similarity,
+                                "metadata": results["metadatas"][0][i]
+                                if results.get("metadatas") and results["metadatas"]
+                                else {},
+                                "document": results["documents"][0][i]
+                                if results.get("documents") and results["documents"]
+                                else "",
+                                "search_type": "semantic",
+                            }
+                        )
 
             return search_results
 
@@ -198,8 +231,12 @@ class SemanticSearchEngine:
             self._logger.error(f"ChromaDB search failed: {e}")
             return []
 
-    def _search_numpy_fallback(self, query_embedding: npt.NDArray[np.float32], max_results: int,
-                             similarity_threshold: float) -> list[dict[str, Any]]:
+    def _search_numpy_fallback(
+        self,
+        query_embedding: npt.NDArray[np.float32],
+        max_results: int,
+        similarity_threshold: float,
+    ) -> list[dict[str, Any]]:
         """Fallback search using numpy similarity computation."""
         try:
             embeddings_file = self.embeddings_dir / "session_embeddings.json"
@@ -220,12 +257,14 @@ class SemanticSearchEngine:
                 )
 
                 if similarity >= similarity_threshold:
-                    similarities.append({
-                        "session_id": session_id,
-                        "similarity_score": float(similarity),
-                        "metadata": embedding_data["metadata"],
-                        "search_type": "semantic"
-                    })
+                    similarities.append(
+                        {
+                            "session_id": session_id,
+                            "similarity_score": float(similarity),
+                            "metadata": embedding_data["metadata"],
+                            "search_type": "semantic",
+                        }
+                    )
 
             # Sort by similarity and return top results
             similarities.sort(key=lambda x: x["similarity_score"], reverse=True)
@@ -235,8 +274,12 @@ class SemanticSearchEngine:
             self._logger.error(f"Numpy fallback search failed: {e}")
             return []
 
-    def _store_embedding_numpy(self, session_id: str, embedding: npt.NDArray[np.float32],
-                              session_data: dict[str, Any]) -> None:
+    def _store_embedding_numpy(
+        self,
+        session_id: str,
+        embedding: npt.NDArray[np.float32],
+        session_data: dict[str, Any],
+    ) -> None:
         """Store embedding using numpy fallback."""
         embeddings_file = self.embeddings_dir / "session_embeddings.json"
 
@@ -255,13 +298,15 @@ class SemanticSearchEngine:
                     "session_id": session_id,
                     "timestamp": session_data.get("timestamp", ""),
                     "final_status": session_data.get("final_status", "unknown"),
-                    "complexity": session_data.get("metadata", {}).get("session_complexity", "medium")
+                    "complexity": session_data.get("metadata", {}).get(
+                        "session_complexity", "medium"
+                    ),
                 },
-                "created_at": datetime.now().isoformat()
+                "created_at": datetime.now().isoformat(),
             }
 
             # Save updated embeddings
-            with open(embeddings_file, 'w') as f:
+            with open(embeddings_file, "w") as f:
                 json.dump(embeddings, f, indent=2)
 
         except Exception as e:
@@ -312,7 +357,7 @@ class SemanticSearchEngine:
                 return {
                     "total_embeddings": count,
                     "storage_type": "chromadb",
-                    "model_available": self.sentence_model is not None
+                    "model_available": self.sentence_model is not None,
                 }
             else:
                 # Numpy fallback stats
@@ -323,13 +368,13 @@ class SemanticSearchEngine:
                     return {
                         "total_embeddings": len(embeddings),
                         "storage_type": "numpy_fallback",
-                        "model_available": self.sentence_model is not None
+                        "model_available": self.sentence_model is not None,
                     }
                 else:
                     return {
                         "total_embeddings": 0,
                         "storage_type": "none",
-                        "model_available": self.sentence_model is not None
+                        "model_available": self.sentence_model is not None,
                     }
 
         except Exception as e:
@@ -338,5 +383,5 @@ class SemanticSearchEngine:
                 "total_embeddings": 0,
                 "storage_type": "error",
                 "model_available": False,
-                "error": str(e)
+                "error": str(e),
             }

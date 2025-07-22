@@ -9,6 +9,7 @@ from typing import Any
 # Check for sentence transformers availability
 try:
     import sentence_transformers  # noqa: F401
+
     SENTENCE_TRANSFORMERS_AVAILABLE = True
 except ImportError:
     SENTENCE_TRANSFORMERS_AVAILABLE = False
