@@ -104,6 +104,24 @@ dmypy.json
 # Development and Local Files
 .claude/
 CLAUDE.md
+
+# Node.js (if applicable)
+logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+node_modules/
+
+# Additional Editor Files
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Claude Code local settings and tools
+/.taskmaster/
 .mcp.json
 .taskmaster/
 .uckn/
