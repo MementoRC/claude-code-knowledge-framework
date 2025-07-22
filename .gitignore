@@ -111,8 +111,8 @@ node_modules/
 *.sw?
 # OS specific
 
-# Claude Code local settings
-.claude/settings.local.json
+# Claude Code local settings and tools
+.claude/
 /.taskmaster/
 .mcp.json
 

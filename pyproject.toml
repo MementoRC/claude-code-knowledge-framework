@@ -45,6 +45,25 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/uckn"]
+exclude = [
+    ".claude",
+    ".claude/**",
+    ".cursor", 
+    ".cursor/**",
+    "*.tmp",
+    "*.temp"
+]
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+    ".claude",
+    ".claude/**",
+    ".cursor",
+    ".cursor/**", 
+    "*.tmp",
+    "*.temp",
+    ".uckn"
+]
 
 [tool.pixi.project]
 channels = ["conda-forge", "pytorch"]
