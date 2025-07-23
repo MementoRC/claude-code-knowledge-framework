@@ -159,7 +159,6 @@ class TestCollaborationManager:
         assert callback in collaboration_manager.activity_subscribers[subscriber_id]
 
 
-@pytest.mark.asyncio
 class TestActivityEvent:
     """Test cases for ActivityEvent model."""
 
