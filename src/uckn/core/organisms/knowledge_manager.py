@@ -9,6 +9,7 @@ import logging
 
 from ..atoms.semantic_search import SemanticSearch
 from ..atoms.tech_stack_detector import TechStackDetector
+from ..atoms.database_manager import DatabaseManager
 from ..molecules.pattern_manager import PatternManager
 from ..molecules.error_solution_manager import ErrorSolutionManager
 from ..molecules.pattern_classification import PatternClassification
@@ -22,6 +23,17 @@ class KnowledgeManager:
         self.knowledge_dir = Path(knowledge_dir)
         self.knowledge_dir.mkdir(parents=True, exist_ok=True)
         self._logger = logging.getLogger(__name__)
+
+        # Initialize Database Manager for auto-start capability
+        self.database_manager = DatabaseManager()
+        db_status = self.database_manager.ensure_database_available()
+        
+        if db_status["available"]:
+            if db_status["auto_started"]:
+                self._logger.info("✅ PostgreSQL auto-started successfully")
+            pg_db_url = db_status["database_url"]
+        else:
+            self._logger.warning(f"⚠️ PostgreSQL not available: {db_status['message']}")
 
         # Initialize Unified Database connector
         self.unified_db = UnifiedDatabase(
@@ -294,14 +306,23 @@ class KnowledgeManager:
     def get_health_status(self) -> Dict[str, Any]:
         """Get the health status of all components."""
         unified_db_status = self.unified_db.is_available()
+        db_manager_status = self.database_manager.get_status()
+        
         return {
             "unified_db_available": unified_db_status,
             "semantic_search_available": self.semantic_search.is_available(),
             "knowledge_dir": str(self.knowledge_dir),
+            "database_manager": {
+                "auto_start_enabled": db_manager_status["auto_start_enabled"],
+                "database_accessible": db_manager_status["database_accessible"],
+                "docker_available": db_manager_status["docker_available"],
+                "container_running": db_manager_status["container_running"]
+            },
             "components": {
                 "pattern_manager": "healthy" if unified_db_status and self.semantic_search.is_available() else "degraded",
                 "error_solution_manager": "healthy" if unified_db_status and self.semantic_search.is_available() else "degraded",
                 "pattern_classification": "healthy" if unified_db_status else "degraded",
-                "tech_detector": "healthy"
+                "tech_detector": "healthy",
+                "database_manager": "healthy"
             }
         }
