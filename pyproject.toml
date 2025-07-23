@@ -36,7 +36,7 @@ dependencies = [
     "redis>=4.0.0",
     "psutil>=5.9.0",
     "SQLAlchemy>=2.0.0", # Added for PostgreSQL ORM
-    "psycopg[binary]>=3.1.0", # Added for PostgreSQL driver
+    "psycopg>=3.1.0", # Added for PostgreSQL driver
     "alembic>=1.12.0", # Added for database migrations
 ]
 
