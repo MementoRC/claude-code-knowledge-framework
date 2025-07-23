@@ -189,8 +189,9 @@ psycopg = "*" # Added for PostgreSQL driver
 [tool.pixi.environments]
 default = {features = ["ml", "mcp"], solve-group = "default"}
 dev = {features = ["dev", "ml", "mcp"], solve-group = "default"}
-ci = {features = ["dev", "mcp"], solve-group = "default"}
+ci = {features = ["dev", "mcp", "quality-ci"], solve-group = "default"}
 docs = {features = ["docs"], solve-group = "default"}
+quality = {features = ["quality", "dev"], solve-group = "default"}
 quality-extended = {features = ["quality-extended", "dev"], solve-group = "default"}
 
 [tool.pixi.tasks]
