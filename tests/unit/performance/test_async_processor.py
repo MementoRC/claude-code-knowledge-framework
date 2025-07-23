@@ -1,6 +1,11 @@
-import pytest
 import asyncio
-from src.uckn.core.atoms.semantic_search_engine_optimized import SemanticSearchEngineOptimized
+
+import pytest
+
+from src.uckn.core.atoms.semantic_search_engine_optimized import (
+    SemanticSearchEngineOptimized,
+)
+
 
 @pytest.mark.asyncio
 async def test_async_search(monkeypatch):

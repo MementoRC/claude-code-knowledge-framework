@@ -1,14 +1,23 @@
 import logging
-from typing import Any, Dict, List, Optional
-from datetime import datetime
-
-from sqlalchemy import create_engine, Column, String, Text, DateTime, Float, ForeignKey, text
-from sqlalchemy.orm import sessionmaker, declarative_base, relationship
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.pool import QueuePool
-from sqlalchemy.types import TypeDecorator, JSON
-from sqlalchemy.ext.mutable import MutableDict
 from contextlib import contextmanager
+from datetime import datetime
+from typing import Any
+
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    String,
+    Text,
+    create_engine,
+    text,
+)
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+from sqlalchemy.pool import QueuePool
+from sqlalchemy.types import JSON, TypeDecorator
 
 # Import JSONB specifically for PostgreSQL dialect
 try:
@@ -164,7 +173,7 @@ class PostgreSQLConnector:
             db_url = self.db_url
             if db_url.startswith("postgresql://"):
                 db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
-            
+
             self.engine = create_engine(
                 db_url,
                 poolclass=QueuePool,
@@ -208,7 +217,7 @@ class PostgreSQLConnector:
             self._logger.error(f"PostgreSQL connection check failed: {e}")
             return False
 
-    def add_record(self, model: Base, data: Dict[str, Any]) -> Optional[str]:
+    def add_record(self, model: Base, data: dict[str, Any]) -> str | None:
         """Adds a new record to the database."""
         try:
             with self.get_db_session() as session:
@@ -221,7 +230,7 @@ class PostgreSQLConnector:
             _logger.error(f"Failed to add {model.__name__} record: {e}")
             return None
 
-    def get_record(self, model: Base, record_id: str) -> Optional[Dict[str, Any]]:
+    def get_record(self, model: Base, record_id: str) -> dict[str, Any] | None:
         """Retrieves a record by ID."""
         try:
             with self.get_db_session() as session:
@@ -233,7 +242,7 @@ class PostgreSQLConnector:
             _logger.error(f"Failed to get {model.__name__} record {record_id}: {e}")
             return None
 
-    def update_record(self, model: Base, record_id: str, updates: Dict[str, Any]) -> bool:
+    def update_record(self, model: Base, record_id: str, updates: dict[str, Any]) -> bool:
         """Updates an existing record."""
         try:
             with self.get_db_session() as session:
@@ -266,7 +275,7 @@ class PostgreSQLConnector:
             _logger.error(f"Failed to delete {model.__name__} record {record_id}: {e}")
             return False
 
-    def get_all_records(self, model: Base, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    def get_all_records(self, model: Base, limit: int | None = None) -> list[dict[str, Any]]:
         """Retrieves all records for a given model."""
         try:
             with self.get_db_session() as session:
@@ -279,7 +288,7 @@ class PostgreSQLConnector:
             _logger.error(f"Failed to retrieve all {model.__name__} records: {e}")
             return []
 
-    def filter_records(self, model: Base, filters: Dict[str, Any], limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    def filter_records(self, model: Base, filters: dict[str, Any], limit: int | None = None) -> list[dict[str, Any]]:
         """Filters records based on provided criteria."""
         try:
             with self.get_db_session() as session:
@@ -295,24 +304,24 @@ class PostgreSQLConnector:
             _logger.error(f"Failed to filter {model.__name__} records: {e}")
             return []
 
-    def search_records_by_metadata(self, model: Base, metadata_filter: Dict[str, Any], limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    def search_records_by_metadata(self, model: Base, metadata_filter: dict[str, Any], limit: int | None = None) -> list[dict[str, Any]]:
         """Search records by JSONB/JSON metadata fields using cross-database compatible operators."""
         try:
             with self.get_db_session() as session:
                 query = session.query(model)
-                
+
                 # Apply metadata filters using the cross-database compatible .contains() operator
                 for key, value in metadata_filter.items():
                     # .contains() works for both PostgreSQL JSONB and SQLite JSON
                     filter_condition = model.metadata_json.contains({key: value})
                     query = query.filter(filter_condition)
-                
+
                 if limit:
                     query = query.limit(limit)
-                    
+
                 results = query.all()
                 return [{c.name: getattr(instance, c.name) for c in instance.__table__.columns} for instance in results]
-                
+
         except SQLAlchemyError as e:
             _logger.error(f"Failed to search {model.__name__} records by metadata: {e}")
             return []
@@ -355,7 +364,7 @@ class PostgreSQLConnector:
             _logger.error(f"Failed to remove link between pattern {pattern_id} and category {category_id}: {e}")
             return False
 
-    def get_patterns_in_category(self, category_id: str) -> List[str]:
+    def get_patterns_in_category(self, category_id: str) -> list[str]:
         """Gets all pattern IDs associated with a category."""
         try:
             with self.get_db_session() as session:
@@ -365,7 +374,7 @@ class PostgreSQLConnector:
             _logger.error(f"Failed to get patterns for category {category_id}: {e}")
             return []
 
-    def get_categories_for_pattern(self, pattern_id: str) -> List[Dict[str, Any]]:
+    def get_categories_for_pattern(self, pattern_id: str) -> list[dict[str, Any]]:
         """Gets all categories associated with a pattern."""
         try:
             with self.get_db_session() as session:

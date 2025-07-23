@@ -1,16 +1,29 @@
-import pytest
 import datetime
 import json
-from unittest.mock import MagicMock, AsyncMock, patch
-from typing import Optional, List, Dict, Any # Added missing imports
+from typing import Any, Dict, List, Optional  # Added missing imports
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from src.uckn.core.molecules.workflow_manager import WorkflowManager
-from src.uckn.api.models.patterns import Pattern, PatternStatus, PatternMetadata, TechnologyStackDNA, SharingScope
-from src.uckn.api.models.workflow import (
-    WorkflowState, ReviewFeedback, PatternVersion, ReviewStatus,
-    WorkflowTransitionRequest, SubmitReviewFeedbackRequest, InitiateReviewRequest
+import pytest
+
+from src.uckn.api.models.patterns import (
+    Pattern,
+    PatternMetadata,
+    PatternStatus,
+    SharingScope,
+    TechnologyStackDNA,
 )
-from src.uckn.api.routers.collaboration import ConnectionManager # Import for mocking
+from src.uckn.api.models.workflow import (
+    InitiateReviewRequest,
+    PatternVersion,
+    ReviewFeedback,
+    ReviewStatus,
+    SubmitReviewFeedbackRequest,
+    WorkflowState,
+    WorkflowTransitionRequest,
+)
+from src.uckn.api.routers.collaboration import ConnectionManager  # Import for mocking
+from src.uckn.core.molecules.workflow_manager import WorkflowManager
+
 
 # Mock KnowledgeManager and ConnectionManager
 @pytest.fixture
@@ -38,11 +51,11 @@ def create_mock_pattern_dict(
     pattern_id: str,
     status: PatternStatus,
     current_version: str = "1.0.0",
-    versions: Optional[List[PatternVersion]] = None,
-    reviews: Optional[List[ReviewFeedback]] = None,
+    versions: list[PatternVersion] | None = None,
+    reviews: list[ReviewFeedback] | None = None,
     document: str = "test document content",
     title: str = "Test Pattern"
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     if versions is None:
         versions = [
             PatternVersion(
@@ -152,7 +165,7 @@ async def test_submit_review_feedback_success(workflow_manager, mock_knowledge_m
     assert response["status"] == "success"
     mock_knowledge_manager.update_pattern.assert_called_once()
     updated_pattern_obj = mock_knowledge_manager.update_pattern.call_args[0][1]
-    
+
     reviewer1_feedback = next(r for r in updated_pattern_obj.reviews if r.reviewer_id == "reviewer1")
     assert reviewer1_feedback.status == ReviewStatus.NEEDS_REVISION
     assert reviewer1_feedback.comments == "Looks good, minor tweaks needed."

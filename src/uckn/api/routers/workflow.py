@@ -1,17 +1,24 @@
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from ...core.organisms.knowledge_manager import KnowledgeManager
 from ...core.molecules.workflow_manager import WorkflowManager
-from ..dependencies import get_knowledge_manager # Assuming get_knowledge_manager exists
-from ..routers.collaboration import manager as connection_manager_instance # Import the global ConnectionManager instance directly
-from ..models.workflow import (
-    WorkflowTransitionRequest, SubmitReviewFeedbackRequest, InitiateReviewRequest,
-    WorkflowStatusResponse, WorkflowActionResponse
+from ...core.organisms.knowledge_manager import KnowledgeManager
+from ..dependencies import (
+    get_knowledge_manager,  # Assuming get_knowledge_manager exists
 )
-from ..models.patterns import PatternStatus # For consistency
+from ..models.patterns import PatternStatus  # For consistency
+from ..models.workflow import (
+    InitiateReviewRequest,
+    SubmitReviewFeedbackRequest,
+    WorkflowActionResponse,
+    WorkflowStatusResponse,
+    WorkflowTransitionRequest,
+)
+from ..routers.collaboration import (
+    manager as connection_manager_instance,  # Import the global ConnectionManager instance directly
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -29,7 +36,7 @@ def get_current_user_id() -> str:
     """Returns a dummy user ID for testing purposes."""
     return "test_user_id"
 
-def get_current_user_roles() -> List[str]:
+def get_current_user_roles() -> list[str]:
     """Returns dummy user roles for testing purposes."""
     return ["contributor", "admin"]
 
@@ -93,7 +100,7 @@ async def transition_pattern_state(
     request: WorkflowTransitionRequest,
     workflow_manager: WorkflowManager = Depends(get_workflow_manager),
     user_id: str = Depends(get_current_user_id),
-    user_roles: List[str] = Depends(get_current_user_roles)
+    user_roles: list[str] = Depends(get_current_user_roles)
 ):
     """
     Transitions a pattern to a new workflow state (e.g., approve, reject, publish).
@@ -103,9 +110,9 @@ async def transition_pattern_state(
     # Authors can resubmit from REJECTED or DRAFT.
     if "admin" not in user_roles and request.target_state not in [PatternStatus.DRAFT, PatternStatus.REJECTED]:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions for this transition.")
-    
+
     # Ensure the user_id in the request is the authenticated user
-    request.user_id = user_id 
+    request.user_id = user_id
     try:
         response = await workflow_manager.transition_state(pattern_id, request)
         return WorkflowActionResponse(**response)
@@ -138,13 +145,13 @@ async def get_pattern_workflow_status(
 
 @router.get(
     "/patterns/workflow/pending_reviews",
-    response_model=List[Dict[str, Any]], # Using Dict[str, Any] for simplicity, could define a specific model
+    response_model=list[dict[str, Any]], # Using Dict[str, Any] for simplicity, could define a specific model
     summary="Get patterns awaiting review"
 )
 async def get_patterns_awaiting_review_endpoint(
-    reviewer_id: Optional[str] = Depends(get_current_user_id), # Default to current user
+    reviewer_id: str | None = Depends(get_current_user_id), # Default to current user
     workflow_manager: WorkflowManager = Depends(get_workflow_manager),
-    user_roles: List[str] = Depends(get_current_user_roles)
+    user_roles: list[str] = Depends(get_current_user_roles)
 ):
     """
     Retrieves a list of patterns that are currently in the 'in_review' state
@@ -153,9 +160,9 @@ async def get_patterns_awaiting_review_endpoint(
     """
     # If user is admin, they can see all pending reviews, otherwise only their own.
     if "admin" in user_roles:
-        reviewer_id_filter = None 
+        reviewer_id_filter = None
     else:
-        reviewer_id_filter = reviewer_id 
+        reviewer_id_filter = reviewer_id
 
     try:
         pending_patterns = await workflow_manager.get_patterns_awaiting_review(reviewer_id_filter)

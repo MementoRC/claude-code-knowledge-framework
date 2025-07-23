@@ -4,12 +4,14 @@ Simplified Tests for Enhanced Semantic Search Implementation
 Focuses on core functionality without external dependencies
 """
 
-import pytest
-import tempfile
-import shutil
 import json
+import shutil
+import tempfile
 from pathlib import Path
 from unittest.mock import patch
+
+import pytest
+
 from src.uckn.core.semantic_search import SemanticSearchEngine
 
 
@@ -119,7 +121,7 @@ def test_numpy_storage_creation(temp_knowledge_dir):
     assert embeddings_file.exists()
 
     # Check content
-    with open(embeddings_file, "r") as f:
+    with open(embeddings_file) as f:
         stored_data = json.load(f)
 
     assert "test-session" in stored_data

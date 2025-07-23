@@ -3,7 +3,6 @@ Project intelligence endpoints for UCKN API.
 """
 
 import logging
-from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -17,11 +16,11 @@ router = APIRouter()
 
 class TechnologyStackDNA(BaseModel):
     """Technology stack DNA model."""
-    languages: List[str]
-    frameworks: List[str]
-    build_systems: List[str]
-    ci_platforms: List[str]
-    deployment_targets: List[str]
+    languages: list[str]
+    frameworks: list[str]
+    build_systems: list[str]
+    ci_platforms: list[str]
+    deployment_targets: list[str]
     complexity_score: float
     fingerprint: str
 
@@ -35,7 +34,7 @@ class ProjectAnalysisResponse(BaseModel):
     """Response model for project analysis."""
     dna: TechnologyStackDNA
     analysis_time_ms: int
-    recommendations: List[str]
+    recommendations: list[str]
 
 
 class SetupRecommendationRequest(BaseModel):
@@ -49,13 +48,13 @@ class SetupRecommendation(BaseModel):
     title: str
     description: str
     priority: str
-    implementation_steps: List[str]
+    implementation_steps: list[str]
     estimated_time: str
 
 
 class SetupRecommendationResponse(BaseModel):
     """Response model for setup recommendations."""
-    recommendations: List[SetupRecommendation]
+    recommendations: list[SetupRecommendation]
     total_count: int
 
 
@@ -66,7 +65,7 @@ class IssueWarning(BaseModel):
     title: str
     description: str
     likelihood: float
-    mitigation_steps: List[str]
+    mitigation_steps: list[str]
 
 
 class IssuesPredictionRequest(BaseModel):
@@ -76,7 +75,7 @@ class IssuesPredictionRequest(BaseModel):
 
 class IssuesPredictionResponse(BaseModel):
     """Response model for issues prediction."""
-    warnings: List[IssueWarning]
+    warnings: list[IssueWarning]
     total_count: int
     risk_score: float
 
@@ -90,10 +89,10 @@ async def analyze_project(
     try:
         import time
         start_time = time.time()
-        
+
         # Analyze project stack
         stack_analysis = knowledge_manager.analyze_project_stack(request.project_path)
-        
+
         # Create DNA model
         dna = TechnologyStackDNA(
             languages=stack_analysis.get("languages", []),
@@ -104,22 +103,22 @@ async def analyze_project(
             complexity_score=stack_analysis.get("complexity_score", 0.0),
             fingerprint=stack_analysis.get("fingerprint", "")
         )
-        
+
         analysis_time = int((time.time() - start_time) * 1000)
-        
+
         # Generate basic recommendations
         recommendations = [
             f"Project uses {len(dna.languages)} programming languages",
             f"Detected {len(dna.frameworks)} frameworks",
             f"Complexity score: {dna.complexity_score:.2f}"
         ]
-        
+
         return ProjectAnalysisResponse(
             dna=dna,
             analysis_time_ms=analysis_time,
             recommendations=recommendations
         )
-        
+
     except Exception as e:
         logger.error(f"Error analyzing project: {e}")
         raise HTTPException(status_code=500, detail=f"Project analysis failed: {str(e)}")
@@ -134,7 +133,7 @@ async def recommend_setup(
     try:
         # Generate recommendations based on tech stack
         recommendations = []
-        
+
         # CI/CD recommendations
         if not request.dna.ci_platforms:
             recommendations.append(SetupRecommendation(
@@ -150,7 +149,7 @@ async def recommend_setup(
                 ],
                 estimated_time="2-4 hours"
             ))
-        
+
         # Testing recommendations
         if "python" in [lang.lower() for lang in request.dna.languages]:
             recommendations.append(SetupRecommendation(
@@ -166,12 +165,12 @@ async def recommend_setup(
                 ],
                 estimated_time="1-2 hours"
             ))
-        
+
         return SetupRecommendationResponse(
             recommendations=recommendations,
             total_count=len(recommendations)
         )
-        
+
     except Exception as e:
         logger.error(f"Error generating setup recommendations: {e}")
         raise HTTPException(status_code=500, detail=f"Setup recommendation failed: {str(e)}")
@@ -186,7 +185,7 @@ async def predict_issues(
     try:
         warnings = []
         risk_score = 0.0
-        
+
         # Check for high complexity
         if request.dna.complexity_score > 0.8:
             warnings.append(IssueWarning(
@@ -203,7 +202,7 @@ async def predict_issues(
                 ]
             ))
             risk_score += 0.3
-        
+
         # Check for technology stack conflicts
         if len(request.dna.languages) > 3:
             warnings.append(IssueWarning(
@@ -220,7 +219,7 @@ async def predict_issues(
                 ]
             ))
             risk_score += 0.2
-        
+
         # Check for missing CI/CD
         if not request.dna.ci_platforms:
             warnings.append(IssueWarning(
@@ -237,16 +236,16 @@ async def predict_issues(
                 ]
             ))
             risk_score += 0.2
-        
+
         # Normalize risk score
         risk_score = min(risk_score, 1.0)
-        
+
         return IssuesPredictionResponse(
             warnings=warnings,
             total_count=len(warnings),
             risk_score=risk_score
         )
-        
+
     except Exception as e:
         logger.error(f"Error predicting issues: {e}")
         raise HTTPException(status_code=500, detail=f"Issue prediction failed: {str(e)}")

@@ -2,10 +2,11 @@
 Resource and performance monitoring for UCKN load tests.
 """
 
+import os
 import threading
 import time
+
 import psutil
-import os
 
 _MONITOR_THREAD = None
 _MONITOR_STOP = False

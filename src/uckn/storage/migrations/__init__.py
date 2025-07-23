@@ -2,10 +2,11 @@
 UCKN Database Migrations Layer
 Manages schema evolution for the PostgreSQL database using Alembic.
 """
-import os
 import logging
-from alembic.config import Config
+import os
+
 from alembic import command
+from alembic.config import Config
 
 _logger = logging.getLogger(__name__)
 

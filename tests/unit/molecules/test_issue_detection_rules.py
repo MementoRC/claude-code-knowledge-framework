@@ -1,9 +1,11 @@
-import pytest
-from unittest.mock import Mock
 from pathlib import Path
+from unittest.mock import Mock
 
-from src.uckn.core.molecules.issue_detection_rules import IssueDetectionRules
+import pytest
+
 from src.uckn.core.atoms.tech_stack_detector import TechStackDetector
+from src.uckn.core.molecules.issue_detection_rules import IssueDetectionRules
+
 
 @pytest.fixture
 def mock_tech_stack_detector():

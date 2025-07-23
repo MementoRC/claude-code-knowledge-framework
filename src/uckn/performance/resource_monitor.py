@@ -10,7 +10,8 @@ UCKN Resource Monitor
 import logging
 import threading
 import time
-from typing import Dict, Any, Optional, Callable
+from collections.abc import Callable
+from typing import Any
 
 try:
     import psutil
@@ -31,7 +32,7 @@ class ResourceMonitor:
         self.metrics = []
         self._stop_event = threading.Event()
         self._thread = None
-        self._throttle_callback: Optional[Callable[[], None]] = None
+        self._throttle_callback: Callable[[], None] | None = None
 
     def start(self):
         if self._thread and self._thread.is_alive():
@@ -55,7 +56,7 @@ class ResourceMonitor:
                     self._throttle_callback()
             time.sleep(self.interval)
 
-    def get_resource_usage(self) -> Dict[str, Any]:
+    def get_resource_usage(self) -> dict[str, Any]:
         if PSUTIL_AVAILABLE:
             cpu = psutil.cpu_percent()
             mem = psutil.virtual_memory().percent
@@ -72,7 +73,7 @@ class ResourceMonitor:
     def get_metrics(self) -> list:
         return self.metrics
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         usage = self.get_resource_usage()
         healthy = usage["cpu"] < self.cpu_threshold and usage["memory"] < self.mem_threshold
         return {"healthy": healthy, "usage": usage}

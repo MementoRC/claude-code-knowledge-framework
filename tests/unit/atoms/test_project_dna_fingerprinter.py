@@ -1,8 +1,11 @@
+import json
 import os
 import tempfile
-import json
+
 import pytest
+
 from src.uckn.core.atoms.project_dna_fingerprinter import ProjectDNAFingerprinter
+
 
 class DummyTechStackDetector:
     """

@@ -8,10 +8,12 @@ Provides:
 - Dependency file samples for various ecosystems
 """
 
-import pytest
-import tempfile
 import os
 import shutil
+import tempfile
+
+import pytest
+
 
 @pytest.fixture
 def tech_stack_scenarios():

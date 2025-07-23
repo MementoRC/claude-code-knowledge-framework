@@ -2,18 +2,18 @@
 Pattern management endpoints for UCKN API.
 """
 
+import datetime  # Added for timestamp
+import hashlib  # Added for document hash
 import logging
-import datetime # Added for timestamp
-import hashlib # Added for document hash
-from typing import Dict, Any, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from ...core.organisms.knowledge_manager import KnowledgeManager
 from ..dependencies import get_knowledge_manager
-from ..models.patterns import PatternSubmission, PatternStatus
-from ..models.common import BaseResponse # For PatternContributionResponse inheritance
+from ..models.common import BaseResponse  # For PatternContributionResponse inheritance
+from ..models.patterns import PatternStatus, PatternSubmission
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -21,22 +21,22 @@ router = APIRouter()
 
 class TechStackFilter(BaseModel):
     """Technology stack filter for pattern search."""
-    technologies: Optional[List[str]] = None
-    project_type: Optional[str] = None
-    complexity: Optional[str] = None
+    technologies: list[str] | None = None
+    project_type: str | None = None
+    complexity: str | None = None
 
 
 class PatternSearchRequest(BaseModel):
     """Request model for pattern search."""
     query: str = Field(..., description="Search query string")
-    filters: Optional[TechStackFilter] = None
+    filters: TechStackFilter | None = None
     limit: int = Field(default=10, ge=1, le=100)
     min_similarity: float = Field(default=0.7, ge=0.0, le=1.0)
 
 
 class PatternSearchResponse(BaseModel):
     """Response model for pattern search."""
-    patterns: List[Dict[str, Any]]
+    patterns: list[dict[str, Any]]
     total_count: int
     query_time_ms: int
 
@@ -50,7 +50,7 @@ class PatternSearchResponse(BaseModel):
 
 
 # Update PatternContributionResponse to inherit from BaseResponse
-class PatternContributionResponse(BaseResponse): 
+class PatternContributionResponse(BaseResponse):
     """Response model for pattern contribution."""
     pattern_id: str
     status: str # This will be the PatternStatus value
@@ -60,8 +60,8 @@ class PatternContributionResponse(BaseResponse):
 class ValidationResult(BaseModel):
     """Model for pattern validation result."""
     success: bool
-    feedback: Optional[str] = None
-    score: Optional[float] = None
+    feedback: str | None = None
+    score: float | None = None
 
 
 class ValidationResponse(BaseModel):
@@ -80,7 +80,7 @@ async def search_patterns(
     try:
         import time
         start_time = time.time()
-        
+
         # Convert filters to metadata filter
         metadata_filter = None
         if request.filters:
@@ -91,7 +91,7 @@ async def search_patterns(
                 metadata_filter["project_type"] = request.filters.project_type
             if request.filters.complexity:
                 metadata_filter["complexity"] = request.filters.complexity
-        
+
         # Search patterns
         patterns = knowledge_manager.search_patterns(
             query=request.query,
@@ -99,15 +99,15 @@ async def search_patterns(
             min_similarity=request.min_similarity,
             metadata_filter=metadata_filter
         )
-        
+
         query_time = int((time.time() - start_time) * 1000)
-        
+
         return PatternSearchResponse(
             patterns=patterns,
             total_count=len(patterns),
             query_time_ms=query_time
         )
-        
+
     except Exception as e:
         logger.error(f"Error searching patterns: {e}")
         raise HTTPException(status_code=500, detail=f"Pattern search failed: {str(e)}")
@@ -132,7 +132,7 @@ async def contribute_pattern(
             "versions": [], # Initialize versions list
             "reviews": [] # Initialize reviews list
         }
-        
+
         # Generate initial version entry
         initial_doc_hash = hashlib.sha256(pattern.document.encode('utf-8')).hexdigest()
         initial_version_entry = {
@@ -146,7 +146,7 @@ async def contribute_pattern(
         pattern_data["versions"].append(initial_version_entry)
 
         pattern_id = knowledge_manager.add_pattern(pattern_data)
-        
+
         if pattern_id:
             return PatternContributionResponse(
                 success=True, # From BaseResponse
@@ -156,7 +156,7 @@ async def contribute_pattern(
             )
         else:
             raise HTTPException(status_code=400, detail="Failed to contribute pattern")
-            
+
     except Exception as e:
         logger.error(f"Error contributing pattern: {e}")
         raise HTTPException(status_code=500, detail=f"Pattern contribution failed: {str(e)}")
@@ -174,7 +174,7 @@ async def validate_pattern(
         pattern = knowledge_manager.get_pattern(pattern_id)
         if not pattern:
             raise HTTPException(status_code=404, detail="Pattern not found")
-        
+
         # Update pattern with validation feedback
         updates = {
             "metadata": {
@@ -184,9 +184,9 @@ async def validate_pattern(
                 "validation_score": validation.score
             }
         }
-        
+
         success = knowledge_manager.update_pattern(pattern_id, updates)
-        
+
         if success:
             return ValidationResponse(
                 pattern_id=pattern_id,
@@ -195,7 +195,7 @@ async def validate_pattern(
             )
         else:
             raise HTTPException(status_code=400, detail="Failed to update pattern validation")
-            
+
     except HTTPException:
         raise
     except Exception as e:

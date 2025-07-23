@@ -1,7 +1,8 @@
-import pytest
 import numpy as np
+import pytest
 
 from src.uckn.core.atoms.multi_modal_embeddings import MultiModalEmbeddings
+
 
 class DummyChromaDBConnector:
     def __init__(self):

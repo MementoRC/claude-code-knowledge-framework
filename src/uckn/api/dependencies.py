@@ -4,11 +4,11 @@ FastAPI dependencies for UCKN API.
 
 from fastapi import HTTPException
 
-from ..core.organisms.knowledge_manager import KnowledgeManager
-from ..core.organisms.predictive_issue_detector import PredictiveIssueDetector
 from ..core.atoms.tech_stack_detector import TechStackDetector
 from ..core.molecules.issue_detection_rules import IssueDetectionRules
 from ..core.molecules.issue_prediction_models import IssuePredictionModels
+from ..core.organisms.knowledge_manager import KnowledgeManager
+from ..core.organisms.predictive_issue_detector import PredictiveIssueDetector
 
 # Global instances
 _knowledge_manager: KnowledgeManager = None
@@ -37,12 +37,12 @@ def get_predictive_issue_detector() -> PredictiveIssueDetector:
         try:
             # Get knowledge manager
             km = get_knowledge_manager()
-            
+
             # Initialize components
             tech_stack_detector = TechStackDetector()
             issue_detection_rules = IssueDetectionRules(tech_stack_detector)
             issue_prediction_models = IssuePredictionModels()
-            
+
             # Create the detector
             _predictive_issue_detector = PredictiveIssueDetector(
                 tech_stack_detector=tech_stack_detector,
@@ -53,7 +53,7 @@ def get_predictive_issue_detector() -> PredictiveIssueDetector:
             )
         except Exception as e:
             raise HTTPException(status_code=503, detail=f"Predictive issue detector not available: {e}")
-    
+
     return _predictive_issue_detector
 
 

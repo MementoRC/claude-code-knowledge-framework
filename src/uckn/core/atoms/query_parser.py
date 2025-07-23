@@ -5,15 +5,15 @@ Parses complex search queries, supporting boolean operators (AND, OR, NOT),
 basic stemming, and synonym expansion.
 """
 
-import re
 import logging
-from typing import Dict, Any, List, Optional
+import re
 from collections import deque
+from typing import Any
 
 try:
+    import nltk
     from nltk.stem import PorterStemmer
     from nltk.tokenize import word_tokenize
-    import nltk
     # Download necessary NLTK data if not already present
     try:
         nltk.data.find('tokenizers/punkt')
@@ -31,12 +31,12 @@ class QueryParser:
     applying boolean logic, stemming, and synonym expansion.
     """
 
-    def __init__(self, synonym_map: Optional[Dict[str, List[str]]] = None):
+    def __init__(self, synonym_map: dict[str, list[str]] | None = None):
         self._logger = logging.getLogger(__name__)
         self.stemmer = PorterStemmer() if NLTK_AVAILABLE else None
         self.synonym_map = synonym_map or self._default_synonym_map()
 
-    def _default_synonym_map(self) -> Dict[str, List[str]]:
+    def _default_synonym_map(self) -> dict[str, list[str]]:
         """Provides a default, simple synonym map."""
         return {
             "python": ["py", "pythonic"],
@@ -57,13 +57,13 @@ class QueryParser:
             return self.stemmer.stem(word.lower())
         return word.lower()
 
-    def _expand_synonyms(self, word: str) -> List[str]:
+    def _expand_synonyms(self, word: str) -> list[str]:
         """Expands a word to include its synonyms and its stemmed form."""
         word_lower = word.lower()
         expanded_words = {word_lower}
         if self.stemmer:
             expanded_words.add(self.stemmer.stem(word_lower))
-        
+
         # Check for exact match or stemmed match in synonym map
         for key, synonyms in self.synonym_map.items():
             if word_lower == key or (self.stemmer and self.stemmer.stem(word_lower) == self.stemmer.stem(key)):
@@ -74,10 +74,10 @@ class QueryParser:
                 expanded_words.add(key)
                 if self.stemmer:
                     expanded_words.add(self.stemmer.stem(key))
-        
+
         return list(expanded_words)
 
-    def parse_query(self, query_string: str) -> Dict[str, Any]:
+    def parse_query(self, query_string: str) -> dict[str, Any]:
         """
         Parses a query string with boolean operators (AND, OR, NOT).
         Example: "python AND (flask OR django) NOT deprecated"
@@ -88,7 +88,7 @@ class QueryParser:
 
         # Normalize operators to uppercase for consistent parsing
         query_string = query_string.replace(" AND ", " AND ").replace(" OR ", " OR ").replace(" NOT ", " NOT ")
-        
+
         # Regex to split by operators, keeping them
         tokens = re.split(r'( AND | OR | NOT )', query_string)
         tokens = [t.strip() for t in tokens if t.strip()]
@@ -131,7 +131,7 @@ class QueryParser:
                 else:
                     processed_tokens.append({"type": "term", "value": expanded_terms[0]})
                 i += 1
-            
+
             # Insert implicit ANDs
             if i < len(tokens) and \
                isinstance(processed_tokens[-1], (dict, str)) and \
@@ -149,7 +149,7 @@ class QueryParser:
 
         # Convert to a deque for easier manipulation
         q = deque(processed_tokens)
-        
+
         # Pass 1: Handle NOT
         temp_q = deque()
         while q:
@@ -200,7 +200,7 @@ class QueryParser:
                 temp_q.append({"operator": "OR", "clauses": [left, right]})
             else:
                 temp_q.append(item)
-        
+
         if not temp_q:
             return {"operator": "AND", "clauses": []} # Empty query or only operators
 
@@ -214,10 +214,10 @@ class QueryParser:
             self._logger.warning(f"Multiple top-level clauses after parsing, implicitly combining with AND: {temp_q}")
             return {"operator": "AND", "clauses": list(temp_q)}
 
-    def extract_terms(self, query_dict: Dict[str, Any]) -> List[str]:
+    def extract_terms(self, query_dict: dict[str, Any]) -> list[str]:
         """Extract all terms from a parsed query for use in vector search."""
         terms = []
-        
+
         def _extract_recursive(clause):
             if isinstance(clause, dict):
                 if clause.get("type") == "term":
@@ -227,7 +227,7 @@ class QueryParser:
                         _extract_recursive(sub_clause)
                 elif clause.get("operator") == "NOT":
                     _extract_recursive(clause.get("clause", {}))
-        
+
         _extract_recursive(query_dict)
         return list(set(terms))  # Remove duplicates
 

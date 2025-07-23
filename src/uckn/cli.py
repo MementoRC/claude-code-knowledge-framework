@@ -2,14 +2,15 @@
 UCKN Command Line Interface
 """
 
-import click
-from rich.console import Console
-from rich.table import Table
-from rich.json import JSON
-from rich import box
-from pathlib import Path
 import json
 import sys
+from pathlib import Path
+
+import click
+from rich import box
+from rich.console import Console
+from rich.json import JSON
+from rich.table import Table
 
 console = Console()
 
@@ -26,10 +27,10 @@ def init(template: str, project_name: str):
     """Initialize a new UCKN-enabled project"""
     if not project_name:
         project_name = Path.cwd().name
-    
+
     console.print(f"🚀 Initializing UCKN project: {project_name}")
     console.print(f"📋 Using template: {template}")
-    
+
     # TODO: Implement project initialization
     console.print("✅ Project initialized successfully!")
 
@@ -38,17 +39,17 @@ def init(template: str, project_name: str):
 def analyze(path: str):
     """Analyze project for technology stack and patterns"""
     console.print(f"🔍 Analyzing project at: {path}")
-    
+
     # TODO: Implement project analysis
     table = Table(title="Technology Stack Analysis")
     table.add_column("Component", style="cyan")
     table.add_column("Detected", style="green")
     table.add_column("Version", style="yellow")
-    
+
     table.add_row("Language", "Python", "3.11")
     table.add_row("Package Manager", "Pixi", "0.30.0")
     table.add_row("Testing", "pytest", "7.4.0")
-    
+
     console.print(table)
 
 @main.command()
@@ -57,7 +58,7 @@ def analyze(path: str):
 def search(query: str, limit: int):
     """Search knowledge patterns"""
     console.print(f"🔍 Searching for: {query}")
-    
+
     # TODO: Implement pattern search
     console.print("📚 Found 3 relevant patterns:")
     console.print("1. Python CI/CD setup with Poetry")
@@ -72,9 +73,9 @@ def search(query: str, limit: int):
 @click.option("--report-only", is_flag=True, default=False, help="Only generate a migration report, do not migrate or validate")
 def migrate(source: str, target: str, dry_run: bool, validate_only: bool, report_only: bool):
     """Migrate existing knowledge patterns to UCKN format"""
-    from uckn.core.molecules.pattern_migrator import PatternMigrator
-
     import logging
+
+    from uckn.core.molecules.pattern_migrator import PatternMigrator
     logger = logging.getLogger("uckn.migrate")
     logger.setLevel(logging.INFO)
 

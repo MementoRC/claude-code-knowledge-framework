@@ -6,7 +6,7 @@ import logging
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Any
 
 # Assuming TechStackDetector is in the same 'atoms' directory or accessible via relative import
 from src.uckn.core.atoms.tech_stack_detector import TechStackDetector
@@ -34,7 +34,7 @@ class PatternExtractor:
         self.tech_stack_detector = tech_stack_detector
         logger.info("PatternExtractor initialized with TechStackDetector.")
 
-    def _read_file_content(self, file_path: str) -> Optional[str]:
+    def _read_file_content(self, file_path: str) -> str | None:
         """Helper to safely read file content."""
         try:
             path = Path(file_path)
@@ -47,8 +47,8 @@ class PatternExtractor:
             return None
 
     def generate_pattern_metadata(self, pattern_content: str, project_path: str,
-                                  source_file: Optional[str] = None,
-                                  pattern_type: str = "unknown") -> Dict[str, Any]:
+                                  source_file: str | None = None,
+                                  pattern_type: str = "unknown") -> dict[str, Any]:
         """
         Generates metadata for an extracted pattern, including technology stack.
 
@@ -85,7 +85,7 @@ class PatternExtractor:
         logger.debug(f"Generated metadata for pattern (type: {pattern_type}, id: {metadata['id']})")
         return metadata
 
-    def extract_from_git_changes(self, diff_content: str, project_path: str) -> List[Dict[str, Any]]:
+    def extract_from_git_changes(self, diff_content: str, project_path: str) -> list[dict[str, Any]]:
         """
         Extracts patterns from Git commit diff content.
         This is a simplified parser focusing on added lines.
@@ -97,9 +97,9 @@ class PatternExtractor:
         Returns:
             A list of dictionaries, each representing an extracted pattern.
         """
-        patterns: List[Dict[str, Any]] = []
+        patterns: list[dict[str, Any]] = []
         current_file = None
-        current_block: List[str] = []
+        current_block: list[str] = []
 
         try:
             for line in diff_content.splitlines():
@@ -123,7 +123,7 @@ class PatternExtractor:
                         )
                         patterns.append({"content": pattern_content, "metadata": metadata})
                     current_block = []
-            
+
             # Add any remaining block at the end of the diff
             if current_block:
                 pattern_content = "\n".join(current_block).strip()
@@ -141,7 +141,7 @@ class PatternExtractor:
             logger.error(f"Error extracting patterns from Git changes: {e}")
         return patterns
 
-    def extract_from_ci_changes(self, ci_file_path: str, project_path: str) -> List[Dict[str, Any]]:
+    def extract_from_ci_changes(self, ci_file_path: str, project_path: str) -> list[dict[str, Any]]:
         """
         Extracts patterns from CI/CD workflow configuration files (e.g., YAML).
         This is a basic implementation that extracts the entire file content as a pattern.
@@ -154,7 +154,7 @@ class PatternExtractor:
         Returns:
             A list of dictionaries, each representing an extracted pattern.
         """
-        patterns: List[Dict[str, Any]] = []
+        patterns: list[dict[str, Any]] = []
         content = self._read_file_content(ci_file_path)
         if content:
             try:
@@ -172,7 +172,7 @@ class PatternExtractor:
                 logger.error(f"Error processing CI/CD file {ci_file_path}: {e}")
         return patterns
 
-    def extract_from_config_changes(self, config_file_path: str, project_path: str) -> List[Dict[str, Any]]:
+    def extract_from_config_changes(self, config_file_path: str, project_path: str) -> list[dict[str, Any]]:
         """
         Extracts patterns from general configuration files (e.g., .ini, .json, .toml).
         Similar to CI/CD, this extracts the entire file content as a pattern.
@@ -184,7 +184,7 @@ class PatternExtractor:
         Returns:
             A list of dictionaries, each representing an extracted pattern.
         """
-        patterns: List[Dict[str, Any]] = []
+        patterns: list[dict[str, Any]] = []
         content = self._read_file_content(config_file_path)
         if content:
             try:
@@ -200,7 +200,7 @@ class PatternExtractor:
                 logger.error(f"Error processing config file {config_file_path}: {e}")
         return patterns
 
-    def extract_from_documentation(self, doc_file_path: str, project_path: str) -> List[Dict[str, Any]]:
+    def extract_from_documentation(self, doc_file_path: str, project_path: str) -> list[dict[str, Any]]:
         """
         Extracts patterns from documentation files (e.g., Markdown, reStructuredText).
         This extracts code blocks or specific sections from documentation.
@@ -212,7 +212,7 @@ class PatternExtractor:
         Returns:
             A list of dictionaries, each representing an extracted pattern.
         """
-        patterns: List[Dict[str, Any]] = []
+        patterns: list[dict[str, Any]] = []
         content = self._read_file_content(doc_file_path)
         if content:
             try:
@@ -220,7 +220,7 @@ class PatternExtractor:
                 # This can be expanded to parse specific sections, examples, etc.
                 code_blocks = []
                 in_code_block = False
-                current_block: List[str] = []
+                current_block: list[str] = []
                 for line in content.splitlines():
                     if line.strip().startswith("```"):
                         if in_code_block:
@@ -229,7 +229,7 @@ class PatternExtractor:
                         in_code_block = not in_code_block
                     elif in_code_block:
                         current_block.append(line)
-                
+
                 if not code_blocks and content.strip(): # If no code blocks, consider entire doc as a pattern
                     code_blocks.append(content.strip())
 
@@ -247,8 +247,8 @@ class PatternExtractor:
                 logger.error(f"Error processing documentation file {doc_file_path}: {e}")
         return patterns
 
-    def calculate_success_metrics(self, pattern_data: Dict[str, Any],
-                                  usage_data: Dict[str, Any]) -> Dict[str, Any]:
+    def calculate_success_metrics(self, pattern_data: dict[str, Any],
+                                  usage_data: dict[str, Any]) -> dict[str, Any]:
         """
         Calculates and updates success metrics for a given pattern.
 
@@ -265,7 +265,7 @@ class PatternExtractor:
             return pattern_data
 
         metrics = pattern_data["metadata"]["success_metrics"]
-        
+
         successful_apps = usage_data.get("successful_applications", 0)
         total_apps = usage_data.get("total_applications", 0)
 

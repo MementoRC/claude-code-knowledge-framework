@@ -1,13 +1,22 @@
-import pytest
-import uuid
 import os
-from pathlib import Path
 import shutil
+import uuid
 from datetime import datetime
+from pathlib import Path
+
+import pytest
 
 from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
-from src.uckn.storage.postgresql_connector import PostgreSQLConnector, Base, Project, Pattern, ErrorSolution, PatternCategory, PatternCategoryLink
 from src.uckn.storage.chromadb_connector import ChromaDBConnector
+from src.uckn.storage.postgresql_connector import (
+    Base,
+    ErrorSolution,
+    Pattern,
+    PatternCategory,
+    PatternCategoryLink,
+    PostgreSQLConnector,
+    Project,
+)
 from src.uckn.storage.unified_database import UnifiedDatabase
 
 # Use a temporary directory for ChromaDB and an in-memory SQLite for PostgreSQL
@@ -27,13 +36,13 @@ def setup_and_teardown_dbs():
     # Setup PostgreSQL (SQLite in-memory)
     pg_connector = PostgreSQLConnector(db_url=TEST_PG_DB_URL)
     Base.metadata.create_all(pg_connector.engine)
-    
+
     # Setup ChromaDB (temporary directory)
     chroma_path = Path(TEST_CHROMA_DIR)
     if chroma_path.exists():
         shutil.rmtree(chroma_path)
     chroma_path.mkdir(parents=True, exist_ok=True)
-    
+
     yield # Run tests
 
     # Teardown PostgreSQL
@@ -59,7 +68,7 @@ def knowledge_manager_instance():
 
     # Initialize KnowledgeManager with test paths/URLs
     km = KnowledgeManager(knowledge_dir=TEST_CHROMA_DIR, pg_db_url=TEST_PG_DB_URL)
-    
+
     # Ensure semantic search is mocked or available for tests that need embeddings
     # For integration tests, we might mock the actual embedding generation
     # to avoid downloading models and speed up tests.

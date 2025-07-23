@@ -6,9 +6,10 @@ based on project configuration, dependencies, and common patterns.
 """
 
 import logging
-from typing import Dict, Any, List
+from typing import Any
 
 from ..atoms.tech_stack_detector import TechStackDetector
+
 
 class IssueDetectionRules:
     """
@@ -19,7 +20,7 @@ class IssueDetectionRules:
         self.tech_stack_detector = tech_stack_detector
         self._logger = logging.getLogger(__name__)
 
-    def _detect_dependency_conflicts(self, project_stack: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _detect_dependency_conflicts(self, project_stack: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Rule: Detect potential dependency conflicts.
         (Placeholder for more sophisticated logic)
@@ -53,7 +54,7 @@ class IssueDetectionRules:
                 })
         return issues
 
-    def _detect_build_failures(self, project_stack: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _detect_build_failures(self, project_stack: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Rule: Detect potential build failures based on tech stack and common misconfigurations.
         (Placeholder for more sophisticated logic)
@@ -84,7 +85,7 @@ class IssueDetectionRules:
             })
         return issues
 
-    def _detect_test_flakiness(self, project_stack: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _detect_test_flakiness(self, project_stack: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Rule: Detect potential test flakiness indicators.
         (Placeholder for more sophisticated logic)
@@ -103,7 +104,7 @@ class IssueDetectionRules:
             })
         return issues
 
-    def _detect_performance_bottlenecks(self, project_stack: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _detect_performance_bottlenecks(self, project_stack: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Rule: Detect potential performance bottlenecks based on tech stack.
         (Placeholder for more sophisticated logic)
@@ -129,7 +130,7 @@ class IssueDetectionRules:
             })
         return issues
 
-    def _detect_security_vulnerabilities(self, project_stack: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def _detect_security_vulnerabilities(self, project_stack: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Rule: Detect potential security vulnerabilities based on tech stack and common practices.
         (Placeholder for more sophisticated logic)
@@ -155,7 +156,7 @@ class IssueDetectionRules:
             })
         return issues
 
-    def analyze_project_for_rules(self, project_path: str) -> List[Dict[str, Any]]:
+    def analyze_project_for_rules(self, project_path: str) -> list[dict[str, Any]]:
         """
         Analyzes a project using rule-based detection.
 

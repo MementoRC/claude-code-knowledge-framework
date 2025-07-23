@@ -3,7 +3,7 @@ Health monitoring endpoints for UCKN API.
 """
 
 import logging
-from typing import Dict, Any
+from typing import Any
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -24,7 +24,7 @@ class HealthResponse(BaseModel):
 class SystemStatusResponse(BaseModel):
     """Detailed system status response model."""
     status: str
-    components: Dict[str, Any]
+    components: dict[str, Any]
     uptime: str
     version: str
 
@@ -46,7 +46,7 @@ async def system_status(
     try:
         # Get health status from knowledge manager
         health_status = knowledge_manager.get_health_status()
-        
+
         return SystemStatusResponse(
             status="healthy" if health_status.get("unified_db_available") else "degraded",
             components=health_status.get("components", {}),

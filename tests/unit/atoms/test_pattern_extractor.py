@@ -3,8 +3,8 @@ Tests for PatternExtractor atom
 """
 
 import unittest
-from unittest.mock import MagicMock
 from pathlib import Path
+from unittest.mock import MagicMock
 
 from src.uckn.core.atoms.pattern_extractor import PatternExtractor
 from src.uckn.core.atoms.tech_stack_detector import TechStackDetector
@@ -57,7 +57,7 @@ class TestPatternExtractor(unittest.TestCase):
         """Test generate_pattern_metadata with basic string content"""
         pattern_content = "fix: resolve issue with authentication"
         metadata = self.extractor.generate_pattern_metadata(pattern_content, "/test/repo")
-        
+
         self.assertIsInstance(metadata, dict)
         self.assertIn("pattern_type", metadata)
         self.assertIn("tech_stack", metadata)
@@ -81,7 +81,7 @@ class TestPatternExtractor(unittest.TestCase):
             "total_applications": 3
         }
         result = self.extractor.calculate_success_metrics(pattern_data, usage_data)
-        
+
         self.assertIsInstance(result, dict)
         self.assertIn("metadata", result)
         self.assertIn("success_metrics", result["metadata"])

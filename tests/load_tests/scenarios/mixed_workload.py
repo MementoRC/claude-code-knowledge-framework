@@ -2,9 +2,12 @@
 Locust scenario: Mixed workload (80% search, 20% add) for UCKN
 """
 
-from locust import TaskSet, task, tag, HttpUser
-from ..utils.test_data_generator import generate_pattern, generate_search_queries
 import random
+
+from locust import HttpUser, TaskSet, tag, task
+
+from ..utils.test_data_generator import generate_pattern, generate_search_queries
+
 
 class MixedWorkloadTaskSet(TaskSet):
     def on_start(self):

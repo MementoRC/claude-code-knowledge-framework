@@ -1,10 +1,18 @@
 import logging
-from typing import Any, Dict, List, Optional
 import uuid
 from datetime import datetime
+from typing import Any
 
 from .chromadb_connector import ChromaDBConnector
-from .postgresql_connector import PostgreSQLConnector, Project, Pattern, ErrorSolution, PatternCategory, TeamAccess, CompatibilityMatrix
+from .postgresql_connector import (
+    CompatibilityMatrix,
+    ErrorSolution,
+    Pattern,
+    PatternCategory,
+    PostgreSQLConnector,
+    Project,
+    TeamAccess,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -40,17 +48,17 @@ class UnifiedDatabase:
         return pg_reset_success and chroma_reset_success
 
     # --- Project Management (PostgreSQL only) ---
-    def add_project(self, name: str, description: Optional[str] = None, project_id: Optional[str] = None) -> Optional[str]:
+    def add_project(self, name: str, description: str | None = None, project_id: str | None = None) -> str | None:
         """Adds a new project."""
         project_id = project_id or str(uuid.uuid4())
         data = {"id": project_id, "name": name, "description": description}
         return self.pg_connector.add_record(Project, data)
 
-    def get_project(self, project_id: str) -> Optional[Dict[str, Any]]:
+    def get_project(self, project_id: str) -> dict[str, Any] | None:
         """Retrieves a project by ID."""
         return self.pg_connector.get_record(Project, project_id)
 
-    def update_project(self, project_id: str, updates: Dict[str, Any]) -> bool:
+    def update_project(self, project_id: str, updates: dict[str, Any]) -> bool:
         """Updates an existing project."""
         return self.pg_connector.update_record(Project, project_id, updates)
 
@@ -58,7 +66,7 @@ class UnifiedDatabase:
         """Deletes a project and its associated patterns/solutions (cascading delete handled by DB schema)."""
         return self.pg_connector.delete_record(Project, project_id)
 
-    def get_all_projects(self) -> List[Dict[str, Any]]:
+    def get_all_projects(self) -> list[dict[str, Any]]:
         """Retrieves all projects."""
         return self.pg_connector.get_all_records(Project)
 
@@ -66,11 +74,11 @@ class UnifiedDatabase:
     def add_pattern(
         self,
         document_text: str,
-        embedding: List[float],
-        metadata: Dict[str, Any],
-        pattern_id: Optional[str] = None,
-        project_id: Optional[str] = None
-    ) -> Optional[str]:
+        embedding: list[float],
+        metadata: dict[str, Any],
+        pattern_id: str | None = None,
+        project_id: str | None = None
+    ) -> str | None:
         """
         Adds a new pattern, storing metadata in PostgreSQL and document/embedding in ChromaDB.
         """
@@ -105,7 +113,7 @@ class UnifiedDatabase:
             "created_at": metadata.get("created_at", now_iso),
             "updated_at": now_iso
         }
-        
+
         # Add to ChromaDB
         chroma_success = self.chroma_connector.add_document(
             collection_name="code_patterns",
@@ -123,7 +131,7 @@ class UnifiedDatabase:
         self._logger.info(f"Pattern '{pattern_id}' added successfully to both databases.")
         return pattern_id
 
-    def get_pattern(self, pattern_id: str) -> Optional[Dict[str, Any]]:
+    def get_pattern(self, pattern_id: str) -> dict[str, Any] | None:
         """
         Retrieves a pattern by ID, combining data from PostgreSQL and ChromaDB.
         """
@@ -149,10 +157,10 @@ class UnifiedDatabase:
     def update_pattern(
         self,
         pattern_id: str,
-        document_text: Optional[str] = None,
-        embedding: Optional[List[float]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        project_id: Optional[str] = None
+        document_text: str | None = None,
+        embedding: list[float] | None = None,
+        metadata: dict[str, Any] | None = None,
+        project_id: str | None = None
     ) -> bool:
         """
         Updates an existing pattern in both PostgreSQL and ChromaDB.
@@ -215,11 +223,11 @@ class UnifiedDatabase:
 
     def search_patterns(
         self,
-        query_embedding: List[float],
+        query_embedding: list[float],
         n_results: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[Dict[str, Any]] = None
-    ) -> List[Dict[str, Any]]:
+        metadata_filter: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
         """
         Searches for patterns using ChromaDB, then retrieves full metadata from PostgreSQL.
         Metadata filter is applied at the ChromaDB level.
@@ -250,19 +258,19 @@ class UnifiedDatabase:
                 final_results.append(combined_res)
         return final_results
 
-    def search_patterns_by_metadata(self, metadata_filter: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def search_patterns_by_metadata(self, metadata_filter: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Search patterns by metadata only (no embedding search).
         Used by workflow manager to find patterns by status.
         """
         # Get all patterns from PostgreSQL that match the metadata filter
         patterns = self.pg_connector.search_records_by_metadata(Pattern, metadata_filter)
-        
+
         final_results = []
         for pg_pattern in patterns:
             # Get the document from ChromaDB if available
             chroma_doc = self.chroma_connector.get_document("code_patterns", pg_pattern["id"])
-            
+
             combined_result = {
                 "id": pg_pattern["id"],
                 "document": chroma_doc.get("document", "") if chroma_doc else "",
@@ -271,26 +279,26 @@ class UnifiedDatabase:
                 "created_at": pg_pattern["created_at"],
                 "updated_at": pg_pattern["updated_at"],
             }
-            
+
             # Add any additional fields from metadata for easier access
             if isinstance(pg_pattern["metadata_json"], dict):
                 for key in ["status", "current_version", "versions", "reviews"]:
                     if key in pg_pattern["metadata_json"]:
                         combined_result[key] = pg_pattern["metadata_json"][key]
-                        
+
             final_results.append(combined_result)
-            
+
         return final_results
 
     # --- Error Solution Management (PostgreSQL + ChromaDB) ---
     def add_error_solution(
         self,
         document_text: str,
-        embedding: List[float],
-        metadata: Dict[str, Any],
-        solution_id: Optional[str] = None,
-        project_id: Optional[str] = None
-    ) -> Optional[str]:
+        embedding: list[float],
+        metadata: dict[str, Any],
+        solution_id: str | None = None,
+        project_id: str | None = None
+    ) -> str | None:
         """
         Adds a new error solution, storing metadata in PostgreSQL and document/embedding in ChromaDB.
         """
@@ -329,7 +337,7 @@ class UnifiedDatabase:
         self._logger.info(f"Error solution '{solution_id}' added successfully to both databases.")
         return solution_id
 
-    def get_error_solution(self, solution_id: str) -> Optional[Dict[str, Any]]:
+    def get_error_solution(self, solution_id: str) -> dict[str, Any] | None:
         """
         Retrieves an error solution by ID, combining data from PostgreSQL and ChromaDB.
         """
@@ -353,10 +361,10 @@ class UnifiedDatabase:
     def update_error_solution(
         self,
         solution_id: str,
-        document_text: Optional[str] = None,
-        embedding: Optional[List[float]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        project_id: Optional[str] = None
+        document_text: str | None = None,
+        embedding: list[float] | None = None,
+        metadata: dict[str, Any] | None = None,
+        project_id: str | None = None
     ) -> bool:
         """
         Updates an existing error solution in both PostgreSQL and ChromaDB.
@@ -416,11 +424,11 @@ class UnifiedDatabase:
 
     def search_error_solutions(
         self,
-        query_embedding: List[float],
+        query_embedding: list[float],
         n_results: int = 10,
         min_similarity: float = 0.7,
-        metadata_filter: Optional[Dict[str, Any]] = None
-    ) -> List[Dict[str, Any]]:
+        metadata_filter: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
         """
         Searches for error solutions using ChromaDB, then retrieves full metadata from PostgreSQL.
         """
@@ -450,17 +458,17 @@ class UnifiedDatabase:
         return final_results
 
     # --- Pattern Category Management (PostgreSQL only) ---
-    def add_category(self, name: str, description: Optional[str] = None, category_id: Optional[str] = None) -> Optional[str]:
+    def add_category(self, name: str, description: str | None = None, category_id: str | None = None) -> str | None:
         """Adds a new pattern category."""
         category_id = category_id or str(uuid.uuid4())
         data = {"id": category_id, "name": name, "description": description}
         return self.pg_connector.add_record(PatternCategory, data)
 
-    def get_category(self, category_id: str) -> Optional[Dict[str, Any]]:
+    def get_category(self, category_id: str) -> dict[str, Any] | None:
         """Retrieves a pattern category by ID."""
         return self.pg_connector.get_record(PatternCategory, category_id)
 
-    def update_category(self, category_id: str, updates: Dict[str, Any]) -> bool:
+    def update_category(self, category_id: str, updates: dict[str, Any]) -> bool:
         """Updates an existing pattern category."""
         return self.pg_connector.update_record(PatternCategory, category_id, updates)
 
@@ -476,26 +484,26 @@ class UnifiedDatabase:
         """Removes a pattern from a category."""
         return self.pg_connector.remove_pattern_from_category(pattern_id, category_id)
 
-    def get_patterns_by_category(self, category_id: str) -> List[str]:
+    def get_patterns_by_category(self, category_id: str) -> list[str]:
         """Gets all pattern IDs in a category."""
         return self.pg_connector.get_patterns_in_category(category_id)
 
-    def get_pattern_categories(self, pattern_id: str) -> List[Dict[str, Any]]:
+    def get_pattern_categories(self, pattern_id: str) -> list[dict[str, Any]]:
         """Gets all categories assigned to a pattern."""
         return self.pg_connector.get_categories_for_pattern(pattern_id)
 
     # --- Team Access Management (PostgreSQL only) ---
-    def add_team_access(self, user_id: str, project_id: str, role: str, access_id: Optional[str] = None) -> Optional[str]:
+    def add_team_access(self, user_id: str, project_id: str, role: str, access_id: str | None = None) -> str | None:
         """Adds team access for a user to a project."""
         access_id = access_id or str(uuid.uuid4())
         data = {"id": access_id, "user_id": user_id, "project_id": project_id, "role": role}
         return self.pg_connector.add_record(TeamAccess, data)
 
-    def get_team_access(self, access_id: str) -> Optional[Dict[str, Any]]:
+    def get_team_access(self, access_id: str) -> dict[str, Any] | None:
         """Retrieves team access by ID."""
         return self.pg_connector.get_record(TeamAccess, access_id)
 
-    def update_team_access(self, access_id: str, updates: Dict[str, Any]) -> bool:
+    def update_team_access(self, access_id: str, updates: dict[str, Any]) -> bool:
         """Updates existing team access."""
         return self.pg_connector.update_record(TeamAccess, access_id, updates)
 
@@ -503,7 +511,7 @@ class UnifiedDatabase:
         """Deletes team access."""
         return self.pg_connector.delete_record(TeamAccess, access_id)
 
-    def get_team_access_for_project(self, project_id: str) -> List[Dict[str, Any]]:
+    def get_team_access_for_project(self, project_id: str) -> list[dict[str, Any]]:
         """Gets all team access records for a project."""
         return self.pg_connector.filter_records(TeamAccess, {"project_id": project_id})
 
@@ -513,9 +521,9 @@ class UnifiedDatabase:
         source_tech: str,
         target_tech: str,
         compatibility_score: float,
-        notes: Optional[str] = None,
-        entry_id: Optional[str] = None
-    ) -> Optional[str]:
+        notes: str | None = None,
+        entry_id: str | None = None
+    ) -> str | None:
         """Adds a new compatibility matrix entry."""
         entry_id = entry_id or str(uuid.uuid4())
         data = {
@@ -527,11 +535,11 @@ class UnifiedDatabase:
         }
         return self.pg_connector.add_record(CompatibilityMatrix, data)
 
-    def get_compatibility_entry(self, entry_id: str) -> Optional[Dict[str, Any]]:
+    def get_compatibility_entry(self, entry_id: str) -> dict[str, Any] | None:
         """Retrieves a compatibility matrix entry by ID."""
         return self.pg_connector.get_record(CompatibilityMatrix, entry_id)
 
-    def update_compatibility_entry(self, entry_id: str, updates: Dict[str, Any]) -> bool:
+    def update_compatibility_entry(self, entry_id: str, updates: dict[str, Any]) -> bool:
         """Updates an existing compatibility matrix entry."""
         return self.pg_connector.update_record(CompatibilityMatrix, entry_id, updates)
 
@@ -541,11 +549,11 @@ class UnifiedDatabase:
 
     def search_compatibility_entries(
         self,
-        source_tech: Optional[str] = None,
-        target_tech: Optional[str] = None,
-        min_score: Optional[float] = None,
-        max_score: Optional[float] = None
-    ) -> List[Dict[str, Any]]:
+        source_tech: str | None = None,
+        target_tech: str | None = None,
+        min_score: float | None = None,
+        max_score: float | None = None
+    ) -> list[dict[str, Any]]:
         """Searches compatibility entries by source/target tech and score range."""
         filters = {}
         if source_tech:

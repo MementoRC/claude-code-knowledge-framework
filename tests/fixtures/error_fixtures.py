@@ -9,6 +9,7 @@ Provides:
 
 import pytest
 
+
 @pytest.fixture
 def sample_error_solutions():
     """

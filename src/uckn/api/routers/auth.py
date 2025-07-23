@@ -8,7 +8,6 @@ Provides authentication and authorization endpoints including:
 - Permission management
 """
 
-from typing import List, Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -27,7 +26,7 @@ class LoginRequest(BaseModel):
 
 class OAuthRequest(BaseModel):
     code: str
-    state: Optional[str] = None
+    state: str | None = None
 
 
 class TokenResponse(BaseModel):
@@ -40,27 +39,27 @@ class UserResponse(BaseModel):
     id: str
     email: str
     name: str
-    oauth_provider: Optional[str]
-    roles: List[str]
-    permissions: List[str]
+    oauth_provider: str | None
+    roles: list[str]
+    permissions: list[str]
     created_at: str
-    last_login: Optional[str]
+    last_login: str | None
 
 
 class APIKeyCreateRequest(BaseModel):
     name: str
-    permissions: Optional[List[str]] = []
-    expires_at: Optional[str] = None
+    permissions: list[str] | None = []
+    expires_at: str | None = None
 
 
 class APIKeyResponse(BaseModel):
     id: str
     name: str
     key: str
-    permissions: List[str]
-    expires_at: Optional[str]
+    permissions: list[str]
+    expires_at: str | None
     created_at: str
-    last_used: Optional[str]
+    last_used: str | None
 
 
 class PermissionResponse(BaseModel):
@@ -90,7 +89,7 @@ async def login_with_api_key(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid API key"
             )
-            
+
     except HTTPException:
         raise
     except Exception as e:
@@ -115,16 +114,16 @@ async def oauth_login(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Unsupported OAuth provider. Supported: {supported_providers}"
             )
-        
+
         # Mock implementation - in real version, exchange code for token with provider
         token_data = {
             "access_token": f"oauth_{provider}_token_" + str(uuid4()),
             "token_type": "bearer",
             "expires_in": 3600
         }
-        
+
         return TokenResponse(**token_data)
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -146,9 +145,9 @@ async def refresh_token(
             "token_type": "bearer",
             "expires_in": 3600
         }
-        
+
         return TokenResponse(**token_data)
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -174,9 +173,9 @@ async def get_current_user(
             "created_at": "2024-01-01T00:00:00Z",
             "last_login": "2024-01-01T12:00:00Z"
         }
-        
+
         return UserResponse(**user_data)
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -184,7 +183,7 @@ async def get_current_user(
         )
 
 
-@router.get("/auth/permissions", response_model=List[PermissionResponse])
+@router.get("/auth/permissions", response_model=list[PermissionResponse])
 async def get_user_permissions(
     km: KnowledgeManager = Depends(get_knowledge_manager)
 ):
@@ -208,9 +207,9 @@ async def get_user_permissions(
                 "scope": "member"
             }
         ]
-        
+
         return [PermissionResponse(**perm) for perm in mock_permissions]
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -236,9 +235,9 @@ async def create_api_key(
             "created_at": "2024-01-01T00:00:00Z",
             "last_used": None
         }
-        
+
         return APIKeyResponse(**api_key_data)
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -246,7 +245,7 @@ async def create_api_key(
         )
 
 
-@router.get("/auth/api-keys", response_model=List[APIKeyResponse])
+@router.get("/auth/api-keys", response_model=list[APIKeyResponse])
 async def list_api_keys(
     km: KnowledgeManager = Depends(get_knowledge_manager)
 ):
@@ -264,9 +263,9 @@ async def list_api_keys(
                 "last_used": "2024-01-01T12:00:00Z"
             }
         ]
-        
+
         return [APIKeyResponse(**key) for key in mock_keys]
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -283,7 +282,7 @@ async def revoke_api_key(
     try:
         # Mock implementation - in real version, mark key as inactive in database
         pass
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -1,9 +1,10 @@
-import pytest
 import os
 import shutil
-from unittest.mock import patch, MagicMock
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Mock imports for graceful degradation testing
 try:
@@ -15,6 +16,7 @@ except ImportError:
 
 # Import the connector
 from uckn.storage.chromadb_connector import ChromaDBConnector
+
 
 # Mock the SemanticSearchEngine for tests that don't need actual embeddings
 # This is crucial because SemanticSearchEngine tries to load a model.

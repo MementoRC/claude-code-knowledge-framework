@@ -5,19 +5,20 @@ Uses pytest-benchmark to measure performance of key operations
 and establish baseline metrics for performance regression detection.
 """
 
-import pytest
-import tempfile
-import os
-from pathlib import Path
-from typing import List, Dict, Any
-import time
 import gc
+import os
+import tempfile
+import time
+from pathlib import Path
+from typing import Any, Dict, List
+
+import pytest
 
 # Import core components for benchmarking
 from uckn.core.atoms.multi_modal_embeddings import MultiModalEmbeddings
 from uckn.core.atoms.semantic_search_engine import SemanticSearchEngine
-from uckn.storage.chromadb_connector import ChromaDBConnector
 from uckn.core.organisms.knowledge_manager import KnowledgeManager
+from uckn.storage.chromadb_connector import ChromaDBConnector
 
 
 class TestEmbeddingPerformance:
@@ -34,7 +35,7 @@ class TestEmbeddingPerformance:
         return {
             "small": "def hello(): return 'world'",
             "medium": "class DatabaseConnector:\n    def __init__(self, host, port):\n        self.host = host\n        self.port = port\n    def connect(self):\n        return f'Connecting to {self.host}:{self.port}'",
-            "large": "\n".join([f"# Line {i}: This is a comprehensive code example" for i in range(100)]) + 
+            "large": "\n".join([f"# Line {i}: This is a comprehensive code example" for i in range(100)]) +
                     "\nclass LargeClass:\n    def method_" + "\n    def method_".join([f"{i}(self): pass" for i in range(50)])
         }
 
@@ -42,7 +43,7 @@ class TestEmbeddingPerformance:
         """Benchmark single text embedding generation."""
         if not embeddings.is_available():
             pytest.skip("Embeddings not available")
-            
+
         result = benchmark(embeddings.embed, test_texts["medium"], "text")
         assert result is not None
         assert len(result) > 0
@@ -51,12 +52,12 @@ class TestEmbeddingPerformance:
         """Benchmark batch embedding generation."""
         if not embeddings.is_available():
             pytest.skip("Embeddings not available")
-            
+
         texts = [test_texts["small"], test_texts["medium"], test_texts["large"]]
-        
+
         def batch_embed():
             return embeddings.embed_batch(texts, ["text"] * len(texts))
-            
+
         result = benchmark(batch_embed)
         assert result is not None
         assert len(result) == len(texts)
@@ -65,7 +66,7 @@ class TestEmbeddingPerformance:
         """Benchmark code-specific embedding generation."""
         if not embeddings.is_available():
             pytest.skip("Embeddings not available")
-            
+
         result = benchmark(embeddings.embed, test_texts["medium"], "code")
         assert result is not None
 
@@ -73,13 +74,13 @@ class TestEmbeddingPerformance:
         """Benchmark multi-modal embedding generation."""
         if not embeddings.is_available():
             pytest.skip("Embeddings not available")
-            
+
         data = {
             "text": test_texts["medium"],
             "code": test_texts["small"],
             "config": "debug = True\nverbose = False"
         }
-        
+
         result = benchmark(embeddings.multi_modal_embed, code=data["code"], text=data["text"], config=data["config"])
         assert result is not None
 
@@ -89,16 +90,16 @@ class TestEmbeddingPerformance:
         embeddings = MultiModalEmbeddings()
         if not embeddings.is_available():
             pytest.skip("Embeddings not available")
-            
+
         # Pre-populate cache
         for i in range(cache_size // 2):
             embeddings.embed(f"cached text {i}", "text")
-        
+
         def cached_embed():
             # Mix of cached and new embeddings
             embeddings.embed("cached text 0", "text")  # Should be cached
             embeddings.embed(f"new text {time.time()}", "text")  # Not cached
-            
+
         benchmark(cached_embed)
 
 
@@ -115,7 +116,7 @@ class TestSearchPerformance:
         """Search engine with pre-populated patterns."""
         if not search_engine.is_available():
             pytest.skip("Search engine not available")
-            
+
         # Add sample patterns
         for pattern in sample_patterns:
             search_engine.chroma_connector.add_document(
@@ -131,7 +132,7 @@ class TestSearchPerformance:
         """Benchmark text-based search performance."""
         if not populated_search_engine.is_available():
             pytest.skip("Search engine not available")
-            
+
         result = benchmark(
             populated_search_engine.search_by_text,
             "test function",
@@ -143,7 +144,7 @@ class TestSearchPerformance:
         """Benchmark code-based search performance."""
         if not populated_search_engine.is_available():
             pytest.skip("Search engine not available")
-            
+
         result = benchmark(
             populated_search_engine.search_by_code,
             "def test():",
@@ -155,7 +156,7 @@ class TestSearchPerformance:
         """Benchmark multi-modal search performance."""
         if not populated_search_engine.is_available():
             pytest.skip("Search engine not available")
-            
+
         result = benchmark(
             populated_search_engine.search_multi_modal,
             text="test functionality",
@@ -170,7 +171,7 @@ class TestSearchPerformance:
         """Benchmark search performance with different result counts."""
         if not populated_search_engine.is_available():
             pytest.skip("Search engine not available")
-            
+
         result = benchmark(
             populated_search_engine.search_by_text,
             "test pattern",
@@ -191,9 +192,9 @@ class TestStoragePerformance:
         """Benchmark single document insertion performance."""
         if not storage.is_available():
             pytest.skip("ChromaDB not available")
-            
+
         pattern = sample_patterns[0]
-        
+
         def insert_document():
             doc_id = f"perf_test_{time.time()}"
             # Use proper metadata for code_patterns collection
@@ -220,7 +221,7 @@ class TestStoragePerformance:
         """Benchmark bulk document insertion performance."""
         if not storage.is_available():
             pytest.skip("ChromaDB not available")
-            
+
         def bulk_insert():
             for i, pattern in enumerate(sample_patterns * 10):  # 20 documents
                 storage.add_document(
@@ -237,7 +238,7 @@ class TestStoragePerformance:
         """Benchmark search performance with different database sizes."""
         if not storage.is_available():
             pytest.skip("ChromaDB not available")
-            
+
         # Pre-populate with documents
         for i, pattern in enumerate(sample_patterns * 25):  # 50 documents
             storage.add_document(
@@ -254,7 +255,7 @@ class TestStoragePerformance:
                 query_embedding=[0.1] * 768,  # Provide test embedding
                 n_results=10
             )
-            
+
         result = benchmark(search_documents)
         assert isinstance(result, list)
 
@@ -262,7 +263,7 @@ class TestStoragePerformance:
         """Benchmark search with metadata filtering performance."""
         if not storage.is_available():
             pytest.skip("ChromaDB not available")
-            
+
         # Pre-populate with documents
         for i, pattern in enumerate(sample_patterns * 10):
             # Use proper metadata for code_patterns collection
@@ -290,7 +291,7 @@ class TestStoragePerformance:
                 n_results=10,
                 where_clause={"test_id": 1}
             )
-            
+
         result = benchmark(filtered_search)
         assert isinstance(result, list)
 
@@ -307,7 +308,7 @@ class TestEndToEndPerformance:
         """Benchmark complete pattern addition workflow."""
         if not knowledge_manager.semantic_search.is_available():
             pytest.skip("Knowledge manager not available")
-            
+
         # Skip if external dependencies (HuggingFace) are not reliably available
         try:
             # Quick availability check - if this fails, skip the test
@@ -316,12 +317,12 @@ class TestEndToEndPerformance:
                 pytest.skip("External embedding service not available")
         except Exception as e:
             pytest.skip(f"External dependencies not available: {e}")
-            
+
         pattern = sample_patterns[0]
-        
+
         def add_pattern():
             return knowledge_manager.add_pattern(pattern)
-            
+
         result = benchmark(add_pattern)
         assert result is not None
 
@@ -329,17 +330,17 @@ class TestEndToEndPerformance:
         """Benchmark complete pattern search workflow."""
         if not knowledge_manager.semantic_search.is_available():
             pytest.skip("Knowledge manager not available")
-            
+
         # Pre-populate
         for pattern in sample_patterns:
             knowledge_manager.add_pattern(pattern)
-        
+
         def search_patterns():
             return knowledge_manager.search_patterns(
                 query="test function",
                 limit=5
             )
-            
+
         result = benchmark(search_patterns)
         assert isinstance(result, list)
 
@@ -348,15 +349,15 @@ class TestEndToEndPerformance:
         # Create sample project structure
         project_dir = Path(temp_knowledge_dir) / "sample_project"
         project_dir.mkdir()
-        
+
         # Create sample files
         (project_dir / "main.py").write_text("import pandas as pd\nprint('Hello')")
         (project_dir / "requirements.txt").write_text("pandas>=1.0.0\nnumpy>=1.20.0")
         (project_dir / "setup.py").write_text("from setuptools import setup")
-        
+
         def analyze_stack():
             return knowledge_manager.analyze_project_stack(str(project_dir))
-            
+
         result = benchmark(analyze_stack)
         assert isinstance(result, dict)
 
@@ -369,14 +370,14 @@ class TestMemoryPerformance:
         embeddings = MultiModalEmbeddings()
         if not embeddings.is_available():
             pytest.skip("Embeddings not available")
-            
+
         # Force garbage collection before measurement
         gc.collect()
-        
+
         # Generate embeddings for large text
         result = embeddings.embed(large_text_sample, "text")
         assert result is not None
-        
+
         # Test batch processing memory
         batch_texts = [large_text_sample[:len(large_text_sample)//4] for _ in range(10)]
         batch_result = embeddings.embed_batch(batch_texts, ["text"] * len(batch_texts))
@@ -387,7 +388,7 @@ class TestMemoryPerformance:
         storage = ChromaDBConnector(db_path=str(Path(temp_knowledge_dir) / "memory_test"))
         if not storage.is_available():
             pytest.skip("ChromaDB not available")
-            
+
         # Add many documents and measure memory impact
         for i in range(100):
             for j, pattern in enumerate(sample_patterns):
@@ -422,7 +423,7 @@ class TestEmbeddingBenchmarkGroup:
     pass
 
 
-@pytest.mark.benchmark(group="search") 
+@pytest.mark.benchmark(group="search")
 class TestSearchBenchmarkGroup:
     """Grouped benchmark tests for search operations."""
     pass

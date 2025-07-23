@@ -3,30 +3,31 @@ UCKN Pattern Migrator Molecule
 Handles migration, validation, and reporting for legacy and modern pattern/error solution files.
 """
 
-import os
 import json
-import traceback
-from pathlib import Path
-from typing import List, Dict, Any, Optional, Union
 import logging
+import os
+import traceback
 from datetime import datetime
+from pathlib import Path
+from typing import Any
 
-from ..atoms.semantic_search import SemanticSearch
-from .pattern_manager import PatternManager
-from .error_solution_manager import ErrorSolutionManager
 from ...storage.chromadb_connector import ChromaDBConnector
 from ...storage.unified_database import UnifiedDatabase
+from ..atoms.semantic_search import SemanticSearch
+from .error_solution_manager import ErrorSolutionManager
+from .pattern_manager import PatternManager
+
 
 class MigrationReport:
     """
     Collects and prints results of migration/validation/reporting.
     """
     def __init__(self):
-        self.migrated: List[Dict[str, Any]] = []
-        self.validated: List[Dict[str, Any]] = []
-        self.failed: List[Dict[str, Any]] = []
-        self.skipped: List[Dict[str, Any]] = []
-        self.errors: List[Dict[str, Any]] = []
+        self.migrated: list[dict[str, Any]] = []
+        self.validated: list[dict[str, Any]] = []
+        self.failed: list[dict[str, Any]] = []
+        self.skipped: list[dict[str, Any]] = []
+        self.errors: list[dict[str, Any]] = []
         self.start_time = datetime.now()
         self.end_time = None
 
@@ -99,12 +100,12 @@ class PatternMigrator:
 
     def __init__(
         self,
-        source_dir: Union[str, Path],
-        target_dir: Optional[Union[str, Path]] = None,
+        source_dir: str | Path,
+        target_dir: str | Path | None = None,
         dry_run: bool = False,
         validate_only: bool = False,
         report_only: bool = False,
-        logger: Optional[logging.Logger] = None,
+        logger: logging.Logger | None = None,
         console=None,
     ):
         self.source_dir = Path(source_dir)
@@ -258,7 +259,7 @@ class PatternMigrator:
         report.finish()
         return report
 
-    def _scan_json_files(self, directory: Path) -> List[Path]:
+    def _scan_json_files(self, directory: Path) -> list[Path]:
         """
         Recursively scan for .json files in the directory.
         """
@@ -269,19 +270,19 @@ class PatternMigrator:
                     files.append(Path(root) / fname)
         return files
 
-    def _load_json(self, file_path: Path) -> Optional[Any]:
+    def _load_json(self, file_path: Path) -> Any | None:
         """
         Load JSON file, return None if invalid.
         """
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
             if self.logger:
                 self.logger.warning(f"Failed to load JSON from {file_path}: {e}")
             return None
 
-    def _detect_type_and_extract(self, data: Any, file_path: Path) -> (Optional[str], Optional[List[Dict[str, Any]]]):
+    def _detect_type_and_extract(self, data: Any, file_path: Path) -> (str | None, list[dict[str, Any]] | None):
         """
         Detect if the file contains code_patterns or error_solutions, and extract as a list.
         Supports legacy and modern formats.
@@ -327,7 +328,7 @@ class PatternMigrator:
                     return "error_solutions", data
         return None, None
 
-    def _validate_object(self, obj: Dict[str, Any], obj_type: str) -> (bool, str):
+    def _validate_object(self, obj: dict[str, Any], obj_type: str) -> (bool, str):
         """
         Validate object structure and required metadata.
         """

@@ -9,6 +9,7 @@ Provides:
 
 import pytest
 
+
 @pytest.fixture
 def atomic_component_suite():
     """
@@ -16,9 +17,9 @@ def atomic_component_suite():
     """
     from src.uckn.core.atoms.semantic_search import SemanticSearch
     from src.uckn.core.atoms.tech_stack_detector import TechStackDetector
-    from src.uckn.core.molecules.pattern_manager import PatternManager
     from src.uckn.core.molecules.error_solution_manager import ErrorSolutionManager
     from src.uckn.core.molecules.pattern_classification import PatternClassification
+    from src.uckn.core.molecules.pattern_manager import PatternManager
     from src.uckn.storage.chromadb_connector import ChromaDBConnector
 
     # Use dummy or real connectors as needed

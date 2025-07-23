@@ -12,7 +12,16 @@ from fastapi.responses import JSONResponse
 
 from ..core.organisms.knowledge_manager import KnowledgeManager
 from .dependencies import set_knowledge_manager
-from .routers import patterns, projects, collaboration, health, teams, auth, predictions, workflow
+from .routers import (
+    auth,
+    collaboration,
+    health,
+    patterns,
+    predictions,
+    projects,
+    teams,
+    workflow,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -31,9 +40,9 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Failed to initialize knowledge manager: {e}")
         raise
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down UCKN FastAPI server...")
 

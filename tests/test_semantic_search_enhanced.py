@@ -5,14 +5,15 @@ Tests the EnhancedSemanticSearchEngine and SemanticSearch atom integration
 with focus on performance optimizations, multi-modal support, and robustness.
 """
 
-import pytest
+import json
 import os
 import shutil
 import tempfile
-from unittest.mock import patch, MagicMock, call
 from pathlib import Path
+from unittest.mock import MagicMock, call, patch
+
 import numpy as np
-import json
+import pytest
 
 # Test configuration
 TEST_KNOWLEDGE_DIR = ".test_uckn_enhanced_semantic"
@@ -38,7 +39,9 @@ class TestEnhancedSemanticSearchEngine:
         """Setup for each test method"""
         # Clear any existing cache
         try:
-            from uckn.core.enhanced_semantic_search_engine import EnhancedSemanticSearchEngine
+            from uckn.core.enhanced_semantic_search_engine import (
+                EnhancedSemanticSearchEngine,
+            )
             if hasattr(EnhancedSemanticSearchEngine.encode, 'cache_clear'):
                 EnhancedSemanticSearchEngine.encode.cache_clear()
         except ImportError:
@@ -51,16 +54,18 @@ class TestEnhancedSemanticSearchEngine:
         # Mock successful model loading
         mock_model = MagicMock()
         mock_st.return_value = mock_model
-        
+
         # Mock ChromaDB
         mock_client = MagicMock()
         mock_collection = MagicMock()
         mock_chromadb.PersistentClient.return_value = mock_client
         mock_client.get_or_create_collection.return_value = mock_collection
-        
-        from uckn.core.enhanced_semantic_search_engine import EnhancedSemanticSearchEngine
+
+        from uckn.core.enhanced_semantic_search_engine import (
+            EnhancedSemanticSearchEngine,
+        )
         engine = EnhancedSemanticSearchEngine(knowledge_dir=TEST_KNOWLEDGE_DIR)
-        
+
         assert engine.is_available()
         assert engine.sentence_model is not None
         assert engine.chroma_client is not None
@@ -71,9 +76,11 @@ class TestEnhancedSemanticSearchEngine:
     @patch('uckn.core.enhanced_semantic_search_engine.CHROMADB_AVAILABLE', False)
     def test_engine_initialization_dependencies_unavailable(self):
         """Test engine initialization when dependencies are unavailable"""
-        from uckn.core.enhanced_semantic_search_engine import EnhancedSemanticSearchEngine
+        from uckn.core.enhanced_semantic_search_engine import (
+            EnhancedSemanticSearchEngine,
+        )
         engine = EnhancedSemanticSearchEngine(knowledge_dir=TEST_KNOWLEDGE_DIR)
-        
+
         assert not engine.is_available()
         assert engine.sentence_model is None
         assert engine.chroma_client is None
@@ -88,14 +95,16 @@ class TestEnhancedSemanticSearchEngine:
         mock_embedding = np.array([0.1, 0.2, 0.3] * 128)  # 384-dim embedding
         mock_model.encode.return_value = mock_embedding
         mock_st.return_value = mock_model
-        
-        from uckn.core.enhanced_semantic_search_engine import EnhancedSemanticSearchEngine
+
+        from uckn.core.enhanced_semantic_search_engine import (
+            EnhancedSemanticSearchEngine,
+        )
         engine = EnhancedSemanticSearchEngine(knowledge_dir=TEST_KNOWLEDGE_DIR)
-        
+
         # Test normal text encoding
         text = "This is a test sentence for semantic encoding."
         result = engine.encode(text)
-        
+
         assert result is not None
         assert isinstance(result, list)
         assert len(result) == 384
@@ -110,16 +119,18 @@ class TestEnhancedSemanticSearchEngine:
         mock_embedding = np.array([0.1] * 384)
         mock_model.encode.return_value = mock_embedding
         mock_st.return_value = mock_model
-        
-        from uckn.core.enhanced_semantic_search_engine import EnhancedSemanticSearchEngine
+
+        from uckn.core.enhanced_semantic_search_engine import (
+            EnhancedSemanticSearchEngine,
+        )
         engine = EnhancedSemanticSearchEngine(knowledge_dir=TEST_KNOWLEDGE_DIR)
-        
+
         text = "Cached text example"
-        
+
         # First call
         result1 = engine.encode(text)
         assert mock_model.encode.call_count == 1
-        
+
         # Second call with same text should use cache
         result2 = engine.encode(text)
         assert mock_model.encode.call_count == 1  # No additional calls
@@ -130,10 +141,12 @@ class TestEnhancedSemanticSearchEngine:
     def test_encode_invalid_inputs(self, mock_st, mock_chromadb):
         """Test encoding with invalid inputs"""
         mock_st.return_value = MagicMock()
-        
-        from uckn.core.enhanced_semantic_search_engine import EnhancedSemanticSearchEngine
+
+        from uckn.core.enhanced_semantic_search_engine import (
+            EnhancedSemanticSearchEngine,
+        )
         engine = EnhancedSemanticSearchEngine(knowledge_dir=TEST_KNOWLEDGE_DIR)
-        
+
         # Test invalid input types
         assert engine.encode(None) is None
         assert engine.encode(123) is None
@@ -147,10 +160,12 @@ class TestEnhancedSemanticSearchEngine:
         mock_model = MagicMock()
         mock_model.encode.return_value = np.array([0.1] * 384)
         mock_st.return_value = mock_model
-        
-        from uckn.core.enhanced_semantic_search_engine import EnhancedSemanticSearchEngine
+
+        from uckn.core.enhanced_semantic_search_engine import (
+            EnhancedSemanticSearchEngine,
+        )
         engine = EnhancedSemanticSearchEngine(knowledge_dir=TEST_KNOWLEDGE_DIR)
-        
+
         # Test different content types
         test_cases = [
             "Regular text content",
@@ -158,7 +173,7 @@ class TestEnhancedSemanticSearchEngine:
             "ERROR: Module not found",  # Error message
             "server:\n  host: localhost\n  port: 8080",  # Configuration
         ]
-        
+
         for content in test_cases:
             result = engine.encode(content)
             assert result is not None
@@ -172,10 +187,12 @@ class TestEnhancedSemanticSearchEngine:
         mock_model = MagicMock()
         mock_model.encode.return_value = np.array([0.1] * 384)
         mock_st.return_value = mock_model
-        
-        from uckn.core.enhanced_semantic_search_engine import EnhancedSemanticSearchEngine
+
+        from uckn.core.enhanced_semantic_search_engine import (
+            EnhancedSemanticSearchEngine,
+        )
         engine = EnhancedSemanticSearchEngine(knowledge_dir=TEST_KNOWLEDGE_DIR)
-        
+
         session_data = {
             "session_id": "test_session_123",
             "context": {
@@ -192,13 +209,13 @@ class TestEnhancedSemanticSearchEngine:
                 {"content": "import missing_module"}
             ]
         }
-        
+
         result = engine.generate_session_embedding(session_data)
-        
+
         assert result is not None
         assert isinstance(result, np.ndarray)
         assert result.shape == (384,)
-        
+
         # Verify that encode was called with extracted text
         mock_model.encode.assert_called_once()
         called_text = mock_model.encode.call_args[0][0]
@@ -211,10 +228,12 @@ class TestEnhancedSemanticSearchEngine:
     def test_text_extraction_comprehensive(self, mock_st, mock_chromadb):
         """Test comprehensive text extraction from session data"""
         mock_st.return_value = MagicMock()
-        
-        from uckn.core.enhanced_semantic_search_engine import EnhancedSemanticSearchEngine
+
+        from uckn.core.enhanced_semantic_search_engine import (
+            EnhancedSemanticSearchEngine,
+        )
         engine = EnhancedSemanticSearchEngine(knowledge_dir=TEST_KNOWLEDGE_DIR)
-        
+
         # Test with comprehensive session data
         session_data = {
             "context": {
@@ -233,9 +252,9 @@ class TestEnhancedSemanticSearchEngine:
                 "import pandas as pd"
             ]
         }
-        
+
         extracted_text = engine._extract_text_for_embedding(session_data)
-        
+
         # Verify all components are included
         assert "ValueError" in extracted_text
         assert "pandas" in extracted_text
@@ -257,12 +276,14 @@ class TestEnhancedSemanticSearchEngine:
         mock_client.get_or_create_collection.return_value = mock_collection
         mock_chromadb.PersistentClient.return_value = mock_client
         mock_st.return_value = MagicMock()
-        
-        from uckn.core.enhanced_semantic_search_engine import EnhancedSemanticSearchEngine
+
+        from uckn.core.enhanced_semantic_search_engine import (
+            EnhancedSemanticSearchEngine,
+        )
         engine = EnhancedSemanticSearchEngine(knowledge_dir=TEST_KNOWLEDGE_DIR)
-        
+
         stats = engine.get_embedding_stats()
-        
+
         assert isinstance(stats, dict)
         assert "total_embeddings" in stats
         assert "storage_type" in stats
@@ -278,22 +299,24 @@ class TestEnhancedSemanticSearchEngine:
             "session1": {"embedding": [0.1] * 384, "metadata": {}},
             "session2": {"embedding": [0.2] * 384, "metadata": {}}
         }
-        
+
         embeddings_dir = Path(TEST_KNOWLEDGE_DIR) / "embeddings"
         embeddings_dir.mkdir(parents=True, exist_ok=True)
         embeddings_file = embeddings_dir / "session_embeddings.json"
-        
+
         with open(embeddings_file, 'w') as f:
             json.dump(test_embeddings, f)
-        
+
         with patch('uckn.core.enhanced_semantic_search_engine.SENTENCE_TRANSFORMERS_AVAILABLE', False), \
              patch('uckn.core.enhanced_semantic_search_engine.CHROMADB_AVAILABLE', False):
-            
-            from uckn.core.enhanced_semantic_search_engine import EnhancedSemanticSearchEngine
+
+            from uckn.core.enhanced_semantic_search_engine import (
+                EnhancedSemanticSearchEngine,
+            )
             engine = EnhancedSemanticSearchEngine(knowledge_dir=TEST_KNOWLEDGE_DIR)
-            
+
             stats = engine.get_embedding_stats()
-            
+
             assert stats["total_embeddings"] == 2
             assert stats["storage_type"] == "numpy_fallback"
             assert stats["model_available"] is False
@@ -320,10 +343,10 @@ class TestSemanticSearchAtomIntegration:
     def test_semantic_search_atom_initialization(self, mock_st, mock_chromadb):
         """Test SemanticSearch atom initialization with enhanced engine"""
         mock_st.return_value = MagicMock()
-        
+
         from uckn.core.atoms.semantic_search import SemanticSearch
         atom = SemanticSearch(knowledge_dir=TEST_KNOWLEDGE_DIR)
-        
+
         assert atom.is_available()
         assert atom.engine is not None
 
@@ -332,7 +355,7 @@ class TestSemanticSearchAtomIntegration:
         """Test SemanticSearch atom when engine is unavailable"""
         from uckn.core.atoms.semantic_search import SemanticSearch
         atom = SemanticSearch(knowledge_dir=TEST_KNOWLEDGE_DIR)
-        
+
         assert not atom.is_available()
         assert atom.engine is None
         assert atom.encode("test") is None
@@ -345,17 +368,17 @@ class TestSemanticSearchAtomIntegration:
         mock_embedding = np.array([0.1] * 384)
         mock_model.encode.return_value = mock_embedding
         mock_st.return_value = mock_model
-        
+
         from uckn.core.atoms.semantic_search import SemanticSearch
         atom = SemanticSearch(knowledge_dir=TEST_KNOWLEDGE_DIR)
-        
+
         test_text = "Test delegation to enhanced engine"
         result = atom.encode(test_text)
-        
+
         assert result is not None
         assert isinstance(result, list)
         assert len(result) == 384
-        
+
         # Verify the underlying model was called
         mock_model.encode.assert_called_once_with(test_text, convert_to_numpy=True)
 
@@ -370,22 +393,24 @@ class TestPerformanceOptimizations:
         mock_model = MagicMock()
         mock_model.encode.return_value = np.array([0.1] * 384)
         mock_st.return_value = mock_model
-        
-        from uckn.core.enhanced_semantic_search_engine import EnhancedSemanticSearchEngine
+
+        from uckn.core.enhanced_semantic_search_engine import (
+            EnhancedSemanticSearchEngine,
+        )
         engine = EnhancedSemanticSearchEngine(knowledge_dir=TEST_KNOWLEDGE_DIR)
-        
+
         # Test multiple calls with same text
         text = "Performance test text"
-        
+
         # First call
         result1 = engine.encode(text)
         call_count_after_first = mock_model.encode.call_count
-        
+
         # Multiple subsequent calls
         for _ in range(5):
             result = engine.encode(text)
             assert result == result1  # Same result
-        
+
         # Model should only be called once due to caching
         assert mock_model.encode.call_count == call_count_after_first
 
@@ -399,26 +424,28 @@ class TestPerformanceOptimizations:
             return np.array([hash(text) % 1000 / 1000.0] * 384)
         mock_model.encode.side_effect = side_effect
         mock_st.return_value = mock_model
-        
-        from uckn.core.enhanced_semantic_search_engine import EnhancedSemanticSearchEngine
+
+        from uckn.core.enhanced_semantic_search_engine import (
+            EnhancedSemanticSearchEngine,
+        )
         engine = EnhancedSemanticSearchEngine(knowledge_dir=TEST_KNOWLEDGE_DIR)
-        
+
         text1 = "First unique text"
         text2 = "Second unique text"
-        
+
         result1 = engine.encode(text1)
         result2 = engine.encode(text2)
-        
+
         # Should be different results
         assert result1 != result2
-        
+
         # Should have called model twice
         assert mock_model.encode.call_count == 2
-        
+
         # Calling again should use cache
         result1_cached = engine.encode(text1)
         result2_cached = engine.encode(text2)
-        
+
         assert result1 == result1_cached
         assert result2 == result2_cached
         # Still only 2 calls to model

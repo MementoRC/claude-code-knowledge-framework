@@ -1,8 +1,10 @@
-import pytest
-from unittest.mock import Mock, patch
 import random
+from unittest.mock import Mock, patch
+
+import pytest
 
 from src.uckn.core.molecules.issue_prediction_models import IssuePredictionModels
+
 
 @pytest.fixture
 def issue_prediction_models():

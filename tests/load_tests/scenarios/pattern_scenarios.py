@@ -2,9 +2,12 @@
 Locust scenario: Concurrent pattern addition for UCKN
 """
 
-from locust import TaskSet, task, tag, HttpUser
-from ..utils.test_data_generator import generate_pattern
 import random
+
+from locust import HttpUser, TaskSet, tag, task
+
+from ..utils.test_data_generator import generate_pattern
+
 
 class PatternAdditionTaskSet(TaskSet):
     def on_start(self):

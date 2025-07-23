@@ -8,11 +8,14 @@ Optimized Semantic Search Engine for UCKN
 
 import asyncio
 import logging
-from typing import Optional, List, Dict, Any
-from functools import wraps
 import time
+from functools import wraps
+from typing import Any
 
-from src.uckn.core.atoms.multi_modal_embeddings_optimized import MultiModalEmbeddingsOptimized
+from src.uckn.core.atoms.multi_modal_embeddings_optimized import (
+    MultiModalEmbeddingsOptimized,
+)
+
 
 # Dummy cache manager for demonstration
 class CacheManager:
@@ -60,9 +63,9 @@ class SemanticSearchEngineOptimized:
 
     def __init__(
         self,
-        chroma_connector: Optional[Any] = None,
-        embedding_atom: Optional[Any] = None,
-        logger: Optional[logging.Logger] = None,
+        chroma_connector: Any | None = None,
+        embedding_atom: Any | None = None,
+        logger: logging.Logger | None = None,
         cache_size: int = 256,
         performance_mode: bool = True,
         enable_async: bool = True,
@@ -115,7 +118,7 @@ class SemanticSearchEngineOptimized:
     async def _async_search(self, *args, **kwargs):
         return await asyncio.to_thread(self.search, *args, **kwargs)
 
-    def search(self, query: Dict[str, Optional[str]], collection_name: str, limit: int = 10, min_similarity: float = 0.7):
+    def search(self, query: dict[str, str | None], collection_name: str, limit: int = 10, min_similarity: float = 0.7):
         start = time.time()
         embedding = self.embedding_atom.multi_modal_embed(
             code=query.get("code"),
@@ -139,7 +142,7 @@ class SemanticSearchEngineOptimized:
             self.analytics.log("search_latency", elapsed)
         return results
 
-    def batch_search(self, queries: List[Dict[str, Optional[str]]], collection_name: str, limit: int = 10, min_similarity: float = 0.7):
+    def batch_search(self, queries: list[dict[str, str | None]], collection_name: str, limit: int = 10, min_similarity: float = 0.7):
         if not self.enable_batch:
             return [self.search(q, collection_name, limit, min_similarity) for q in queries]
         start = time.time()

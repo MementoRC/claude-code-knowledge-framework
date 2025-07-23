@@ -4,17 +4,17 @@ Tests for Flag Configuration Template
 """
 
 from src.uckn.feature_flags.flag_configuration_template import (
-    FlagConfigurationTemplate,
     AtomicComponent,
+    FlagConfigurationTemplate,
     TemplateLevel,
-    create_example_template
+    create_example_template,
 )
 
 
 def test_flag_configuration_template():
     """Test basic flag configuration template functionality."""
     template = FlagConfigurationTemplate()
-    
+
     # Add a component
     component = AtomicComponent(
         name="test_atom",
@@ -22,7 +22,7 @@ def test_flag_configuration_template():
         config={"test": True}
     )
     template.add_component(component)
-    
+
     # Retrieve component
     retrieved = template.get_component("test_atom")
     assert retrieved is not None
@@ -33,19 +33,19 @@ def test_flag_configuration_template():
 def test_template_composition():
     """Test template composition from atomic components."""
     template = create_example_template()
-    
+
     # Validate dependencies
     assert template.validate_dependencies() is True
-    
+
     # Compose template
     composed = template.compose_template()
-    
+
     # Verify structure
     assert "atoms" in composed
-    assert "molecules" in composed  
+    assert "molecules" in composed
     assert "organisms" in composed
     assert "templates" in composed
-    
+
     # Verify content
     assert len(composed["atoms"]) == 1
     assert len(composed["molecules"]) == 1
@@ -56,7 +56,7 @@ def test_template_composition():
 def test_dependency_validation():
     """Test dependency validation."""
     template = FlagConfigurationTemplate()
-    
+
     # Add component with missing dependency
     component = AtomicComponent(
         name="dependent",
@@ -65,6 +65,6 @@ def test_dependency_validation():
         dependencies=["missing_component"]
     )
     template.add_component(component)
-    
+
     # Should fail validation
     assert template.validate_dependencies() is False

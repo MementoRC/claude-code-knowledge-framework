@@ -20702,7 +20702,7 @@ packages:
 - pypi: ./
   name: uckn-framework
   version: 1.0.0
-  sha256: 5ab5ef6e41fc4a69397b49b08215fc45374ec8f62e530dd2574711d53d64b979
+  sha256: 6cb139c707b76b2f152f7d129f898b42ead5dfb3a8b19dbfef3ae91eaf50aa4a
   requires_dist:
   - sentence-transformers>=2.2.0
   - chromadb>=0.4.0
@@ -20756,7 +20756,7 @@ packages:
   - mkdocs>=1.5.0 ; extra == 'docs'
   - mkdocs-material>=9.0.0 ; extra == 'docs'
   - mkdocstrings[python]>=0.20.0 ; extra == 'docs'
-  requires_python: '>=3.10'
+  requires_python: '>=3.12'
   editable: true
 - conda: https://conda.anaconda.org/conda-forge/win-64/ucrt-10.0.22621.0-h57928b3_1.conda
   sha256: db8dead3dd30fb1a032737554ce91e2819b43496a0db09927edf01c32b577450

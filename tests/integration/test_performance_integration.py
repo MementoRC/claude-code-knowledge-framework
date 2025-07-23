@@ -1,11 +1,15 @@
 import pytest
-from src.uckn.core.atoms.semantic_search_engine_optimized import (
-    SemanticSearchEngineOptimized,
-    CacheManager,
-    ResourceMonitor,
-    PerformanceAnalytics,
+
+from src.uckn.core.atoms.multi_modal_embeddings_optimized import (
+    MultiModalEmbeddingsOptimized,
 )
-from src.uckn.core.atoms.multi_modal_embeddings_optimized import MultiModalEmbeddingsOptimized
+from src.uckn.core.atoms.semantic_search_engine_optimized import (
+    CacheManager,
+    PerformanceAnalytics,
+    ResourceMonitor,
+    SemanticSearchEngineOptimized,
+)
+
 
 def test_performance_integration(monkeypatch):
     # Dummy ChromaDBConnector

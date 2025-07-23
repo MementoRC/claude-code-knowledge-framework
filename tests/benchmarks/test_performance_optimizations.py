@@ -1,10 +1,15 @@
-import pytest
 import time
-from src.uckn.core.atoms.semantic_search_engine_optimized import (
-    SemanticSearchEngineOptimized,
-    CacheManager,
+
+import pytest
+
+from src.uckn.core.atoms.multi_modal_embeddings_optimized import (
+    MultiModalEmbeddingsOptimized,
 )
-from src.uckn.core.atoms.multi_modal_embeddings_optimized import MultiModalEmbeddingsOptimized
+from src.uckn.core.atoms.semantic_search_engine_optimized import (
+    CacheManager,
+    SemanticSearchEngineOptimized,
+)
+
 
 def test_cache_benchmark():
     cache = CacheManager(max_size=100)

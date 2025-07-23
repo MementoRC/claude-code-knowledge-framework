@@ -1,7 +1,9 @@
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from src.uckn.core.molecules.error_solution_manager import ErrorSolutionManager
+
 
 @pytest.fixture
 def mock_chroma():

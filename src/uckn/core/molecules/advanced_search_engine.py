@@ -6,14 +6,14 @@ including semantic search, query parsing, faceted filtering, and personalized ra
 """
 
 import logging
-from typing import Dict, Any, List, Optional
 from datetime import datetime
+from typing import Any
 
-from ..atoms.semantic_search_engine import SemanticSearchEngine
-from ..atoms.query_parser import QueryParser
 from ..atoms.faceted_search_manager import FacetedSearchManager
 from ..atoms.personalized_ranking import PersonalizedRanking
+from ..atoms.query_parser import QueryParser
 from ..atoms.search_suggestion_engine import SearchSuggestionEngine
+from ..atoms.semantic_search_engine import SemanticSearchEngine
 
 
 class AdvancedSearchEngine:
@@ -24,15 +24,15 @@ class AdvancedSearchEngine:
 
     def __init__(
         self,
-        semantic_engine: Optional[SemanticSearchEngine] = None,
-        query_parser: Optional[QueryParser] = None,
-        faceted_manager: Optional[FacetedSearchManager] = None,
-        personalized_ranking: Optional[PersonalizedRanking] = None,
-        suggestion_engine: Optional[SearchSuggestionEngine] = None,
-        logger: Optional[logging.Logger] = None
+        semantic_engine: SemanticSearchEngine | None = None,
+        query_parser: QueryParser | None = None,
+        faceted_manager: FacetedSearchManager | None = None,
+        personalized_ranking: PersonalizedRanking | None = None,
+        suggestion_engine: SearchSuggestionEngine | None = None,
+        logger: logging.Logger | None = None
     ):
         self.logger = logger or logging.getLogger(__name__)
-        
+
         # Initialize component atoms
         self.semantic_engine = semantic_engine or SemanticSearchEngine()
         self.query_parser = query_parser or QueryParser()
@@ -43,21 +43,21 @@ class AdvancedSearchEngine:
     def search(
         self,
         query: str,
-        user_id: Optional[str] = None,
-        filters: Optional[Dict[str, Any]] = None,
+        user_id: str | None = None,
+        filters: dict[str, Any] | None = None,
         limit: int = 20,
         enable_personalization: bool = True
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Perform advanced search with all capabilities.
         """
         start_time = datetime.now()
-        
+
         try:
             # Parse the query for complex boolean operations
             parsed_query = self.query_parser.parse_query(query)
             search_terms = self.query_parser.extract_terms(parsed_query)
-            
+
             # Perform semantic search
             if search_terms:
                 semantic_query = " ".join(search_terms[:5])  # Limit to top 5 terms
@@ -68,31 +68,31 @@ class AdvancedSearchEngine:
                 )
             else:
                 results = []
-            
+
             # Apply faceted filtering
             if filters:
                 results = self.faceted_manager.apply_facet_filters(results, filters)
-            
+
             # Apply personalized ranking if enabled
             if enable_personalization and user_id:
                 results = self.personalized_ranking.personalize_ranking(user_id, results)
-            
+
             # Extract facets from results for dynamic filtering
             available_facets = self.faceted_manager.extract_facets(results)
-            
+
             # Limit final results
             final_results = results[:limit]
-            
+
             # Calculate search metadata
             search_time = (datetime.now() - start_time).total_seconds()
-            
+
             # Track query for suggestions
             self.suggestion_engine.track_query(
-                query, 
+                query,
                 success=len(final_results) > 0,
                 result_count=len(final_results)
             )
-            
+
             return {
                 "results": final_results,
                 "total_count": len(results),
@@ -110,7 +110,7 @@ class AdvancedSearchEngine:
                     "related_queries": self.suggestion_engine.get_related_suggestions(query),
                 }
             }
-            
+
         except Exception as e:
             self.logger.error(f"Error in advanced search: {e}")
             return {
@@ -124,7 +124,7 @@ class AdvancedSearchEngine:
         self,
         partial_query: str,
         limit: int = 5
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Get autocomplete suggestions for a partial query."""
         try:
             return self.suggestion_engine.get_autocomplete_suggestions(partial_query, limit)
@@ -137,8 +137,8 @@ class AdvancedSearchEngine:
         user_id: str,
         pattern_id: str,
         interaction_type: str,
-        pattern_metadata: Optional[Dict[str, Any]] = None,
-        rating: Optional[float] = None
+        pattern_metadata: dict[str, Any] | None = None,
+        rating: float | None = None
     ) -> None:
         """Track user interaction for personalization improvement."""
         try:

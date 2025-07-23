@@ -8,7 +8,8 @@ UCKN Database Optimization Layer
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
+
 
 class ChromaDBOptimizer:
     """
@@ -32,7 +33,7 @@ class ChromaDBOptimizer:
         self.logger.info(f"Indexing field '{field}' in collection '{collection_name}' (simulated).")
         self.indexed_fields.add((collection_name, field))
 
-    def optimize_query(self, collection_name: str, query: Dict[str, Any]) -> Dict[str, Any]:
+    def optimize_query(self, collection_name: str, query: dict[str, Any]) -> dict[str, Any]:
         """
         Optimize a query by using indexed fields and planning.
         """
@@ -50,7 +51,7 @@ class ChromaDBOptimizer:
         # ChromaDB python client is thread-safe, but we could pool if needed.
         return self.chroma_connector
 
-    def list_indexes(self, collection_name: Optional[str] = None) -> List[str]:
+    def list_indexes(self, collection_name: str | None = None) -> list[str]:
         """List indexed fields for a collection."""
         if collection_name:
             return [f for (coll, f) in self.indexed_fields if coll == collection_name]

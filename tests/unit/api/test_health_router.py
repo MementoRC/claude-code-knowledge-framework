@@ -2,9 +2,10 @@
 Tests for health monitoring API endpoints.
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch
 
 from src.uckn.api.main import app
 
@@ -37,7 +38,7 @@ def test_system_status_healthy(mock_get_km, client):
         }
     }
     mock_get_km.return_value = mock_km
-    
+
     response = client.get("/api/v1/status")
     assert response.status_code == 200
     data = response.json()
@@ -59,7 +60,7 @@ def test_system_status_degraded(mock_get_km, client):
         }
     }
     mock_get_km.return_value = mock_km
-    
+
     response = client.get("/api/v1/status")
     assert response.status_code == 200
     data = response.json()

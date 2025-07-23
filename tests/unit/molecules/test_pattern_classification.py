@@ -1,6 +1,6 @@
 import unittest
+from typing import Any, Dict, List, Optional
 from unittest.mock import MagicMock, patch
-from typing import List, Dict, Any, Optional
 
 # --- Dummy/Mock Classes for Testing ---
 # These mocks simulate the behavior of ChromaDBConnector and PatternClassification
@@ -20,7 +20,7 @@ class DummyChromaDBConnector:
             self.collections[name] = {"documents": {}, "metadatas": {}, "ids": []}
         return self.collections[name]
 
-    def add_documents(self, collection_name: str, documents: List[str], metadatas: List[Dict[str, Any]], ids: List[str]):
+    def add_documents(self, collection_name: str, documents: list[str], metadatas: list[dict[str, Any]], ids: list[str]):
         """Simulates adding documents to a collection."""
         collection = self.get_or_create_collection(collection_name)
         for i, doc_id in enumerate(ids):
@@ -32,7 +32,7 @@ class DummyChromaDBConnector:
             collection["metadatas"][doc_id] = metadatas[i]
             collection["ids"].append(doc_id)
 
-    def get_documents(self, collection_name: str, ids: Optional[List[str]] = None, where: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    def get_documents(self, collection_name: str, ids: list[str] | None = None, where: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         """Simulates retrieving documents from a collection."""
         collection = self.get_or_create_collection(collection_name)
         results = []
@@ -69,7 +69,7 @@ class DummyChromaDBConnector:
                 })
         return results
 
-    def update_documents(self, collection_name: str, ids: List[str], documents: Optional[List[Optional[str]]] = None, metadatas: Optional[List[Optional[Dict[str, Any]]]] = None):
+    def update_documents(self, collection_name: str, ids: list[str], documents: list[str | None] | None = None, metadatas: list[dict[str, Any] | None] | None = None):
         """Simulates updating documents in a collection."""
         collection = self.get_or_create_collection(collection_name)
         for i, doc_id in enumerate(ids):
@@ -80,7 +80,7 @@ class DummyChromaDBConnector:
                     collection["metadatas"][doc_id].update(metadatas[i])
             # If ID not found, do nothing (similar to how some DBs handle non-existent updates)
 
-    def delete_documents(self, collection_name: str, ids: List[str]):
+    def delete_documents(self, collection_name: str, ids: list[str]):
         """Simulates deleting documents from a collection."""
         collection = self.get_or_create_collection(collection_name)
         for doc_id in ids:
@@ -90,7 +90,7 @@ class DummyChromaDBConnector:
                 if doc_id in collection["ids"]:
                     collection["ids"].remove(doc_id)
 
-    def query_documents(self, collection_name: str, query_texts: Optional[List[str]] = None, query_embeddings: Optional[List[List[float]]] = None, n_results: int = 10, where: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    def query_documents(self, collection_name: str, query_texts: list[str] | None = None, query_embeddings: list[list[float]] | None = None, n_results: int = 10, where: dict[str, Any] | None = None) -> list[dict[str, Any]]:
         """Simplified query for testing, primarily uses 'where' clause."""
         return self.get_documents(collection_name, where=where)
 
@@ -116,19 +116,19 @@ class PatternClassification:
         )
         return True
 
-    def get_category(self, category_id: str) -> Optional[Dict[str, Any]]:
+    def get_category(self, category_id: str) -> dict[str, Any] | None:
         """Retrieves a category by its ID."""
         results = self.db_connector.get_documents(self.categories_collection_name, ids=[category_id])
         if results:
             return {"id": results[0]["id"], "name": results[0]["document"], **results[0]["metadata"]}
         return None
 
-    def update_category(self, category_id: str, new_name: Optional[str] = None, new_description: Optional[str] = None) -> bool:
+    def update_category(self, category_id: str, new_name: str | None = None, new_description: str | None = None) -> bool:
         """Updates an existing category's name or description."""
         current_category = self.get_category(category_id)
         if not current_category:
             return False  # Category does not exist
-        
+
         updated_metadata = {}
         updated_document = None
         if new_name is not None:
@@ -136,7 +136,7 @@ class PatternClassification:
             updated_document = new_name # Document field often stores the primary name/text
         if new_description is not None:
             updated_metadata["description"] = new_description
-        
+
         if not updated_metadata and updated_document is None:
             return False # No changes requested
 
@@ -152,9 +152,9 @@ class PatternClassification:
         """Deletes a category and all associated pattern links."""
         if not self.db_connector.get_documents(self.categories_collection_name, ids=[category_id]):
             return False  # Category does not exist
-        
+
         self.db_connector.delete_documents(self.categories_collection_name, ids=[category_id])
-        
+
         # Also delete all links associated with this category
         links_to_delete = self.db_connector.get_documents(self.pattern_category_links_collection_name, where={"category_id": category_id})
         if links_to_delete:
@@ -165,7 +165,7 @@ class PatternClassification:
         """Assigns a pattern to a category."""
         if not self.get_category(category_id):
             return False  # Category must exist
-        
+
         # Check if link already exists
         existing_links = self.db_connector.get_documents(
             self.pattern_category_links_collection_name,
@@ -191,16 +191,16 @@ class PatternClassification:
         )
         if not links_to_delete:
             return False  # Link does not exist
-        
+
         self.db_connector.delete_documents(self.pattern_category_links_collection_name, ids=[link["id"] for link in links_to_delete])
         return True
 
-    def get_patterns_in_category(self, category_id: str) -> List[str]:
+    def get_patterns_in_category(self, category_id: str) -> list[str]:
         """Retrieves all patterns assigned to a specific category."""
         links = self.db_connector.get_documents(self.pattern_category_links_collection_name, where={"category_id": category_id})
         return sorted(list(set([link["metadata"]["pattern_id"] for link in links])))
 
-    def get_categories_for_pattern(self, pattern_id: str) -> List[str]:
+    def get_categories_for_pattern(self, pattern_id: str) -> list[str]:
         """Retrieves all categories a specific pattern is assigned to."""
         links = self.db_connector.get_documents(self.pattern_category_links_collection_name, where={"pattern_id": pattern_id})
         return sorted(list(set([link["metadata"]["category_id"] for link in links])))
@@ -245,7 +245,7 @@ class TestPatternClassification(unittest.TestCase):
     def test_update_category(self):
         """Test updating category details and handling non-existent categories."""
         self.pattern_classifier.add_category("cat3", "Category Three", "Initial description")
-        
+
         # Test updating name and description
         self.assertTrue(self.pattern_classifier.update_category("cat3", "Updated Category Three", "New description"))
         category = self.pattern_classifier.get_category("cat3")
@@ -266,7 +266,7 @@ class TestPatternClassification(unittest.TestCase):
 
         # Test updating non-existent category (should fail)
         self.assertFalse(self.pattern_classifier.update_category("non_existent_cat", "New Name"))
-        
+
         # Test calling update with no actual changes requested (should fail)
         self.assertFalse(self.pattern_classifier.update_category("cat3"))
 

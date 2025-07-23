@@ -1,9 +1,21 @@
-import pytest
 import uuid
 from datetime import datetime, timedelta
+
+import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-from src.uckn.storage.postgresql_connector import PostgreSQLConnector, Base, Project, Pattern, ErrorSolution, PatternCategory, PatternCategoryLink, TeamAccess, CompatibilityMatrix
+
+from src.uckn.storage.postgresql_connector import (
+    Base,
+    CompatibilityMatrix,
+    ErrorSolution,
+    Pattern,
+    PatternCategory,
+    PatternCategoryLink,
+    PostgreSQLConnector,
+    Project,
+    TeamAccess,
+)
 
 # Use an in-memory SQLite database for testing
 # This allows testing the ORM and connector logic without a real PostgreSQL instance
@@ -67,7 +79,7 @@ def test_update_project(pg_connector):
 def test_delete_project(pg_connector):
     project_id = str(uuid.uuid4())
     pg_connector.add_record(Project, {"id": project_id, "name": "To Delete"})
-    
+
     deleted = pg_connector.delete_record(Project, project_id)
     assert deleted
 
@@ -79,7 +91,7 @@ def test_add_pattern(pg_connector):
     pattern_id = str(uuid.uuid4())
     doc_text = "Example code pattern."
     metadata = {"technology_stack": "Python", "pattern_type": "Design", "success_rate": 0.95}
-    
+
     added_id = pg_connector.add_record(Pattern, {
         "id": pattern_id,
         "project_id": project_id,
@@ -166,7 +178,7 @@ def test_remove_pattern_from_category(pg_connector):
 def test_get_all_records(pg_connector):
     pg_connector.add_record(Project, {"id": str(uuid.uuid4()), "name": "P1"})
     pg_connector.add_record(Project, {"id": str(uuid.uuid4()), "name": "P2"})
-    
+
     projects = pg_connector.get_all_records(Project)
     assert len(projects) == 2
 

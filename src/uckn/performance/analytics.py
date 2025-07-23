@@ -9,7 +9,9 @@ UCKN Performance Analytics
 
 import logging
 import time
-from typing import Callable, Any, Dict, List
+from collections.abc import Callable
+from typing import Any
+
 
 class PerformanceProfiler:
     """
@@ -17,7 +19,7 @@ class PerformanceProfiler:
     """
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        self.metrics: List[Dict[str, Any]] = []
+        self.metrics: list[dict[str, Any]] = []
 
     def profile(self, fn: Callable) -> Callable:
         def wrapper(*args, **kwargs):
@@ -34,7 +36,7 @@ class PerformanceProfiler:
             return result
         return wrapper
 
-    def get_metrics(self) -> List[Dict[str, Any]]:
+    def get_metrics(self) -> list[dict[str, Any]]:
         return self.metrics
 
     def clear(self):
@@ -59,7 +61,7 @@ class CacheAnalytics:
         total = self.hits + self.misses
         return self.hits / total if total > 0 else 0.0
 
-    def report(self) -> Dict[str, Any]:
+    def report(self) -> dict[str, Any]:
         return {
             "hits": self.hits,
             "misses": self.misses,
@@ -73,14 +75,14 @@ class BottleneckDetector:
     def __init__(self, threshold=1.0):
         self.threshold = threshold
         self.logger = logging.getLogger(__name__)
-        self.slow_calls: List[Dict[str, Any]] = []
+        self.slow_calls: list[dict[str, Any]] = []
 
     def record(self, fn_name: str, elapsed: float):
         if elapsed > self.threshold:
             self.slow_calls.append({"function": fn_name, "elapsed": elapsed, "timestamp": time.time()})
             self.logger.warning(f"Bottleneck detected in {fn_name}: {elapsed:.2f}s")
 
-    def get_bottlenecks(self) -> List[Dict[str, Any]]:
+    def get_bottlenecks(self) -> list[dict[str, Any]]:
         return self.slow_calls
 
 performance_profiler = PerformanceProfiler()

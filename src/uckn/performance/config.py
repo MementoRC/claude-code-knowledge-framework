@@ -7,6 +7,7 @@ UCKN Performance Configuration
 
 import os
 
+
 class PerformanceConfig:
     """
     Loads and manages performance-related configuration.

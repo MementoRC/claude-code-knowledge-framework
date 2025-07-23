@@ -5,13 +5,14 @@ Provides REST API endpoints for predictive issue detection.
 """
 
 import logging
-from typing import List, Dict, Any, Optional
+from datetime import datetime
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
-from datetime import datetime
 
-from ..dependencies import get_predictive_issue_detector
 from ...core.organisms.predictive_issue_detector import PredictiveIssueDetector
+from ..dependencies import get_predictive_issue_detector
 
 router = APIRouter()
 _logger = logging.getLogger(__name__)
@@ -21,9 +22,9 @@ _logger = logging.getLogger(__name__)
 class PredictionRequest(BaseModel):
     """Request model for issue prediction."""
     project_path: str = Field(..., description="File system path to the project root.")
-    code_snippet: Optional[str] = Field(None, description="Optional code snippet for analysis.")
-    context_description: Optional[str] = Field(None, description="Optional natural language description of the context.")
-    project_id: Optional[str] = Field(None, description="Optional ID of the project in UCKN.")
+    code_snippet: str | None = Field(None, description="Optional code snippet for analysis.")
+    context_description: str | None = Field(None, description="Optional natural language description of the context.")
+    project_id: str | None = Field(None, description="Optional ID of the project in UCKN.")
 
 class PredictedIssue(BaseModel):
     """Model for a single predicted issue."""
@@ -36,17 +37,17 @@ class PredictedIssue(BaseModel):
 class PredictionResponse(BaseModel):
     """Response model for issue prediction."""
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat(), description="Timestamp of the prediction.")
-    issues: List[PredictedIssue] = Field(..., description="List of detected potential issues.")
+    issues: list[PredictedIssue] = Field(..., description="List of detected potential issues.")
     message: str = Field("Prediction completed successfully.", description="Status message.")
 
 class FeedbackRequest(BaseModel):
     """Request model for providing feedback on a predicted issue."""
     issue_id: str = Field(..., description="Unique identifier for the detected issue instance.")
-    project_id: Optional[str] = Field(None, description="Optional ID of the project this feedback relates to.")
+    project_id: str | None = Field(None, description="Optional ID of the project this feedback relates to.")
     outcome: str = Field(..., description="Actual outcome of the issue (e.g., 'resolved', 'false_positive', 'ignored', 'still_active').")
-    resolution_details: Optional[str] = Field(None, description="Optional details about how the issue was resolved.")
-    time_to_resolve_minutes: Optional[float] = Field(None, description="Optional time taken to resolve the issue.")
-    feedback_data: Optional[Dict[str, Any]] = Field(None, description="Additional arbitrary feedback data.")
+    resolution_details: str | None = Field(None, description="Optional details about how the issue was resolved.")
+    time_to_resolve_minutes: float | None = Field(None, description="Optional time taken to resolve the issue.")
+    feedback_data: dict[str, Any] | None = Field(None, description="Additional arbitrary feedback data.")
 
 class FeedbackResponse(BaseModel):
     """Response model for feedback submission."""

@@ -8,9 +8,11 @@ Provides:
 - Pattern analytics datasets
 """
 
-import pytest
 import copy
 from datetime import datetime, timedelta
+
+import pytest
+
 
 @pytest.fixture
 def sample_patterns() -> list:

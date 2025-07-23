@@ -1,14 +1,16 @@
-import pytest
-from unittest.mock import Mock, MagicMock
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+from unittest.mock import MagicMock, Mock
 
-from src.uckn.core.organisms.predictive_issue_detector import PredictiveIssueDetector
+import pytest
+
 from src.uckn.core.atoms.tech_stack_detector import TechStackDetector
+from src.uckn.core.molecules.error_solution_manager import ErrorSolutionManager
 from src.uckn.core.molecules.issue_detection_rules import IssueDetectionRules
 from src.uckn.core.molecules.issue_prediction_models import IssuePredictionModels
-from src.uckn.core.molecules.error_solution_manager import ErrorSolutionManager
 from src.uckn.core.molecules.pattern_analytics import PatternAnalytics
+from src.uckn.core.organisms.predictive_issue_detector import PredictiveIssueDetector
+
 
 @pytest.fixture
 def mock_tech_stack_detector():

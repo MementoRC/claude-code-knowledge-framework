@@ -2,7 +2,6 @@
 UCKN Semantic Search Atom
 """
 
-from typing import List, Optional, Dict
 import logging
 
 try:
@@ -34,7 +33,7 @@ class SemanticSearch:
         """Check if the underlying semantic search engine is available."""
         return self.engine is not None and self.engine.is_available()
 
-    def encode(self, text: str) -> Optional[List[float]]:
+    def encode(self, text: str) -> list[float] | None:
         """
         Generate embeddings for text using the underlying sentence transformer model.
         """
@@ -54,7 +53,7 @@ class SemanticSearch:
             self._logger.error(f"Failed to encode text: {e}")
             return None
 
-    def search(self, query: str, collection_name: str, limit: int = 10, min_similarity: float = 0.7) -> List[Dict]:
+    def search(self, query: str, collection_name: str, limit: int = 10, min_similarity: float = 0.7) -> list[dict]:
         """
         Perform semantic search using the underlying engine's capabilities.
         Note: This method is primarily for direct semantic search on raw text.

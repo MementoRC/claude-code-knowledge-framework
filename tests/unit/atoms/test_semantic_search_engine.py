@@ -1,7 +1,9 @@
-import pytest
 from unittest.mock import MagicMock
 
+import pytest
+
 from src.uckn.core.atoms.semantic_search_engine import SemanticSearchEngine
+
 
 class DummyMultiModalEmbeddings:
     def __init__(self):

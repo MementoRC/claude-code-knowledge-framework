@@ -2,12 +2,15 @@
 UCKN Load Testing Entry Point (Locust)
 """
 
-from locust import HttpUser, between, events
-from .scenarios.search_scenarios import SearchUser
-from .scenarios.pattern_scenarios import PatternAdditionUser
-from .scenarios.mixed_workload import MixedWorkloadUser
-from .utils.monitoring import start_resource_monitor, stop_resource_monitor
 import os
+
+from locust import HttpUser, between, events
+
+from .scenarios.mixed_workload import MixedWorkloadUser
+from .scenarios.pattern_scenarios import PatternAdditionUser
+from .scenarios.search_scenarios import SearchUser
+from .utils.monitoring import start_resource_monitor, stop_resource_monitor
+
 
 # Start resource monitoring at test start
 @events.test_start.add_listener

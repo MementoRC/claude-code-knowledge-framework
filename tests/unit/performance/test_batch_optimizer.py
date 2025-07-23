@@ -1,5 +1,9 @@
 import pytest
-from src.uckn.core.atoms.semantic_search_engine_optimized import SemanticSearchEngineOptimized
+
+from src.uckn.core.atoms.semantic_search_engine_optimized import (
+    SemanticSearchEngineOptimized,
+)
+
 
 def test_batch_search(monkeypatch):
     class DummyChroma:

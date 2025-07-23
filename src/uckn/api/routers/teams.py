@@ -8,7 +8,6 @@ Provides comprehensive team management endpoints including:
 - Invitation system
 """
 
-from typing import List, Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -23,14 +22,14 @@ router = APIRouter()
 # Request/Response Models
 class TeamCreateRequest(BaseModel):
     name: str
-    description: Optional[str] = None
-    settings: Optional[dict] = None
+    description: str | None = None
+    settings: dict | None = None
 
 
 class TeamResponse(BaseModel):
     id: str
     name: str
-    description: Optional[str]
+    description: str | None
     owner_id: str
     settings: dict
     created_at: str
@@ -78,7 +77,7 @@ async def create_team(
     try:
         # For now, use a mock user ID - in real implementation, get from auth
         owner_id = "mock_user_id"
-        
+
         team_data = {
             "id": str(uuid4()),
             "name": request.name,
@@ -88,10 +87,10 @@ async def create_team(
             "created_at": "2024-01-01T00:00:00Z",
             "updated_at": "2024-01-01T00:00:00Z"
         }
-        
+
         # In real implementation, this would use team_manager to save to database
         return TeamResponse(**team_data)
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -99,7 +98,7 @@ async def create_team(
         )
 
 
-@router.get("/teams", response_model=List[TeamResponse])
+@router.get("/teams", response_model=list[TeamResponse])
 async def list_teams(
     km: KnowledgeManager = Depends(get_knowledge_manager)
 ):
@@ -117,9 +116,9 @@ async def list_teams(
                 "updated_at": "2024-01-01T00:00:00Z"
             }
         ]
-        
+
         return [TeamResponse(**team) for team in mock_teams]
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -151,7 +150,7 @@ async def get_team(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Team not found"
             )
-            
+
     except HTTPException:
         raise
     except Exception as e:
@@ -161,7 +160,7 @@ async def get_team(
         )
 
 
-@router.get("/teams/{team_id}/members", response_model=List[TeamMemberResponse])
+@router.get("/teams/{team_id}/members", response_model=list[TeamMemberResponse])
 async def list_team_members(
     team_id: str,
     km: KnowledgeManager = Depends(get_knowledge_manager)
@@ -177,9 +176,9 @@ async def list_team_members(
                 "joined_at": "2024-01-01T00:00:00Z"
             }
         ]
-        
+
         return [TeamMemberResponse(**member) for member in mock_members]
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

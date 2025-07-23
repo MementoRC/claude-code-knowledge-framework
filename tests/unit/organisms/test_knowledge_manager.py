@@ -1,7 +1,9 @@
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
+
 
 @pytest.fixture
 def mock_chroma():

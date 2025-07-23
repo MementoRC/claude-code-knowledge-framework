@@ -1,11 +1,12 @@
+from datetime import datetime
+from unittest.mock import Mock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch
-from datetime import datetime
 
+from src.uckn.api.dependencies import get_predictive_issue_detector
 from src.uckn.api.routers.predictions import router
 from src.uckn.core.organisms.predictive_issue_detector import PredictiveIssueDetector
-from src.uckn.api.dependencies import get_predictive_issue_detector
 
 # Create a TestClient for the router
 client = TestClient(router)

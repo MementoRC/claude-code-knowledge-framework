@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Any
 
 try:
     import chromadb
@@ -57,7 +57,7 @@ class ChromaDBConnector:
         },
         "tech_stack_compatibility": {
             "required_metadata": [
-                "tech_stack_a", "tech_stack_b", "score", "description", 
+                "tech_stack_a", "tech_stack_b", "score", "description",
                 "created_at", "updated_at", "combo_id"
             ],
             "metadata_types": {
@@ -90,8 +90,8 @@ class ChromaDBConnector:
         self.db_path = Path(db_path)
         self.db_path.mkdir(parents=True, exist_ok=True)
         self._logger = logging.getLogger(__name__)
-        self.client: Optional[chromadb.PersistentClient] = None
-        self.collections: Dict[str, Any] = {}
+        self.client: chromadb.PersistentClient | None = None
+        self.collections: dict[str, Any] = {}
         self._connect_to_chromadb()
 
     def _connect_to_chromadb(self) -> None:
@@ -124,7 +124,7 @@ class ChromaDBConnector:
         """Checks if ChromaDB is connected and ready."""
         return self.client is not None and bool(self.collections)
 
-    def _validate_metadata(self, collection_name: str, metadata: Dict[str, Any]) -> bool:
+    def _validate_metadata(self, collection_name: str, metadata: dict[str, Any]) -> bool:
         """Validates metadata against the predefined schema for a collection."""
         schema = self._COLLECTION_SCHEMAS.get(collection_name)
         if not schema:
@@ -152,8 +152,8 @@ class ChromaDBConnector:
         collection_name: str,
         doc_id: str,
         document: str,
-        embedding: List[float],
-        metadata: Dict[str, Any]
+        embedding: list[float],
+        metadata: dict[str, Any]
     ) -> bool:
         """
         Adds a document to the specified ChromaDB collection.
@@ -194,7 +194,7 @@ class ChromaDBConnector:
             self._logger.error(f"Failed to add document '{doc_id}' to '{collection_name}': {e}")
             return False
 
-    def get_document(self, collection_name: str, doc_id: str) -> Optional[Dict[str, Any]]:
+    def get_document(self, collection_name: str, doc_id: str) -> dict[str, Any] | None:
         """
         Retrieves a document from the specified ChromaDB collection by ID.
 
@@ -235,9 +235,9 @@ class ChromaDBConnector:
         self,
         collection_name: str,
         doc_id: str,
-        document: Optional[str] = None,
-        embedding: Optional[List[float]] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        document: str | None = None,
+        embedding: list[float] | None = None,
+        metadata: dict[str, Any] | None = None
     ) -> bool:
         """
         Updates an existing document in the specified ChromaDB collection.
@@ -309,11 +309,11 @@ class ChromaDBConnector:
     def search_documents(
         self,
         collection_name: str,
-        query_embedding: List[float],
+        query_embedding: list[float],
         n_results: int = 10,
         min_similarity: float = 0.7,
-        where_clause: Optional[Dict[str, Any]] = None
-    ) -> List[Dict[str, Any]]:
+        where_clause: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
         """
         Searches for similar documents in the specified ChromaDB collection.
 
@@ -383,7 +383,7 @@ class ChromaDBConnector:
             self._logger.error(f"Failed to count documents in '{collection_name}': {e}")
             return 0
 
-    def get_all_documents(self, collection_name: str) -> List[Dict[str, Any]]:
+    def get_all_documents(self, collection_name: str) -> list[dict[str, Any]]:
         """
         Retrieves all documents from a specified collection.
         Use with caution for large collections.
@@ -430,6 +430,6 @@ class ChromaDBConnector:
             self._logger.error(f"Failed to reset ChromaDB: {e}")
             return False
 
-    def _get_collection_names(self) -> List[str]:
+    def _get_collection_names(self) -> list[str]:
         """Returns a list of collection names managed by this connector."""
         return list(self._COLLECTION_SCHEMAS.keys())

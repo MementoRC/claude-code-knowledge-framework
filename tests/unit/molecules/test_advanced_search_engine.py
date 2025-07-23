@@ -2,8 +2,10 @@
 Tests for AdvancedSearchEngine molecule.
 """
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+
 from src.uckn.core.molecules.advanced_search_engine import AdvancedSearchEngine
 
 
@@ -25,7 +27,7 @@ class TestAdvancedSearchEngine:
                 }
             },
             {
-                "id": "pattern-2", 
+                "id": "pattern-2",
                 "similarity_score": 0.85,
                 "metadata": {
                     "technology_stack": ["python", "django"],
@@ -33,13 +35,13 @@ class TestAdvancedSearchEngine:
                 }
             }
         ]
-        
+
         return AdvancedSearchEngine(semantic_engine=mock_semantic)
 
     def test_basic_search(self, search_engine):
         """Test basic search functionality."""
         result = search_engine.search("python web framework")
-        
+
         assert "results" in result
         assert "total_count" in result
         assert "search_metadata" in result
@@ -51,14 +53,14 @@ class TestAdvancedSearchEngine:
             "technology_stack": ["python"],
             "complexity": "moderate"
         }
-        
+
         result = search_engine.search("web framework", filters=filters)
-        
+
         assert "results" in result
         assert result["search_metadata"]["filters_applied"] == filters
 
     def test_autocomplete_suggestions(self, search_engine):
         """Test autocomplete functionality."""
         suggestions = search_engine.get_autocomplete_suggestions("pyth")
-        
+
         assert isinstance(suggestions, list)

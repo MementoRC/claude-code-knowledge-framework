@@ -1,18 +1,20 @@
 """Test configuration and fixtures for UCKN framework."""
 
-import pytest
-import tempfile
 import shutil
+import tempfile
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator, Dict, Any
+from typing import Any, Dict
+
+import pytest
+
+from .fixtures.component_fixtures import *
+from .fixtures.database_fixtures import *
+from .fixtures.error_fixtures import *
 
 # --- Modular fixture imports for robust, reusable test infrastructure ---
-
 from .fixtures.pattern_fixtures import *
-from .fixtures.error_fixtures import *
 from .fixtures.tech_stack_fixtures import *
-from .fixtures.database_fixtures import *
-from .fixtures.component_fixtures import *
 
 # --- Core temporary directory fixture ---
 
@@ -78,12 +80,12 @@ def uckn_component_factory():
     Supports custom configuration for integration and E2E tests.
     Ensures ChromaDBConnector and other DB resources are cleaned up after use.
     """
-    from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
     from src.uckn.core.atoms.semantic_search import SemanticSearch
     from src.uckn.core.atoms.tech_stack_detector import TechStackDetector
-    from src.uckn.core.molecules.pattern_manager import PatternManager
     from src.uckn.core.molecules.error_solution_manager import ErrorSolutionManager
     from src.uckn.core.molecules.pattern_classification import PatternClassification
+    from src.uckn.core.molecules.pattern_manager import PatternManager
+    from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
     from src.uckn.storage.chromadb_connector import ChromaDBConnector
 
     created_chroma_connectors = []
@@ -105,8 +107,8 @@ def uckn_component_factory():
         semantic_search = semantic_search or SemanticSearch(knowledge_dir=str(knowledge_dir))
         tech_detector = tech_detector or TechStackDetector()
         # Create unified_db for PatternManager
-        from uckn.storage.unified_database import UnifiedDatabase
         from tests.fixtures.database_fixtures import DummyUnifiedDatabase
+        from uckn.storage.unified_database import UnifiedDatabase
         unified_db = DummyUnifiedDatabase()
         pattern_manager = pattern_manager or PatternManager(unified_db, semantic_search)
         error_solution_manager = error_solution_manager or ErrorSolutionManager(chroma_connector_local, semantic_search)

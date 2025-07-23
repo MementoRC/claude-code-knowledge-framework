@@ -1,11 +1,22 @@
-import pytest
 import uuid
-from unittest.mock import Mock, MagicMock
 from datetime import datetime, timedelta
+from unittest.mock import MagicMock, Mock
 
-from src.uckn.storage.unified_database import UnifiedDatabase
+import pytest
+
 from src.uckn.storage.chromadb_connector import ChromaDBConnector
-from src.uckn.storage.postgresql_connector import PostgreSQLConnector, Project, Pattern, ErrorSolution, PatternCategory, PatternCategoryLink, TeamAccess, CompatibilityMatrix
+from src.uckn.storage.postgresql_connector import (
+    CompatibilityMatrix,
+    ErrorSolution,
+    Pattern,
+    PatternCategory,
+    PatternCategoryLink,
+    PostgreSQLConnector,
+    Project,
+    TeamAccess,
+)
+from src.uckn.storage.unified_database import UnifiedDatabase
+
 
 # Mock the underlying connectors
 @pytest.fixture
@@ -47,11 +58,11 @@ def unified_db(mock_pg_connector, mock_chroma_connector):
     UnifiedDatabase._chroma_connector_class = Mock(return_value=mock_chroma_connector)
 
     db = UnifiedDatabase(pg_db_url="sqlite:///:memory:", chroma_db_path="/tmp/test_chroma")
-    
+
     # Restore original classes after fixture setup
     UnifiedDatabase._pg_connector_class = original_pg_class
     UnifiedDatabase._chroma_connector_class = original_chroma_class
-    
+
     return db
 
 def test_unified_db_initialization(unified_db, mock_pg_connector, mock_chroma_connector):
@@ -99,10 +110,10 @@ def test_add_pattern_success(unified_db, mock_pg_connector, mock_chroma_connecto
     doc_text = "Test pattern document"
     embedding = [0.1] * 128
     metadata = {"tech": "Python", "pattern_type": "Creational"}
-    
+
     pattern_id = unified_db.add_pattern(doc_text, embedding, metadata, project_id="proj123")
     assert pattern_id is not None
-    
+
     mock_pg_connector.add_record.assert_called_once()
     args, kwargs = mock_pg_connector.add_record.call_args
     assert args[0] is Pattern
@@ -122,7 +133,7 @@ def test_add_pattern_success(unified_db, mock_pg_connector, mock_chroma_connecto
 
 def test_add_pattern_pg_fail_chroma_not_called(unified_db, mock_pg_connector, mock_chroma_connector):
     mock_pg_connector.add_record.return_value = None # Simulate PG failure
-    
+
     pattern_id = unified_db.add_pattern("doc", [0.1], {})
     assert pattern_id is None
     mock_pg_connector.add_record.assert_called_once()
@@ -130,7 +141,7 @@ def test_add_pattern_pg_fail_chroma_not_called(unified_db, mock_pg_connector, mo
 
 def test_add_pattern_chroma_fail_pg_rolled_back(unified_db, mock_pg_connector, mock_chroma_connector):
     mock_chroma_connector.add_document.return_value = False # Simulate Chroma failure
-    
+
     pattern_id = unified_db.add_pattern("doc", [0.1], {})
     assert pattern_id is None
     mock_pg_connector.add_record.assert_called_once()
@@ -170,7 +181,7 @@ def test_update_pattern_success(unified_db, mock_pg_connector, mock_chroma_conne
     new_doc = "Updated document"
     new_embedding = [0.3] * 128
     new_metadata = {"tech": "Java", "pattern_type": "Structural", "success_rate": 0.8}
-    
+
     updated = unified_db.update_pattern(
         test_id,
         document_text=new_doc,
@@ -237,10 +248,10 @@ def test_add_error_solution_success(unified_db, mock_pg_connector, mock_chroma_c
     doc_text = "Error message"
     embedding = [0.1] * 128
     metadata = {"error_category": "Network", "resolution_steps": "Check firewall"}
-    
+
     solution_id = unified_db.add_error_solution(doc_text, embedding, metadata, project_id="proj123")
     assert solution_id is not None
-    
+
     mock_pg_connector.add_record.assert_called_once()
     args, kwargs = mock_pg_connector.add_record.call_args
     assert args[0] is ErrorSolution
