@@ -187,13 +187,24 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Check documentation updates
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         echo "📚 Checking documentation..."
         
         # Check if significant changes need doc updates
-        CHANGED_FILES=$(git diff --name-only origin/main...HEAD)
+        # Use the PR base branch for comparison (fallback to development)
+        BASE_BRANCH=$(gh pr view ${{ github.event.pull_request.number }} --json baseRefName --jq '.baseRefName' 2>/dev/null || echo "development")
+        echo "Using base branch for comparison: $BASE_BRANCH"
+        
+        # Fetch the base branch
+        git fetch origin $BASE_BRANCH
+        
+        CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH...HEAD)
         SRC_CHANGES=$(echo "$CHANGED_FILES" | grep -E '^src/' | wc -l)
         DOC_CHANGES=$(echo "$CHANGED_FILES" | grep -E '\.(md|rst)$' | wc -l)
         
