@@ -39,20 +39,17 @@ jobs:
       - name: Install dev dependencies
         run: pixi run -e dev dev
 
-      - name: Select tests by marker
+      - name: Select tests by marker  
         id: select-tests
         run: |
-          if [[ "${{ matrix.test-type }}" == "unit" ]]; then
-            echo "PYTEST_MARK=unit" >> $GITHUB_ENV
-          elif [[ "${{ matrix.test-type }}" == "integration" ]]; then
-            echo "PYTEST_MARK=integration" >> $GITHUB_ENV
-          elif [[ "${{ matrix.test-type }}" == "e2e" ]]; then
-            echo "PYTEST_MARK=e2e" >> $GITHUB_ENV
-          fi
+          # Since tests don't have unit/integration/e2e markers yet, run all tests for now
+          # TODO: Add proper test markers to categorize tests
+          echo "Running all tests for ${{ matrix.test-type }} (markers not implemented yet)"
 
       - name: Run selected tests
         run: |
-          pixi run -e quality test -m $PYTEST_MARK --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+          # Run all tests since markers aren't implemented
+          pixi run -e quality test --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
