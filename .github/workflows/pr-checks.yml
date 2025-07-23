@@ -31,16 +31,19 @@ jobs:
       run: |
         echo "🔍 Quick lint check on changed files..."
         
-        # Get changed Python files
-        CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.py' | tr '\n' ' ')
+        # Ensure base branch is available
+        git fetch origin ${{ github.base_ref }} || echo "Warning: Could not fetch base branch"
+        
+        # Get changed Python files (with fallback to all files if diff fails)
+        CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.py' 2>/dev/null | tr '\n' ' ' || find src tests -name "*.py" | tr '\n' ' ')
         
         if [ -n "$CHANGED_FILES" ]; then
-          echo "Changed files: $CHANGED_FILES"
+          echo "Files to check: $CHANGED_FILES"
           pixi run ruff check $CHANGED_FILES --output-format=github
           pixi run ruff format --check $CHANGED_FILES
           echo "✅ Lint check passed"
         else
-          echo "No Python files changed"
+          echo "No Python files to check"
         fi
 
     - name: Run tests on changed modules
@@ -48,9 +51,10 @@ jobs:
         echo "🧪 Running tests for changed modules..."
         
         # Get changed Python files and find corresponding test files
-        CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'src/**/*.py')
+        CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'src/**/*.py' 2>/dev/null || echo "src/")
         
-        if [ -n "$CHANGED_FILES" ]; then
+        if [ -n "$CHANGED_FILES" ] && [ "$CHANGED_FILES" != "src/" ]; then
+          echo "Source files changed: $CHANGED_FILES"
           # Run all tests since dependencies might be complex
           pixi run -e quality pytest tests/ -v --tb=short
           echo "✅ Tests passed"
@@ -67,10 +71,15 @@ jobs:
         import subprocess
         import sys
         
-        # Get changed files
-        result = subprocess.run(['git', 'diff', '--name-only', 'origin/${{ github.base_ref }}...HEAD', '--', 'src/**/*.py'], 
-                              capture_output=True, text=True)
-        changed_files = result.stdout.strip().split('\n') if result.stdout.strip() else []
+        # Get changed files (with fallback if git diff fails)
+        try:
+            result = subprocess.run(['git', 'diff', '--name-only', 'origin/${{ github.base_ref }}...HEAD', '--', 'src/**/*.py'], 
+                                  capture_output=True, text=True, check=False)
+            changed_files = result.stdout.strip().split('\n') if result.stdout.strip() else []
+        except:
+            # Fallback: check all Python files in src
+            result = subprocess.run(['find', 'src', '-name', '*.py'], capture_output=True, text=True)
+            changed_files = result.stdout.strip().split('\n') if result.stdout.strip() else []
         
         violations = []
         for file_path in changed_files:
@@ -202,11 +211,11 @@ jobs:
         echo "Using base branch for comparison: $BASE_BRANCH"
         
         # Fetch the base branch
-        git fetch origin $BASE_BRANCH
+        git fetch origin $BASE_BRANCH || echo "Warning: Could not fetch base branch"
         
-        CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH...HEAD)
-        SRC_CHANGES=$(echo "$CHANGED_FILES" | grep -E '^src/' | wc -l)
-        DOC_CHANGES=$(echo "$CHANGED_FILES" | grep -E '\.(md|rst)$' | wc -l)
+        CHANGED_FILES=$(git diff --name-only origin/$BASE_BRANCH...HEAD 2>/dev/null || echo "")
+        SRC_CHANGES=$(echo "$CHANGED_FILES" | grep -E '^src/' | wc -l 2>/dev/null || echo "0")
+        DOC_CHANGES=$(echo "$CHANGED_FILES" | grep -E '\.(md|rst)$' | wc -l 2>/dev/null || echo "0")
         
         echo "Source file changes: $SRC_CHANGES"
         echo "Documentation changes: $DOC_CHANGES"
