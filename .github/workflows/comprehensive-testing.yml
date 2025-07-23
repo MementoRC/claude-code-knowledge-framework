@@ -58,7 +58,7 @@ jobs:
         run: pixi install --locked
 
       - name: Install dev dependencies
-        run: pixi run dev
+        run: pixi run -e dev dev
 
       - name: Lint
         run: pixi run lint
@@ -67,16 +67,16 @@ jobs:
         run: pixi run typecheck
 
       - name: Run unit tests
-        run: pixi run test -m unit --json-report --json-report-file=pytest-unit.json
+        run: pixi run -e quality test -m unit --json-report --json-report-file=pytest-unit.json
 
       - name: Run integration tests
-        run: pixi run test -m integration --json-report --json-report-file=pytest-integration.json
+        run: pixi run -e quality test -m integration --json-report --json-report-file=pytest-integration.json
 
       - name: Run e2e tests
-        run: pixi run test -m e2e --json-report --json-report-file=pytest-e2e.json
+        run: pixi run -e quality test -m e2e --json-report --json-report-file=pytest-e2e.json
 
       - name: Run all tests with coverage
-        run: pixi run test-coverage-json
+        run: pixi run -e quality test-cov
 
       - name: Upload coverage and test artifacts
         uses: actions/upload-artifact@v4
@@ -91,7 +91,7 @@ jobs:
 
       - name: Quality Gate (with dependencies)
         run: |
-          pixi run quality-gate
+          pixi run -e quality quality-gate
 
       - name: Regression Testing & Baseline Comparison
         run: |
@@ -102,7 +102,7 @@ jobs:
       - name: Coverage Diff Analysis
         run: |
           if [ -f coverage.json ]; then
-            pixi run test-coverage-json
+            pixi run -e quality test-cov
           fi
 
       - name: Notify Results (GitHub API)

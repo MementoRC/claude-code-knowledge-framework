@@ -52,7 +52,7 @@ jobs:
         
         if [ -n "$CHANGED_FILES" ]; then
           # Run all tests since dependencies might be complex
-          pixi run pytest tests/ -v --tb=short
+          pixi run -e quality pytest tests/ -v --tb=short
           echo "✅ Tests passed"
         else
           echo "No source files changed, skipping tests"
@@ -160,7 +160,7 @@ jobs:
     - name: Generate coverage report
       run: |
         echo "📊 Generating coverage report..."
-        pixi run pytest tests/ --cov=src/uckn --cov-report=json --cov-report=term
+        pixi run -e quality pytest tests/ --cov=src/uckn --cov-report=json --cov-report=term
         
         # Check coverage threshold
         python << 'EOF'

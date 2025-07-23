@@ -150,6 +150,7 @@ bandit = ">=1.7.0"
 safety = ">=2.3.0,<3.0.0"
 pre-commit = ">=3.0.0"
 hypothesis = ">=6.0.0"
+diff-cover = ">=7.5.0"
 
 # TIER 3: CI/CD & Build Tools
 [tool.pixi.feature.quality-ci.dependencies]
@@ -213,6 +214,16 @@ install-pre-commit = { cmd = "pre-commit install --install-hooks", env = { CLAUD
 # Combined Quality Check (MANDATORY BEFORE COMMIT)
 quality = { depends-on = ["test", "lint", "typecheck"] }
 
+# Quality Gate (CI-specific comprehensive check)
+quality-gate = { cmd = "pixi run -e quality test && pixi run lint && pixi run typecheck", env = { CLAUDECODE = "0" } }
+
+# Development setup task
+dev = { cmd = "pixi run install-editable", env = { CLAUDECODE = "0" } }
+
+# Coverage tasks for CI
+coverage-markdown = { cmd = "coverage report --format=markdown > coverage.md", env = { CLAUDECODE = "0" } }
+coverage-trend = { cmd = "echo 'Coverage trend analysis - placeholder for future implementation'", env = { CLAUDECODE = "0" } }
+
 # Emergency Quality Fix (for CI failures)
 emergency-fix = "ruff check --fix src/ tests/ && ruff format src/ tests/ && pytest tests/ -v"
 
@@ -221,6 +232,7 @@ security-scan = "bandit -r src/ --severity-level high"
 safety-check = "safety check --continue-on-error --short-report"
 safety-check-ci = "safety check --continue-on-error --short-report --exit-code || echo 'Safety check completed with warnings'"
 static-analysis = { depends-on = ["security-scan", "safety-check"] }
+diff-cover = { cmd = "diff-cover coverage.xml", env = { CLAUDECODE = "0" } }
 
 # TIER 3: Complete Validation Pipeline (CRITICAL for AG commands)
 check-all = { depends-on = ["quality", "static-analysis"] }

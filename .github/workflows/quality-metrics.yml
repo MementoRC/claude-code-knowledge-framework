@@ -26,8 +26,8 @@ jobs:
           pixi install --locked
       - name: Run tests with coverage (HTML, XML, JSON, Markdown)
         run: |
-          pixi run pytest tests/ --cov=src/uckn --cov-report=html --cov-report=xml --cov-report=json --cov-report=term --cov-report=term-missing --json-report --json-report-file=pytest-report.json --html=pytest-report.html --self-contained-html
-          pixi run coverage markdown
+          pixi run -e quality pytest tests/ --cov=src/uckn --cov-report=html --cov-report=xml --cov-report=json --cov-report=term --cov-report=term-missing --json-report --json-report-file=pytest-report.json --html=pytest-report.html --self-contained-html
+          pixi run -e quality coverage-markdown
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -44,7 +44,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           git fetch origin main:refs/remotes/origin/main
-          pixi run diff-cover coverage.xml --compare-branch=origin/main --fail-under=90 --html-report diffcover.html --markdown-report diffcover.md --json-report diffcover.json
+          pixi run -e quality-extended diff-cover coverage.xml --compare-branch=origin/main --fail-under=90 --html-report diffcover.html --markdown-report diffcover.md --json-report diffcover.json
       - name: Upload diff-cover artifacts
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
@@ -61,4 +61,4 @@ jobs:
           path: coverage.md
       - name: Quality Gate
         run: |
-          pixi run quality-gate
+          pixi run -e quality quality-gate
