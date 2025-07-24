@@ -55,7 +55,7 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Add CORS middleware
@@ -74,7 +74,7 @@ async def global_exception_handler(request, exc):
     logger.error(f"Global exception: {exc}")
     return JSONResponse(
         status_code=500,
-        content={"detail": "Internal server error", "type": "internal_error"}
+        content={"detail": "Internal server error", "type": "internal_error"},
     )
 
 

@@ -33,7 +33,7 @@ class TestPatternAnalytics:
 
         app_id = self.analytics.record_application(
             pattern_id="pattern-123",
-            context={"technology_stack": ["python"], "project_type": "ml"}
+            context={"technology_stack": ["python"], "project_type": "ml"},
         )
 
         assert app_id is not None
@@ -58,10 +58,12 @@ class TestPatternAnalytics:
             {"metadata": {"outcome": "success"}},
             {"metadata": {"outcome": "success"}},
             {"metadata": {"outcome": "failure"}},
-            {"metadata": {"outcome": "success"}}
+            {"metadata": {"outcome": "success"}},
         ]
 
-        success_rate, conf_interval = self.analytics.calculate_success_rate(applications)
+        success_rate, conf_interval = self.analytics.calculate_success_rate(
+            applications
+        )
 
         assert success_rate == 0.75  # 3/4
         assert conf_interval is not None
@@ -79,7 +81,7 @@ class TestPatternAnalytics:
         applications = [
             {"metadata": {"outcome": "success", "resolution_time_minutes": 10.0}},
             {"metadata": {"outcome": "success", "resolution_time_minutes": 20.0}},
-            {"metadata": {"outcome": "failure", "resolution_time_minutes": 30.0}}
+            {"metadata": {"outcome": "failure", "resolution_time_minutes": 30.0}},
         ]
 
         quality_score = self.analytics.calculate_quality_score(applications)
@@ -91,7 +93,9 @@ class TestPatternAnalytics:
 
     def test_get_pattern_metrics_no_applications(self):
         """Test getting metrics when no applications exist"""
-        with patch.object(self.analytics, '_get_applications_for_pattern') as mock_get_apps:
+        with patch.object(
+            self.analytics, "_get_applications_for_pattern"
+        ) as mock_get_apps:
             mock_get_apps.return_value = []
 
             metrics = self.analytics.get_pattern_metrics("pattern-123")

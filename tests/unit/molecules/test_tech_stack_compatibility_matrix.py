@@ -36,7 +36,7 @@ class TestTechStackCompatibilityMatrix:
         sorted_ts_b = sorted(ts_b)
         combined_sorted_techs = sorted(sorted_ts_a + sorted_ts_b)
         combo_string = json.dumps(combined_sorted_techs)
-        return hashlib.sha256(combo_string.encode('utf-8')).hexdigest()
+        return hashlib.sha256(combo_string.encode("utf-8")).hexdigest()
 
     def test_initialization(self):
         """Test TechStackCompatibilityMatrix initializes correctly."""
@@ -77,7 +77,9 @@ class TestTechStackCompatibilityMatrix:
 
     def test_add_tech_stack_combo_invalid_score(self):
         """Test adding combo with invalid score."""
-        combo_id = self.matrix.add_tech_stack_combo(["Python"], ["Django"], 1.5)  # Invalid score
+        combo_id = self.matrix.add_tech_stack_combo(
+            ["Python"], ["Django"], 1.5
+        )  # Invalid score
 
         assert combo_id is None
         self.mock_chroma.add_document.assert_not_called()
@@ -94,7 +96,7 @@ class TestTechStackCompatibilityMatrix:
                 "tech_stack_a": ts_a,
                 "tech_stack_b": ts_b,
                 "score": expected_score,
-                "description": "Moderate compatibility"
+                "description": "Moderate compatibility",
             }
         }
 
@@ -134,13 +136,15 @@ class TestTechStackCompatibilityMatrix:
                 "tech_stack_a": ts_a,
                 "tech_stack_b": ts_b,
                 "score": 0.9,
-                "description": "Very good"
+                "description": "Very good",
             }
         }
         # Mock update_document to indicate success
         self.mock_chroma.update_document.return_value = True
 
-        success = self.matrix.update_compatibility_score(ts_a, ts_b, new_score, new_description)
+        success = self.matrix.update_compatibility_score(
+            ts_a, ts_b, new_score, new_description
+        )
 
         assert success is True
         self.mock_chroma.get_document.assert_called_once()
@@ -165,8 +169,20 @@ class TestTechStackCompatibilityMatrix:
         """Test retrieving all compatibility scores."""
         # Mock get_all_documents to return a list of mock documents
         self.mock_chroma.get_all_documents.return_value = [
-            {"metadata": {"tech_stack_a": ["Python"], "tech_stack_b": ["Django"], "score": 0.8}},
-            {"metadata": {"tech_stack_a": ["JavaScript"], "tech_stack_b": ["React"], "score": 0.7}},
+            {
+                "metadata": {
+                    "tech_stack_a": ["Python"],
+                    "tech_stack_b": ["Django"],
+                    "score": 0.8,
+                }
+            },
+            {
+                "metadata": {
+                    "tech_stack_a": ["JavaScript"],
+                    "tech_stack_b": ["React"],
+                    "score": 0.7,
+                }
+            },
         ]
 
         scores = self.matrix.get_all_compatibility_scores()
@@ -191,11 +207,17 @@ class TestTechStackCompatibilityMatrix:
         query_stack = ["Python"]
 
         # Mock get_all_compatibility_scores to return test data
-        self.matrix.get_all_compatibility_scores = Mock(return_value=[
-            {"tech_stack_a": ["Python"], "tech_stack_b": ["Django"], "score": 0.8},
-            {"tech_stack_a": ["JavaScript"], "tech_stack_b": ["React"], "score": 0.7},
-            {"tech_stack_a": ["Python"], "tech_stack_b": ["Flask"], "score": 0.9}
-        ])
+        self.matrix.get_all_compatibility_scores = Mock(
+            return_value=[
+                {"tech_stack_a": ["Python"], "tech_stack_b": ["Django"], "score": 0.8},
+                {
+                    "tech_stack_a": ["JavaScript"],
+                    "tech_stack_b": ["React"],
+                    "score": 0.7,
+                },
+                {"tech_stack_a": ["Python"], "tech_stack_b": ["Flask"], "score": 0.9},
+            ]
+        )
 
         results = self.matrix.search_compatibility(query_stack, limit=5, min_score=0.0)
 

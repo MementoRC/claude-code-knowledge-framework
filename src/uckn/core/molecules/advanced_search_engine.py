@@ -29,7 +29,7 @@ class AdvancedSearchEngine:
         faceted_manager: FacetedSearchManager | None = None,
         personalized_ranking: PersonalizedRanking | None = None,
         suggestion_engine: SearchSuggestionEngine | None = None,
-        logger: logging.Logger | None = None
+        logger: logging.Logger | None = None,
     ):
         self.logger = logger or logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ class AdvancedSearchEngine:
         user_id: str | None = None,
         filters: dict[str, Any] | None = None,
         limit: int = 20,
-        enable_personalization: bool = True
+        enable_personalization: bool = True,
     ) -> dict[str, Any]:
         """
         Perform advanced search with all capabilities.
@@ -64,7 +64,7 @@ class AdvancedSearchEngine:
                 results = self.semantic_engine.search_by_text(
                     semantic_query,
                     tech_stack=filters.get("technology_stack") if filters else None,
-                    limit=limit * 2  # Get more results for better filtering
+                    limit=limit * 2,  # Get more results for better filtering
                 )
             else:
                 results = []
@@ -75,7 +75,9 @@ class AdvancedSearchEngine:
 
             # Apply personalized ranking if enabled
             if enable_personalization and user_id:
-                results = self.personalized_ranking.personalize_ranking(user_id, results)
+                results = self.personalized_ranking.personalize_ranking(
+                    user_id, results
+                )
 
             # Extract facets from results for dynamic filtering
             available_facets = self.faceted_manager.extract_facets(results)
@@ -88,9 +90,7 @@ class AdvancedSearchEngine:
 
             # Track query for suggestions
             self.suggestion_engine.track_query(
-                query,
-                success=len(final_results) > 0,
-                result_count=len(final_results)
+                query, success=len(final_results) > 0, result_count=len(final_results)
             )
 
             return {
@@ -103,12 +103,14 @@ class AdvancedSearchEngine:
                     "search_terms": search_terms,
                     "filters_applied": filters or {},
                     "personalization_enabled": enable_personalization,
-                    "search_time_ms": int(search_time * 1000)
+                    "search_time_ms": int(search_time * 1000),
                 },
                 "facets": available_facets,
                 "suggestions": {
-                    "related_queries": self.suggestion_engine.get_related_suggestions(query),
-                }
+                    "related_queries": self.suggestion_engine.get_related_suggestions(
+                        query
+                    ),
+                },
             }
 
         except Exception as e:
@@ -117,17 +119,17 @@ class AdvancedSearchEngine:
                 "results": [],
                 "total_count": 0,
                 "returned_count": 0,
-                "error": str(e)
+                "error": str(e),
             }
 
     def get_autocomplete_suggestions(
-        self,
-        partial_query: str,
-        limit: int = 5
+        self, partial_query: str, limit: int = 5
     ) -> list[dict[str, Any]]:
         """Get autocomplete suggestions for a partial query."""
         try:
-            return self.suggestion_engine.get_autocomplete_suggestions(partial_query, limit)
+            return self.suggestion_engine.get_autocomplete_suggestions(
+                partial_query, limit
+            )
         except Exception as e:
             self.logger.error(f"Error getting autocomplete suggestions: {e}")
             return []
@@ -138,7 +140,7 @@ class AdvancedSearchEngine:
         pattern_id: str,
         interaction_type: str,
         pattern_metadata: dict[str, Any] | None = None,
-        rating: float | None = None
+        rating: float | None = None,
     ) -> None:
         """Track user interaction for personalization improvement."""
         try:
@@ -147,7 +149,7 @@ class AdvancedSearchEngine:
                 pattern_id=pattern_id,
                 interaction_type=interaction_type,
                 pattern_metadata=pattern_metadata,
-                rating=rating
+                rating=rating,
             )
         except Exception as e:
             self.logger.error(f"Error tracking user interaction: {e}")

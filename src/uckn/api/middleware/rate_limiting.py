@@ -27,30 +27,30 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
 
         # Rate limit configurations per endpoint type
         self.rate_limits = {
-            'default': {
-                'requests': self.settings.rate_limit_requests,
-                'window': self.settings.rate_limit_window
+            "default": {
+                "requests": self.settings.rate_limit_requests,
+                "window": self.settings.rate_limit_window,
             },
-            'search': {
-                'requests': 50,  # More restrictive for search endpoints
-                'window': 60
+            "search": {
+                "requests": 50,  # More restrictive for search endpoints
+                "window": 60,
             },
-            'analysis': {
-                'requests': 10,  # Very restrictive for analysis endpoints
-                'window': 60
+            "analysis": {
+                "requests": 10,  # Very restrictive for analysis endpoints
+                "window": 60,
             },
-            'upload': {
-                'requests': 20,  # Moderate for upload endpoints
-                'window': 60
-            }
+            "upload": {
+                "requests": 20,  # Moderate for upload endpoints
+                "window": 60,
+            },
         }
 
         # Endpoint patterns and their rate limit types
         self.endpoint_patterns = {
-            '/api/v1/patterns/search': 'search',
-            '/api/v1/projects/analyze': 'analysis',
-            '/api/v1/patterns/': 'upload',  # POST to patterns
-            '/api/v1/projects/': 'upload',  # POST to projects
+            "/api/v1/patterns/search": "search",
+            "/api/v1/projects/analyze": "analysis",
+            "/api/v1/patterns/": "upload",  # POST to patterns
+            "/api/v1/projects/": "upload",  # POST to projects
         }
 
     async def dispatch(self, request: Request, call_next):
@@ -61,7 +61,7 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # Skip rate limiting for health checks
-        if request.url.path.startswith('/health'):
+        if request.url.path.startswith("/health"):
             return await call_next(request)
 
         # Get client identifier
@@ -88,34 +88,37 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         # Add rate limit headers
-        response.headers["X-RateLimit-Limit"] = str(rate_limit_config['requests'])
+        response.headers["X-RateLimit-Limit"] = str(rate_limit_config["requests"])
         response.headers["X-RateLimit-Remaining"] = str(remaining - 1)
         response.headers["X-RateLimit-Reset"] = str(reset_time)
-        response.headers["X-RateLimit-Window"] = str(rate_limit_config['window'])
+        response.headers["X-RateLimit-Window"] = str(rate_limit_config["window"])
 
         return response
 
     def _get_client_id(self, request: Request) -> str:
         """Get unique client identifier for rate limiting"""
         # Try to get user ID from authentication state
-        if hasattr(request.state, 'user'):
-            user_id = request.state.user.get('user_id')
+        if hasattr(request.state, "user"):
+            user_id = request.state.user.get("user_id")
             if user_id:
                 return f"user:{user_id}"
 
         # Try to get API key
-        if hasattr(request.state, 'api_key'):
+        if hasattr(request.state, "api_key"):
             api_key = request.state.api_key
             if api_key:
                 # Use a hash of the API key for privacy
                 import hashlib
+
                 return f"api:{hashlib.sha256(api_key.encode()).hexdigest()[:16]}"
 
         # Fall back to IP address
         client_ip = (
-            request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or
-            request.headers.get("X-Real-IP") or
-            request.client.host if request.client else "unknown"
+            request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+            or request.headers.get("X-Real-IP")
+            or request.client.host
+            if request.client
+            else "unknown"
         )
 
         return f"ip:{client_ip}"
@@ -129,19 +132,19 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
         for pattern, limit_type in self.endpoint_patterns.items():
             if pattern in path:
                 # For POST requests to base endpoints, use upload limits
-                if pattern.endswith('/') and method == 'POST':
+                if pattern.endswith("/") and method == "POST":
                     return self.rate_limits[limit_type]
-                elif not pattern.endswith('/'):
+                elif not pattern.endswith("/"):
                     return self.rate_limits[limit_type]
 
         # Default rate limit
-        return self.rate_limits['default']
+        return self.rate_limits["default"]
 
     async def _check_rate_limit(self, client_id: str, config: dict[str, int]) -> tuple:
         """Check if client has exceeded rate limit"""
         async with self._locks[client_id]:
             current_time = time.time()
-            window_start = current_time - config['window']
+            window_start = current_time - config["window"]
 
             # Get request history for this client
             requests = self._request_counts[client_id]
@@ -151,11 +154,13 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
                 requests.popleft()
 
             # Check if under limit
-            remaining = config['requests'] - len(requests)
+            remaining = config["requests"] - len(requests)
             is_allowed = remaining > 0
 
             # Calculate reset time (when the oldest request will expire)
-            reset_time = int(requests[0] + config['window']) if requests else int(current_time)
+            reset_time = (
+                int(requests[0] + config["window"]) if requests else int(current_time)
+            )
 
             return is_allowed, remaining, reset_time
 
@@ -173,7 +178,7 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
             "error": "Rate limit exceeded",
             "message": "Too many requests. Please try again later.",
             "retry_after_seconds": retry_after,
-            "status_code": 429
+            "status_code": 429,
         }
 
         return Response(
@@ -183,15 +188,15 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
                 "Content-Type": "application/json",
                 "Retry-After": str(retry_after),
                 "X-RateLimit-Remaining": "0",
-                "X-RateLimit-Reset": str(reset_time)
-            }
+                "X-RateLimit-Reset": str(reset_time),
+            },
         )
 
     async def cleanup_old_entries(self):
         """Periodic cleanup of old rate limit entries"""
         """This would be called by a background task in production"""
         current_time = time.time()
-        max_window = max(config['window'] for config in self.rate_limits.values())
+        max_window = max(config["window"] for config in self.rate_limits.values())
         cutoff_time = current_time - max_window * 2  # Keep some buffer
 
         for client_id in list(self._request_counts.keys()):

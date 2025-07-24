@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 class ActivityEvent(BaseModel):
     """Activity event model."""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     type: str
     user_id: str
@@ -39,6 +40,7 @@ class ActivityEvent(BaseModel):
 
 class Comment(BaseModel):
     """Comment model."""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     pattern_id: str
     user_id: str
@@ -51,6 +53,7 @@ class Comment(BaseModel):
 
 class NotificationPreference(BaseModel):
     """Notification preference model."""
+
     user_id: str
     notification_type: str  # email, in_app, webhook
     event_types: list[str]  # pattern_shared, comment_added, etc.
@@ -60,6 +63,7 @@ class NotificationPreference(BaseModel):
 
 class WebhookConfig(BaseModel):
     """Webhook configuration model."""
+
     id: str = Field(default_factory=lambda: str(uuid4()))
     team_id: str
     name: str
@@ -106,7 +110,9 @@ class CollaborationManager:
                 raise ValueError(f"Pattern {comment.pattern_id} not found")
 
             # Store comment (mock implementation)
-            logger.info(f"Comment added to pattern {comment.pattern_id} by {comment.user_id}")
+            logger.info(
+                f"Comment added to pattern {comment.pattern_id} by {comment.user_id}"
+            )
 
             # Track activity
             activity = ActivityEvent(
@@ -118,8 +124,8 @@ class CollaborationManager:
                 metadata={
                     "comment_id": comment.id,
                     "parent_id": comment.parent_id,
-                    "content_length": len(comment.content)
-                }
+                    "content_length": len(comment.content),
+                },
             )
             await self.track_activity(activity)
 
@@ -129,7 +135,9 @@ class CollaborationManager:
             logger.error(f"Error adding comment: {e}")
             raise
 
-    async def get_comments(self, pattern_id: str, parent_id: str | None = None) -> list[Comment]:
+    async def get_comments(
+        self, pattern_id: str, parent_id: str | None = None
+    ) -> list[Comment]:
         """Get comments for a pattern (optionally filtered by parent)."""
         try:
             # Mock implementation - in real version, query from database
@@ -140,7 +148,7 @@ class CollaborationManager:
                     user_id="user-1",
                     parent_id=parent_id,
                     content="This pattern looks useful for CI/CD automation.",
-                    created_at=datetime.now(timezone.utc)
+                    created_at=datetime.now(timezone.utc),
                 )
             ]
 
@@ -150,7 +158,9 @@ class CollaborationManager:
             logger.error(f"Error getting comments: {e}")
             return []
 
-    async def get_activity_feed(self, team_id: str | None = None, limit: int = 50) -> list[ActivityEvent]:
+    async def get_activity_feed(
+        self, team_id: str | None = None, limit: int = 50
+    ) -> list[ActivityEvent]:
         """Get activity feed for a team or user."""
         try:
             # Mock implementation - in real version, query from database
@@ -163,7 +173,7 @@ class CollaborationManager:
                     resource_type="pattern",
                     action="share",
                     metadata={"shared_with": "team"},
-                    timestamp=datetime.now(timezone.utc)
+                    timestamp=datetime.now(timezone.utc),
                 ),
                 ActivityEvent(
                     type="comment_added",
@@ -173,8 +183,8 @@ class CollaborationManager:
                     resource_type="pattern",
                     action="comment",
                     metadata={"comment_id": "comment-1"},
-                    timestamp=datetime.now(timezone.utc)
-                )
+                    timestamp=datetime.now(timezone.utc),
+                ),
             ]
 
             return mock_activities[:limit]
@@ -183,13 +193,19 @@ class CollaborationManager:
             logger.error(f"Error getting activity feed: {e}")
             return []
 
-    async def set_notification_preference(self, preference: NotificationPreference) -> None:
+    async def set_notification_preference(
+        self, preference: NotificationPreference
+    ) -> None:
         """Set notification preference for a user."""
         try:
             user_prefs = self.notification_preferences.get(preference.user_id, [])
 
             # Remove existing preference for the same notification type
-            user_prefs = [p for p in user_prefs if p.notification_type != preference.notification_type]
+            user_prefs = [
+                p
+                for p in user_prefs
+                if p.notification_type != preference.notification_type
+            ]
             user_prefs.append(preference)
 
             self.notification_preferences[preference.user_id] = user_prefs
@@ -213,7 +229,9 @@ class CollaborationManager:
             logger.error(f"Error adding webhook: {e}")
             raise
 
-    async def subscribe_to_activities(self, subscriber_id: str, callback: Callable[[ActivityEvent], None]) -> None:
+    async def subscribe_to_activities(
+        self, subscriber_id: str, callback: Callable[[ActivityEvent], None]
+    ) -> None:
         """Subscribe to activity events."""
         if subscriber_id not in self.activity_subscribers:
             self.activity_subscribers[subscriber_id] = []
@@ -259,7 +277,9 @@ class CollaborationManager:
         except Exception as e:
             logger.error(f"Error sending notifications: {e}")
 
-    async def _send_email_notification(self, user_id: str, event: ActivityEvent, preference: NotificationPreference) -> None:
+    async def _send_email_notification(
+        self, user_id: str, event: ActivityEvent, preference: NotificationPreference
+    ) -> None:
         """Send email notification (mock implementation)."""
         try:
             # Mock implementation - in real version, integrate with email service
@@ -268,7 +288,9 @@ class CollaborationManager:
         except Exception as e:
             logger.error(f"Error sending email notification: {e}")
 
-    async def _send_in_app_notification(self, user_id: str, event: ActivityEvent, preference: NotificationPreference) -> None:
+    async def _send_in_app_notification(
+        self, user_id: str, event: ActivityEvent, preference: NotificationPreference
+    ) -> None:
         """Send in-app notification (mock implementation)."""
         try:
             # Mock implementation - in real version, store in user notification queue
@@ -307,7 +329,7 @@ class CollaborationManager:
                 "resource_type": event.resource_type,
                 "action": event.action,
                 "metadata": event.metadata,
-                "timestamp": event.timestamp.isoformat()
+                "timestamp": event.timestamp.isoformat(),
             }
 
             headers = {"Content-Type": "application/json"}
@@ -320,12 +342,14 @@ class CollaborationManager:
                     webhook.url,
                     json=payload,
                     headers=headers,
-                    timeout=aiohttp.ClientTimeout(total=10)
+                    timeout=aiohttp.ClientTimeout(total=10),
                 ) as response:
                     if response.status == 200:
                         logger.info(f"Webhook {webhook.name} delivered successfully")
                     else:
-                        logger.warning(f"Webhook {webhook.name} failed with status {response.status}")
+                        logger.warning(
+                            f"Webhook {webhook.name} failed with status {response.status}"
+                        )
 
         except Exception as e:
             logger.error(f"Error sending webhook {webhook.name}: {e}")

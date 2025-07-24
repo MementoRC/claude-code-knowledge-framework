@@ -35,8 +35,14 @@ class TestEmbeddingPerformance:
         return {
             "small": "def hello(): return 'world'",
             "medium": "class DatabaseConnector:\n    def __init__(self, host, port):\n        self.host = host\n        self.port = port\n    def connect(self):\n        return f'Connecting to {self.host}:{self.port}'",
-            "large": "\n".join([f"# Line {i}: This is a comprehensive code example" for i in range(100)]) +
-                    "\nclass LargeClass:\n    def method_" + "\n    def method_".join([f"{i}(self): pass" for i in range(50)])
+            "large": "\n".join(
+                [
+                    f"# Line {i}: This is a comprehensive code example"
+                    for i in range(100)
+                ]
+            )
+            + "\nclass LargeClass:\n    def method_"
+            + "\n    def method_".join([f"{i}(self): pass" for i in range(50)]),
         }
 
     def test_single_text_embedding_performance(self, benchmark, embeddings, test_texts):
@@ -78,14 +84,21 @@ class TestEmbeddingPerformance:
         data = {
             "text": test_texts["medium"],
             "code": test_texts["small"],
-            "config": "debug = True\nverbose = False"
+            "config": "debug = True\nverbose = False",
         }
 
-        result = benchmark(embeddings.multi_modal_embed, code=data["code"], text=data["text"], config=data["config"])
+        result = benchmark(
+            embeddings.multi_modal_embed,
+            code=data["code"],
+            text=data["text"],
+            config=data["config"],
+        )
         assert result is not None
 
     @pytest.mark.parametrize("cache_size", [10, 50, 100])
-    def test_embedding_cache_performance(self, benchmark, temp_knowledge_dir, test_texts, cache_size):
+    def test_embedding_cache_performance(
+        self, benchmark, temp_knowledge_dir, test_texts, cache_size
+    ):
         """Benchmark embedding cache performance with different cache sizes."""
         embeddings = MultiModalEmbeddings()
         if not embeddings.is_available():
@@ -124,7 +137,7 @@ class TestSearchPerformance:
                 doc_id=pattern["id"],
                 document=pattern["content"],
                 embedding=[0.0] * 768,  # Provide a dummy embedding
-                metadata=pattern.get("metadata", {})
+                metadata=pattern.get("metadata", {}),
             )
         return search_engine
 
@@ -134,9 +147,7 @@ class TestSearchPerformance:
             pytest.skip("Search engine not available")
 
         result = benchmark(
-            populated_search_engine.search_by_text,
-            "test function",
-            limit=10
+            populated_search_engine.search_by_text, "test function", limit=10
         )
         assert isinstance(result, list)
 
@@ -146,9 +157,7 @@ class TestSearchPerformance:
             pytest.skip("Search engine not available")
 
         result = benchmark(
-            populated_search_engine.search_by_code,
-            "def test():",
-            limit=10
+            populated_search_engine.search_by_code, "def test():", limit=10
         )
         assert isinstance(result, list)
 
@@ -162,20 +171,20 @@ class TestSearchPerformance:
             text="test functionality",
             code="def test():",
             tech_stack=["python"],
-            limit=10
+            limit=10,
         )
         assert isinstance(result, list)
 
     @pytest.mark.parametrize("result_count", [5, 10, 25, 50])
-    def test_search_scaling_performance(self, benchmark, populated_search_engine, result_count):
+    def test_search_scaling_performance(
+        self, benchmark, populated_search_engine, result_count
+    ):
         """Benchmark search performance with different result counts."""
         if not populated_search_engine.is_available():
             pytest.skip("Search engine not available")
 
         result = benchmark(
-            populated_search_engine.search_by_text,
-            "test pattern",
-            limit=result_count
+            populated_search_engine.search_by_text, "test pattern", limit=result_count
         )
         assert isinstance(result, list)
 
@@ -204,14 +213,14 @@ class TestStoragePerformance:
                 "success_rate": 0.95,
                 "pattern_id": doc_id,
                 "created_at": "2025-01-04T21:40:00",
-                "updated_at": "2025-01-04T21:40:00"
+                "updated_at": "2025-01-04T21:40:00",
             }
             return storage.add_document(
                 collection_name="code_patterns",
                 doc_id=doc_id,
                 document=pattern["content"],
                 embedding=[0.0] * 768,  # Provide a dummy embedding
-                metadata=metadata
+                metadata=metadata,
             )
 
         result = benchmark(insert_document)
@@ -229,7 +238,7 @@ class TestStoragePerformance:
                     doc_id=f"bulk_{i}_{time.time()}",
                     document=pattern["content"],
                     embedding=[0.0] * 768,  # Provide a dummy embedding
-                    metadata=pattern.get("metadata", {})
+                    metadata=pattern.get("metadata", {}),
                 )
 
         benchmark(bulk_insert)
@@ -246,14 +255,14 @@ class TestStoragePerformance:
                 doc_id=f"size_test_{i}",
                 document=pattern["content"],
                 embedding=[0.0] * 768,  # Provide a dummy embedding
-                metadata=pattern.get("metadata", {})
+                metadata=pattern.get("metadata", {}),
             )
 
         def search_documents():
             return storage.search_documents(
                 collection_name="size_test",
                 query_embedding=[0.1] * 768,  # Provide test embedding
-                n_results=10
+                n_results=10,
             )
 
         result = benchmark(search_documents)
@@ -274,14 +283,14 @@ class TestStoragePerformance:
                 "pattern_id": f"filter_test_{i}",
                 "created_at": "2025-01-04T21:40:00",
                 "updated_at": "2025-01-04T21:40:00",
-                "test_id": i % 3  # Add filterable metadata
+                "test_id": i % 3,  # Add filterable metadata
             }
             storage.add_document(
                 collection_name="code_patterns",
                 doc_id=f"filter_test_{i}",
                 document=pattern["content"],
                 embedding=[0.0] * 768,  # Provide a dummy embedding
-                metadata=metadata
+                metadata=metadata,
             )
 
         def filtered_search():
@@ -289,7 +298,7 @@ class TestStoragePerformance:
                 collection_name="code_patterns",
                 query_embedding=[0.1] * 768,  # Provide test embedding
                 n_results=10,
-                where_clause={"test_id": 1}
+                where_clause={"test_id": 1},
             )
 
         result = benchmark(filtered_search)
@@ -304,7 +313,9 @@ class TestEndToEndPerformance:
         """Create KnowledgeManager instance for testing."""
         return KnowledgeManager(knowledge_dir=temp_knowledge_dir)
 
-    def test_pattern_addition_workflow(self, benchmark, knowledge_manager, sample_patterns):
+    def test_pattern_addition_workflow(
+        self, benchmark, knowledge_manager, sample_patterns
+    ):
         """Benchmark complete pattern addition workflow."""
         if not knowledge_manager.semantic_search.is_available():
             pytest.skip("Knowledge manager not available")
@@ -312,7 +323,9 @@ class TestEndToEndPerformance:
         # Skip if external dependencies (HuggingFace) are not reliably available
         try:
             # Quick availability check - if this fails, skip the test
-            test_embedding = knowledge_manager.semantic_search.embedding_atom.embed("test", "text")
+            test_embedding = knowledge_manager.semantic_search.embedding_atom.embed(
+                "test", "text"
+            )
             if test_embedding is None:
                 pytest.skip("External embedding service not available")
         except Exception as e:
@@ -326,7 +339,9 @@ class TestEndToEndPerformance:
         result = benchmark(add_pattern)
         assert result is not None
 
-    def test_pattern_search_workflow(self, benchmark, knowledge_manager, sample_patterns):
+    def test_pattern_search_workflow(
+        self, benchmark, knowledge_manager, sample_patterns
+    ):
         """Benchmark complete pattern search workflow."""
         if not knowledge_manager.semantic_search.is_available():
             pytest.skip("Knowledge manager not available")
@@ -336,15 +351,14 @@ class TestEndToEndPerformance:
             knowledge_manager.add_pattern(pattern)
 
         def search_patterns():
-            return knowledge_manager.search_patterns(
-                query="test function",
-                limit=5
-            )
+            return knowledge_manager.search_patterns(query="test function", limit=5)
 
         result = benchmark(search_patterns)
         assert isinstance(result, list)
 
-    def test_tech_stack_analysis_performance(self, benchmark, knowledge_manager, temp_knowledge_dir):
+    def test_tech_stack_analysis_performance(
+        self, benchmark, knowledge_manager, temp_knowledge_dir
+    ):
         """Benchmark technology stack analysis performance."""
         # Create sample project structure
         project_dir = Path(temp_knowledge_dir) / "sample_project"
@@ -379,13 +393,17 @@ class TestMemoryPerformance:
         assert result is not None
 
         # Test batch processing memory
-        batch_texts = [large_text_sample[:len(large_text_sample)//4] for _ in range(10)]
+        batch_texts = [
+            large_text_sample[: len(large_text_sample) // 4] for _ in range(10)
+        ]
         batch_result = embeddings.embed_batch(batch_texts, ["text"] * len(batch_texts))
         assert len(batch_result) == len(batch_texts)
 
     def test_storage_memory_scaling(self, temp_knowledge_dir, sample_patterns):
         """Test memory usage scaling with database size."""
-        storage = ChromaDBConnector(db_path=str(Path(temp_knowledge_dir) / "memory_test"))
+        storage = ChromaDBConnector(
+            db_path=str(Path(temp_knowledge_dir) / "memory_test")
+        )
         if not storage.is_available():
             pytest.skip("ChromaDB not available")
 
@@ -399,44 +417,51 @@ class TestMemoryPerformance:
                     "success_rate": 0.9,
                     "pattern_id": f"mem_test_{i}_{j}",
                     "created_at": "2025-01-04T21:40:00",
-                    "updated_at": "2025-01-04T21:40:00"
+                    "updated_at": "2025-01-04T21:40:00",
                 }
                 storage.add_document(
                     collection_name="code_patterns",
                     doc_id=f"mem_test_{i}_{j}",
                     document=pattern["content"],
                     embedding=[0.1] * 768,  # Use consistent embedding for search
-                    metadata=metadata
+                    metadata=metadata,
                 )
 
         # Perform searches to test memory during operations
         results = storage.search_documents(
             collection_name="code_patterns",
             query_embedding=[0.1] * 768,  # Use same embedding for matches
-            n_results=50
+            n_results=50,
         )
         # Test passes if storage operations work - empty results are acceptable for memory test
-        assert len(results) >= 0  # Changed from > 0 to >= 0 to handle empty results gracefully
+        assert (
+            len(results) >= 0
+        )  # Changed from > 0 to >= 0 to handle empty results gracefully
+
+
 @pytest.mark.benchmark(group="embeddings")
 class TestEmbeddingBenchmarkGroup:
     """Grouped benchmark tests for embeddings."""
+
     pass
 
 
 @pytest.mark.benchmark(group="search")
 class TestSearchBenchmarkGroup:
     """Grouped benchmark tests for search operations."""
+
     pass
 
 
 @pytest.mark.benchmark(group="storage")
 class TestStorageBenchmarkGroup:
     """Grouped benchmark tests for storage operations."""
+
     pass
 
 
 @pytest.mark.benchmark(group="end_to_end")
 class TestEndToEndBenchmarkGroup:
     """Grouped benchmark tests for complete workflows."""
-    pass
 
+    pass

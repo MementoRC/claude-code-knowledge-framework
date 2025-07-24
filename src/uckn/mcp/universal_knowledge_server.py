@@ -20,7 +20,7 @@ import sys
 from typing import Any
 
 # Add the src directory to the path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 try:
     from mcp.server import Server
@@ -84,21 +84,23 @@ class UniversalKnowledgeServer:
             if not pg_url:
                 raise ValueError("UCKN_DATABASE_URL environment variable is required")
 
-            chroma_path = os.path.join(self.project_root, ".uckn", "knowledge", "chroma_db")
-            self.unified_db = UnifiedDatabase(pg_db_url=pg_url, chroma_db_path=chroma_path)
+            chroma_path = os.path.join(
+                self.project_root, ".uckn", "knowledge", "chroma_db"
+            )
+            self.unified_db = UnifiedDatabase(
+                pg_db_url=pg_url, chroma_db_path=chroma_path
+            )
 
             # Initialize atoms
             self.dna_fingerprinter = ProjectDNAFingerprinter()
             self.embeddings = MultiModalEmbeddings()
             self.semantic_search = SemanticSearchEngine(
-                embedding_atom=self.embeddings,
-                chroma_connector=self.chroma_connector
+                embedding_atom=self.embeddings, chroma_connector=self.chroma_connector
             )
 
             # Initialize molecules
             self.pattern_manager = PatternManager(
-                unified_db=self.unified_db,
-                semantic_search=self.semantic_search
+                unified_db=self.unified_db, semantic_search=self.semantic_search
             )
             self.compatibility_matrix = TechStackCompatibilityMatrix(
                 chroma_connector=self.chroma_connector
@@ -113,13 +115,12 @@ class UniversalKnowledgeServer:
                 semantic_search=self.semantic_search,
                 compatibility_matrix=self.compatibility_matrix,
                 pattern_analytics=self.pattern_analytics,
-                pattern_manager=self.pattern_manager
+                pattern_manager=self.pattern_manager,
             )
 
             knowledge_dir = os.path.join(self.project_root, ".uckn", "knowledge")
             self.knowledge_manager = KnowledgeManager(
-                knowledge_dir=knowledge_dir,
-                pg_db_url=pg_url
+                knowledge_dir=knowledge_dir, pg_db_url=pg_url
             )
 
             self.logger.info("UCKN components initialized successfully")
@@ -131,9 +132,13 @@ class UniversalKnowledgeServer:
 
     def _create_mock_components(self):
         """Create mock components for graceful degradation."""
+
         class MockComponent:
-            def is_available(self): return False
-            def __getattr__(self, name): return lambda *args, **kwargs: None
+            def is_available(self):
+                return False
+
+            def __getattr__(self, name):
+                return lambda *args, **kwargs: None
 
         self.chroma_connector = MockComponent()
         self.dna_fingerprinter = MockComponent()
@@ -159,26 +164,32 @@ class UniversalKnowledgeServer:
                         "properties": {
                             "query": {
                                 "type": "string",
-                                "description": "Search query for patterns"
+                                "description": "Search query for patterns",
                             },
                             "project_path": {
                                 "type": "string",
                                 "description": "Path to project directory (optional)",
-                                "default": self.project_root
+                                "default": self.project_root,
                             },
                             "limit": {
                                 "type": "integer",
                                 "description": "Maximum number of results",
-                                "default": 10
+                                "default": 10,
                             },
                             "pattern_type": {
                                 "type": "string",
                                 "description": "Type of patterns to search for",
-                                "enum": ["all", "setup", "bugfix", "optimization", "best_practice"]
-                            }
+                                "enum": [
+                                    "all",
+                                    "setup",
+                                    "bugfix",
+                                    "optimization",
+                                    "best_practice",
+                                ],
+                            },
                         },
-                        "required": ["query"]
-                    }
+                        "required": ["query"],
+                    },
                 ),
                 Tool(
                     name="recommend_setup",
@@ -189,16 +200,16 @@ class UniversalKnowledgeServer:
                             "project_path": {
                                 "type": "string",
                                 "description": "Path to project directory",
-                                "default": self.project_root
+                                "default": self.project_root,
                             },
                             "limit": {
                                 "type": "integer",
                                 "description": "Maximum number of recommendations",
-                                "default": 5
-                            }
+                                "default": 5,
+                            },
                         },
-                        "required": []
-                    }
+                        "required": [],
+                    },
                 ),
                 Tool(
                     name="predict_issues",
@@ -209,16 +220,16 @@ class UniversalKnowledgeServer:
                             "project_path": {
                                 "type": "string",
                                 "description": "Path to project directory",
-                                "default": self.project_root
+                                "default": self.project_root,
                             },
                             "limit": {
                                 "type": "integer",
                                 "description": "Maximum number of predictions",
-                                "default": 5
-                            }
+                                "default": 5,
+                            },
                         },
-                        "required": []
-                    }
+                        "required": [],
+                    },
                 ),
                 Tool(
                     name="validate_solution",
@@ -228,20 +239,20 @@ class UniversalKnowledgeServer:
                         "properties": {
                             "solution_description": {
                                 "type": "string",
-                                "description": "Description of the proposed solution"
+                                "description": "Description of the proposed solution",
                             },
                             "problem_context": {
                                 "type": "string",
-                                "description": "Context of the problem being solved"
+                                "description": "Context of the problem being solved",
                             },
                             "project_path": {
                                 "type": "string",
                                 "description": "Path to project directory",
-                                "default": self.project_root
-                            }
+                                "default": self.project_root,
+                            },
                         },
-                        "required": ["solution_description", "problem_context"]
-                    }
+                        "required": ["solution_description", "problem_context"],
+                    },
                 ),
                 Tool(
                     name="contribute_pattern",
@@ -251,34 +262,44 @@ class UniversalKnowledgeServer:
                         "properties": {
                             "pattern_title": {
                                 "type": "string",
-                                "description": "Title of the pattern"
+                                "description": "Title of the pattern",
                             },
                             "pattern_description": {
                                 "type": "string",
-                                "description": "Detailed description of the pattern"
+                                "description": "Detailed description of the pattern",
                             },
                             "pattern_code": {
                                 "type": "string",
-                                "description": "Code example or implementation"
+                                "description": "Code example or implementation",
                             },
                             "pattern_type": {
                                 "type": "string",
                                 "description": "Type of pattern",
-                                "enum": ["setup", "bugfix", "optimization", "best_practice", "architecture"]
+                                "enum": [
+                                    "setup",
+                                    "bugfix",
+                                    "optimization",
+                                    "best_practice",
+                                    "architecture",
+                                ],
                             },
                             "technologies": {
                                 "type": "array",
                                 "items": {"type": "string"},
-                                "description": "Related technologies/frameworks"
+                                "description": "Related technologies/frameworks",
                             },
                             "project_path": {
                                 "type": "string",
                                 "description": "Path to project directory",
-                                "default": self.project_root
-                            }
+                                "default": self.project_root,
+                            },
                         },
-                        "required": ["pattern_title", "pattern_description", "pattern_type"]
-                    }
+                        "required": [
+                            "pattern_title",
+                            "pattern_description",
+                            "pattern_type",
+                        ],
+                    },
                 ),
                 Tool(
                     name="get_project_dna",
@@ -289,16 +310,18 @@ class UniversalKnowledgeServer:
                             "project_path": {
                                 "type": "string",
                                 "description": "Path to project directory",
-                                "default": self.project_root
+                                "default": self.project_root,
                             }
                         },
-                        "required": []
-                    }
-                )
+                        "required": [],
+                    },
+                ),
             ]
 
         @self.server.call_tool()
-        async def handle_call_tool(name: str, arguments: dict[str, Any]) -> CallToolResult:
+        async def handle_call_tool(
+            name: str, arguments: dict[str, Any]
+        ) -> CallToolResult:
             """Handle tool calls."""
             try:
                 if name == "search_patterns":
@@ -328,39 +351,37 @@ class UniversalKnowledgeServer:
         query: str,
         project_path: str = None,
         limit: int = 10,
-        pattern_type: str = "all"
+        pattern_type: str = "all",
     ) -> CallToolResult:
         """Search for knowledge patterns."""
         try:
             project_path = project_path or self.project_root
 
             # Perform semantic search
-            if hasattr(self.semantic_search, 'search_by_text'):
+            if hasattr(self.semantic_search, "search_by_text"):
                 results = self.semantic_search.search_by_text(
-                    query_text=query,
-                    limit=limit
+                    query_text=query, limit=limit
                 )
             else:
                 # Fallback to pattern manager search
-                results = self.pattern_manager.search_patterns(
-                    query=query,
-                    limit=limit
-                )
+                results = self.pattern_manager.search_patterns(query=query, limit=limit)
 
             # Format results
             formatted_results = []
             for result in results:
-                formatted_results.append({
-                    "pattern_id": result.get("id", "unknown"),
-                    "content": result.get("document", ""),
-                    "metadata": result.get("metadata", {}),
-                    "similarity_score": result.get("similarity_score", 0.0)
-                })
+                formatted_results.append(
+                    {
+                        "pattern_id": result.get("id", "unknown"),
+                        "content": result.get("document", ""),
+                        "metadata": result.get("metadata", {}),
+                        "similarity_score": result.get("similarity_score", 0.0),
+                    }
+                )
 
             response = {
                 "query": query,
                 "results": formatted_results,
-                "total_found": len(formatted_results)
+                "total_found": len(formatted_results),
             }
 
             return CallToolResult(
@@ -373,39 +394,38 @@ class UniversalKnowledgeServer:
             ).model_dump()
 
     async def _recommend_setup(
-        self,
-        project_path: str = None,
-        limit: int = 5
+        self, project_path: str = None, limit: int = 5
     ) -> CallToolResult:
         """Get setup recommendations."""
         try:
             project_path = project_path or self.project_root
 
-            if hasattr(self.recommendation_engine, 'get_setup_recommendations'):
+            if hasattr(self.recommendation_engine, "get_setup_recommendations"):
                 recommendations = self.recommendation_engine.get_setup_recommendations(
-                    project_path=project_path,
-                    limit=limit
+                    project_path=project_path, limit=limit
                 )
 
                 formatted_recommendations = []
                 for rec in recommendations:
-                    formatted_recommendations.append({
-                        "pattern_id": rec.pattern_id,
-                        "description": rec.description,
-                        "confidence_score": rec.confidence_score,
-                        "compatibility_score": rec.compatibility_score,
-                        "success_rate": rec.success_rate
-                    })
+                    formatted_recommendations.append(
+                        {
+                            "pattern_id": rec.pattern_id,
+                            "description": rec.description,
+                            "confidence_score": rec.confidence_score,
+                            "compatibility_score": rec.compatibility_score,
+                            "success_rate": rec.success_rate,
+                        }
+                    )
 
                 response = {
                     "project_path": project_path,
                     "recommendations": formatted_recommendations,
-                    "total_recommendations": len(formatted_recommendations)
+                    "total_recommendations": len(formatted_recommendations),
                 }
             else:
                 response = {
                     "error": "Recommendation engine not available",
-                    "project_path": project_path
+                    "project_path": project_path,
                 }
 
             return CallToolResult(
@@ -414,42 +434,45 @@ class UniversalKnowledgeServer:
 
         except Exception as e:
             return CallToolResult(
-                content=[TextContent(type="text", text=f"Setup recommendations failed: {str(e)}")]
+                content=[
+                    TextContent(
+                        type="text", text=f"Setup recommendations failed: {str(e)}"
+                    )
+                ]
             ).model_dump()
 
     async def _predict_issues(
-        self,
-        project_path: str = None,
-        limit: int = 5
+        self, project_path: str = None, limit: int = 5
     ) -> CallToolResult:
         """Predict potential issues."""
         try:
             project_path = project_path or self.project_root
 
-            if hasattr(self.recommendation_engine, 'get_proactive_recommendations'):
+            if hasattr(self.recommendation_engine, "get_proactive_recommendations"):
                 predictions = self.recommendation_engine.get_proactive_recommendations(
-                    project_path=project_path,
-                    limit=limit
+                    project_path=project_path, limit=limit
                 )
 
                 formatted_predictions = []
                 for pred in predictions:
-                    formatted_predictions.append({
-                        "issue_type": pred.description,
-                        "pattern_id": pred.pattern_id,
-                        "prevention_strategy": pred.pattern_content,
-                        "confidence_score": pred.confidence_score
-                    })
+                    formatted_predictions.append(
+                        {
+                            "issue_type": pred.description,
+                            "pattern_id": pred.pattern_id,
+                            "prevention_strategy": pred.pattern_content,
+                            "confidence_score": pred.confidence_score,
+                        }
+                    )
 
                 response = {
                     "project_path": project_path,
                     "potential_issues": formatted_predictions,
-                    "total_predictions": len(formatted_predictions)
+                    "total_predictions": len(formatted_predictions),
                 }
             else:
                 response = {
                     "error": "Issue prediction not available",
-                    "project_path": project_path
+                    "project_path": project_path,
                 }
 
             return CallToolResult(
@@ -458,24 +481,22 @@ class UniversalKnowledgeServer:
 
         except Exception as e:
             return CallToolResult(
-                content=[TextContent(type="text", text=f"Issue prediction failed: {str(e)}")]
+                content=[
+                    TextContent(type="text", text=f"Issue prediction failed: {str(e)}")
+                ]
             ).model_dump()
 
     async def _validate_solution(
-        self,
-        solution_description: str,
-        problem_context: str,
-        project_path: str = None
+        self, solution_description: str, problem_context: str, project_path: str = None
     ) -> CallToolResult:
         """Validate a proposed solution."""
         try:
             project_path = project_path or self.project_root
 
             # Search for similar solutions
-            if hasattr(self.semantic_search, 'search_by_text'):
+            if hasattr(self.semantic_search, "search_by_text"):
                 similar_solutions = self.semantic_search.search_by_text(
-                    query_text=f"{problem_context} {solution_description}",
-                    limit=5
+                    query_text=f"{problem_context} {solution_description}", limit=5
                 )
 
                 validation_result = {
@@ -483,20 +504,29 @@ class UniversalKnowledgeServer:
                     "problem_context": problem_context,
                     "validation_score": 0.0,
                     "similar_patterns": [],
-                    "recommendations": []
+                    "recommendations": [],
                 }
 
                 if similar_solutions:
                     # Calculate validation score based on similarity to known good patterns
-                    scores = [result.get("similarity_score", 0.0) for result in similar_solutions]
-                    validation_result["validation_score"] = max(scores) if scores else 0.0
+                    scores = [
+                        result.get("similarity_score", 0.0)
+                        for result in similar_solutions
+                    ]
+                    validation_result["validation_score"] = (
+                        max(scores) if scores else 0.0
+                    )
 
                     for solution in similar_solutions:
-                        validation_result["similar_patterns"].append({
-                            "pattern_id": solution.get("id", "unknown"),
-                            "similarity_score": solution.get("similarity_score", 0.0),
-                            "description": solution.get("document", "")[:200]
-                        })
+                        validation_result["similar_patterns"].append(
+                            {
+                                "pattern_id": solution.get("id", "unknown"),
+                                "similarity_score": solution.get(
+                                    "similarity_score", 0.0
+                                ),
+                                "description": solution.get("document", "")[:200],
+                            }
+                        )
 
                     # Provide recommendations based on validation
                     if validation_result["validation_score"] > 0.8:
@@ -512,17 +542,23 @@ class UniversalKnowledgeServer:
                             "Consider alternative approaches based on similar patterns"
                         )
             else:
-                validation_result = {
-                    "error": "Solution validation not available"
-                }
+                validation_result = {"error": "Solution validation not available"}
 
             return CallToolResult(
-                content=[TextContent(type="text", text=json.dumps(validation_result, indent=2))]
+                content=[
+                    TextContent(
+                        type="text", text=json.dumps(validation_result, indent=2)
+                    )
+                ]
             ).model_dump()
 
         except Exception as e:
             return CallToolResult(
-                content=[TextContent(type="text", text=f"Solution validation failed: {str(e)}")]
+                content=[
+                    TextContent(
+                        type="text", text=f"Solution validation failed: {str(e)}"
+                    )
+                ]
             ).model_dump()
 
     async def _contribute_pattern(
@@ -532,7 +568,7 @@ class UniversalKnowledgeServer:
         pattern_type: str,
         pattern_code: str = "",
         technologies: list[str] = None,
-        project_path: str = None
+        project_path: str = None,
     ) -> CallToolResult:
         """Contribute a new pattern."""
         try:
@@ -546,32 +582,34 @@ class UniversalKnowledgeServer:
                     "title": pattern_title,
                     "description": pattern_description,
                     "pattern_type": pattern_type,
-                    "technology_stack": ",".join(technologies) if technologies else "",  # Required: comma-separated string
+                    "technology_stack": ",".join(technologies)
+                    if technologies
+                    else "",  # Required: comma-separated string
                     "success_rate": 0.8,  # Required: default success rate for contributed patterns
                     "technologies": technologies,  # Keep for backward compatibility
                     "code": pattern_code,
-                    "contributed_at": "manual_contribution"
-                }
+                    "contributed_at": "manual_contribution",
+                },
             }
 
-            if hasattr(self.pattern_manager, 'add_pattern'):
+            if hasattr(self.pattern_manager, "add_pattern"):
                 pattern_id = self.pattern_manager.add_pattern(pattern_data)
 
                 if pattern_id:
                     response = {
                         "status": "success",
                         "pattern_id": pattern_id,
-                        "message": "Pattern contributed successfully"
+                        "message": "Pattern contributed successfully",
                     }
                 else:
                     response = {
                         "status": "error",
-                        "message": "Failed to add pattern to knowledge base"
+                        "message": "Failed to add pattern to knowledge base",
                     }
             else:
                 response = {
                     "status": "error",
-                    "message": "Pattern contribution not available"
+                    "message": "Pattern contribution not available",
                 }
 
             return CallToolResult(
@@ -580,29 +618,30 @@ class UniversalKnowledgeServer:
 
         except Exception as e:
             return CallToolResult(
-                content=[TextContent(type="text", text=f"Pattern contribution failed: {str(e)}")]
+                content=[
+                    TextContent(
+                        type="text", text=f"Pattern contribution failed: {str(e)}"
+                    )
+                ]
             ).model_dump()
 
-    async def _get_project_dna(
-        self,
-        project_path: str = None
-    ) -> CallToolResult:
+    async def _get_project_dna(self, project_path: str = None) -> CallToolResult:
         """Get project DNA fingerprint."""
         try:
             project_path = project_path or self.project_root
 
-            if hasattr(self.dna_fingerprinter, 'generate_fingerprint'):
+            if hasattr(self.dna_fingerprinter, "generate_fingerprint"):
                 fingerprint = self.dna_fingerprinter.generate_fingerprint(project_path)
 
                 response = {
                     "project_path": project_path,
                     "dna_fingerprint": fingerprint,
-                    "analysis_timestamp": "current"
+                    "analysis_timestamp": "current",
                 }
             else:
                 response = {
                     "error": "DNA fingerprinting not available",
-                    "project_path": project_path
+                    "project_path": project_path,
                 }
 
             return CallToolResult(
@@ -611,7 +650,9 @@ class UniversalKnowledgeServer:
 
         except Exception as e:
             return CallToolResult(
-                content=[TextContent(type="text", text=f"DNA analysis failed: {str(e)}")]
+                content=[
+                    TextContent(type="text", text=f"DNA analysis failed: {str(e)}")
+                ]
             ).model_dump()
 
 
@@ -629,14 +670,14 @@ async def main():
     # Configure logging to file only (avoid stderr)
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[logging.FileHandler(log_path, mode='w')],
-        force=True  # Override any existing logging config
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[logging.FileHandler(log_path, mode="w")],
+        force=True,  # Override any existing logging config
     )
     logger = logging.getLogger(__name__)
 
     try:
-        logger.info("="*60)
+        logger.info("=" * 60)
         logger.info("UCKN MCP Server Starting")
         logger.info(f"Working directory: {os.getcwd()}")
         logger.info(f"Log file: {log_path}")
@@ -645,7 +686,7 @@ async def main():
 
         # Log environment variables
         for key, value in os.environ.items():
-            if 'UCKN' in key:
+            if "UCKN" in key:
                 logger.info(f"Environment: {key}={value}")
 
         # Get project root from command line or environment
@@ -673,10 +714,7 @@ async def main():
         async with stdio_server() as (read_stream, write_stream):
             logger.info("Stdio context established, starting server.run()")
             await server_instance.server.run(
-                read_stream,
-                write_stream,
-                options,
-                raise_exceptions=True
+                read_stream, write_stream, options, raise_exceptions=True
             )
             logger.info("Server run completed normally")
 
@@ -684,6 +722,7 @@ async def main():
         logger.error(f"CRITICAL ERROR: {e}")
         logger.error(f"Exception type: {type(e)}")
         import traceback
+
         logger.error(f"Full traceback:\n{traceback.format_exc()}")
 
         # Also log current working directory and environment for debugging
@@ -692,7 +731,7 @@ async def main():
         raise
     finally:
         logger.info("UCKN MCP Server shutdown")
-        logger.info("="*60)
+        logger.info("=" * 60)
 
 
 if __name__ == "__main__":

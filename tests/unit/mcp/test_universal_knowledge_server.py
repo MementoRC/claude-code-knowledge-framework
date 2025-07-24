@@ -12,6 +12,7 @@ import pytest
 # Mock the MCP imports before importing the server
 sys_modules_backup = {}
 
+
 def setup_mcp_mocks():
     """Setup mocks for MCP components"""
     global sys_modules_backup
@@ -26,30 +27,42 @@ def setup_mcp_mocks():
 
     # Store original modules
     import sys
-    sys_modules_backup = {name: sys.modules.get(name) for name in [
-        'mcp', 'mcp.server', 'mcp.server.models', 'mcp.server.stdio', 'mcp.types'
-    ]}
+
+    sys_modules_backup = {
+        name: sys.modules.get(name)
+        for name in [
+            "mcp",
+            "mcp.server",
+            "mcp.server.models",
+            "mcp.server.stdio",
+            "mcp.types",
+        ]
+    }
 
     # Replace with mocks
-    sys.modules['mcp'] = mock_mcp
-    sys.modules['mcp.server'] = mock_mcp.server
-    sys.modules['mcp.server.models'] = mock_mcp.server.models
-    sys.modules['mcp.server.stdio'] = mock_mcp.server.stdio
-    sys.modules['mcp.types'] = mock_mcp.types
+    sys.modules["mcp"] = mock_mcp
+    sys.modules["mcp.server"] = mock_mcp.server
+    sys.modules["mcp.server.models"] = mock_mcp.server.models
+    sys.modules["mcp.server.stdio"] = mock_mcp.server.stdio
+    sys.modules["mcp.types"] = mock_mcp.types
 
     return mock_mcp
+
 
 # Setup mocks before importing
 mock_mcp = setup_mcp_mocks()
 
 # Now import the server
-with patch.dict('sys.modules', {
-    'mcp': mock_mcp,
-    'mcp.server': mock_mcp.server,
-    'mcp.server.models': mock_mcp.server.models,
-    'mcp.server.stdio': mock_mcp.server.stdio,
-    'mcp.types': mock_mcp.types
-}):
+with patch.dict(
+    "sys.modules",
+    {
+        "mcp": mock_mcp,
+        "mcp.server": mock_mcp.server,
+        "mcp.server.models": mock_mcp.server.models,
+        "mcp.server.stdio": mock_mcp.server.stdio,
+        "mcp.types": mock_mcp.types,
+    },
+):
     from src.uckn.mcp.universal_knowledge_server import UniversalKnowledgeServer
 
 
@@ -61,16 +74,35 @@ class TestUniversalKnowledgeServer:
         self.temp_dir = tempfile.mkdtemp()
 
         # Mock all UCKN components
-        with patch('src.uckn.mcp.universal_knowledge_server.ChromaDBConnector') as mock_chroma, \
-             patch('src.uckn.mcp.universal_knowledge_server.ProjectDNAFingerprinter') as mock_dna, \
-             patch('src.uckn.mcp.universal_knowledge_server.MultiModalEmbeddings') as mock_embeddings, \
-             patch('src.uckn.mcp.universal_knowledge_server.SemanticSearchEngine') as mock_search, \
-             patch('src.uckn.mcp.universal_knowledge_server.PatternManager') as mock_pattern_mgr, \
-             patch('src.uckn.mcp.universal_knowledge_server.TechStackCompatibilityMatrix') as mock_compat, \
-             patch('src.uckn.mcp.universal_knowledge_server.PatternAnalytics') as mock_analytics, \
-             patch('src.uckn.mcp.universal_knowledge_server.PatternRecommendationEngine') as mock_rec_engine, \
-             patch('src.uckn.mcp.universal_knowledge_server.KnowledgeManager') as mock_km:
-
+        with (
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.ChromaDBConnector"
+            ) as mock_chroma,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.ProjectDNAFingerprinter"
+            ) as mock_dna,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.MultiModalEmbeddings"
+            ) as mock_embeddings,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.SemanticSearchEngine"
+            ) as mock_search,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.PatternManager"
+            ) as mock_pattern_mgr,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.TechStackCompatibilityMatrix"
+            ) as mock_compat,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.PatternAnalytics"
+            ) as mock_analytics,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.PatternRecommendationEngine"
+            ) as mock_rec_engine,
+            patch(
+                "src.uckn.mcp.universal_knowledge_server.KnowledgeManager"
+            ) as mock_km,
+        ):
             # Configure mocks
             self.mock_chroma = mock_chroma.return_value
             self.mock_chroma.is_available.return_value = True
@@ -95,9 +127,9 @@ class TestUniversalKnowledgeServer:
         """Test UniversalKnowledgeServer initializes correctly."""
         assert self.server.project_root == self.temp_dir
         assert self.server.server is not None
-        assert hasattr(self.server, 'chroma_connector')
-        assert hasattr(self.server, 'dna_fingerprinter')
-        assert hasattr(self.server, 'recommendation_engine')
+        assert hasattr(self.server, "chroma_connector")
+        assert hasattr(self.server, "dna_fingerprinter")
+        assert hasattr(self.server, "recommendation_engine")
 
     def test_initialization_with_mocked_components(self):
         """Test that all components are properly mocked."""
@@ -116,19 +148,17 @@ class TestUniversalKnowledgeServer:
                 "id": "pattern_1",
                 "document": "Test pattern content",
                 "metadata": {"type": "setup"},
-                "similarity_score": 0.9
+                "similarity_score": 0.9,
             }
         ]
         self.mock_search.search_by_text.return_value = mock_results
 
         result = await self.server._search_patterns(
-            query="test query",
-            project_path=self.temp_dir,
-            limit=5
+            query="test query", project_path=self.temp_dir, limit=5
         )
 
         # Verify the result structure
-        assert hasattr(result, 'content')
+        assert hasattr(result, "content")
         assert len(result.content) > 0
 
         # Parse the JSON response
@@ -144,14 +174,14 @@ class TestUniversalKnowledgeServer:
     async def test_search_patterns_fallback_to_pattern_manager(self):
         """Test search_patterns falls back to pattern manager when semantic search unavailable."""
         # Remove search_by_text method to trigger fallback
-        delattr(self.mock_search, 'search_by_text')
+        delattr(self.mock_search, "search_by_text")
 
         mock_results = [
             {
                 "id": "pattern_2",
                 "document": "Fallback pattern",
                 "metadata": {"type": "bugfix"},
-                "similarity_score": 0.8
+                "similarity_score": 0.8,
             }
         ]
         self.mock_pattern_mgr.search_patterns.return_value = mock_results
@@ -159,7 +189,7 @@ class TestUniversalKnowledgeServer:
         result = await self.server._search_patterns(query="fallback test")
 
         # Verify fallback was used
-        assert hasattr(result, 'content')
+        assert hasattr(result, "content")
         response_text = result.content[0].text
         response = json.loads(response_text)
         assert response["results"][0]["pattern_id"] == "pattern_2"
@@ -177,13 +207,10 @@ class TestUniversalKnowledgeServer:
 
         self.mock_rec_engine.get_setup_recommendations.return_value = [mock_rec]
 
-        result = await self.server._recommend_setup(
-            project_path=self.temp_dir,
-            limit=3
-        )
+        result = await self.server._recommend_setup(project_path=self.temp_dir, limit=3)
 
         # Verify the result
-        assert hasattr(result, 'content')
+        assert hasattr(result, "content")
         response_text = result.content[0].text
         response = json.loads(response_text)
 
@@ -196,12 +223,12 @@ class TestUniversalKnowledgeServer:
     async def test_recommend_setup_unavailable(self):
         """Test recommend_setup when recommendation engine is unavailable."""
         # Remove the method to simulate unavailability
-        delattr(self.mock_rec_engine, 'get_setup_recommendations')
+        delattr(self.mock_rec_engine, "get_setup_recommendations")
 
         result = await self.server._recommend_setup(project_path=self.temp_dir)
 
         # Verify error response
-        assert hasattr(result, 'content')
+        assert hasattr(result, "content")
         response_text = result.content[0].text
         response = json.loads(response_text)
 
@@ -220,19 +247,18 @@ class TestUniversalKnowledgeServer:
 
         self.mock_rec_engine.get_proactive_recommendations.return_value = [mock_pred]
 
-        result = await self.server._predict_issues(
-            project_path=self.temp_dir,
-            limit=3
-        )
+        result = await self.server._predict_issues(project_path=self.temp_dir, limit=3)
 
         # Verify the result
-        assert hasattr(result, 'content')
+        assert hasattr(result, "content")
         response_text = result.content[0].text
         response = json.loads(response_text)
 
         assert response["project_path"] == self.temp_dir
         assert response["total_predictions"] == 1
-        assert response["potential_issues"][0]["issue_type"] == "Potential security issue"
+        assert (
+            response["potential_issues"][0]["issue_type"] == "Potential security issue"
+        )
         assert response["potential_issues"][0]["confidence_score"] == 0.7
 
     @pytest.mark.asyncio
@@ -243,24 +269,24 @@ class TestUniversalKnowledgeServer:
             {
                 "id": "solution_1",
                 "similarity_score": 0.85,
-                "document": "Similar solution pattern with good practices"
+                "document": "Similar solution pattern with good practices",
             },
             {
                 "id": "solution_2",
                 "similarity_score": 0.75,
-                "document": "Another similar approach"
-            }
+                "document": "Another similar approach",
+            },
         ]
         self.mock_search.search_by_text.return_value = mock_solutions
 
         result = await self.server._validate_solution(
             solution_description="Use JWT for authentication",
             problem_context="Need secure user authentication",
-            project_path=self.temp_dir
+            project_path=self.temp_dir,
         )
 
         # Verify the result
-        assert hasattr(result, 'content')
+        assert hasattr(result, "content")
         response_text = result.content[0].text
         response = json.loads(response_text)
 
@@ -281,11 +307,11 @@ class TestUniversalKnowledgeServer:
             pattern_type="setup",
             pattern_code="npm init -y",
             technologies=["Node.js", "npm"],
-            project_path=self.temp_dir
+            project_path=self.temp_dir,
         )
 
         # Verify the result
-        assert hasattr(result, 'content')
+        assert hasattr(result, "content")
         response_text = result.content[0].text
         response = json.loads(response_text)
 
@@ -301,11 +327,11 @@ class TestUniversalKnowledgeServer:
         result = await self.server._contribute_pattern(
             pattern_title="Failed Pattern",
             pattern_description="This should fail",
-            pattern_type="setup"
+            pattern_type="setup",
         )
 
         # Verify error response
-        assert hasattr(result, 'content')
+        assert hasattr(result, "content")
         response_text = result.content[0].text
         response = json.loads(response_text)
 
@@ -319,14 +345,14 @@ class TestUniversalKnowledgeServer:
             "languages": ["Python"],
             "frameworks": ["FastAPI"],
             "testing": ["pytest"],
-            "vector": [0.1, 0.2, 0.3]
+            "vector": [0.1, 0.2, 0.3],
         }
         self.mock_dna.generate_fingerprint.return_value = mock_fingerprint
 
         result = await self.server._get_project_dna(project_path=self.temp_dir)
 
         # Verify the result
-        assert hasattr(result, 'content')
+        assert hasattr(result, "content")
         response_text = result.content[0].text
         response = json.loads(response_text)
 
@@ -338,12 +364,12 @@ class TestUniversalKnowledgeServer:
     async def test_get_project_dna_unavailable(self):
         """Test get_project_dna when DNA fingerprinting is unavailable."""
         # Remove the method to simulate unavailability
-        delattr(self.mock_dna, 'generate_fingerprint')
+        delattr(self.mock_dna, "generate_fingerprint")
 
         result = await self.server._get_project_dna(project_path=self.temp_dir)
 
         # Verify error response
-        assert hasattr(result, 'content')
+        assert hasattr(result, "content")
         response_text = result.content[0].text
         response = json.loads(response_text)
 
@@ -359,7 +385,7 @@ class TestUniversalKnowledgeServer:
         result = await self.server._search_patterns(query="error test")
 
         # Verify error is handled gracefully
-        assert hasattr(result, 'content')
+        assert hasattr(result, "content")
         response_text = result.content[0].text
         assert "Search failed" in response_text
         assert "Mock search error" in response_text
@@ -367,18 +393,22 @@ class TestUniversalKnowledgeServer:
     def test_create_mock_components(self):
         """Test creation of mock components for graceful degradation."""
         # Create a new server instance that will fail component initialization
-        with patch('src.uckn.mcp.universal_knowledge_server.ChromaDBConnector', side_effect=Exception("Mock init error")):
+        with patch(
+            "src.uckn.mcp.universal_knowledge_server.ChromaDBConnector",
+            side_effect=Exception("Mock init error"),
+        ):
             server = UniversalKnowledgeServer(project_root=self.temp_dir)
 
             # Verify mock components were created
-            assert hasattr(server, 'chroma_connector')
-            assert hasattr(server, 'dna_fingerprinter')
+            assert hasattr(server, "chroma_connector")
+            assert hasattr(server, "dna_fingerprinter")
             assert server.chroma_connector.is_available() is False
 
 
 def teardown_mcp_mocks():
     """Restore original modules"""
     import sys
+
     for name, module in sys_modules_backup.items():
         if module is not None:
             sys.modules[name] = module

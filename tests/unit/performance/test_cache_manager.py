@@ -15,6 +15,7 @@ def test_cache_set_and_get():
     assert cache.get("b") == 2
     assert cache.get("c") == 3
 
+
 def test_cache_clear():
     cache = CacheManager()
     cache.set("x", 42)

@@ -17,6 +17,7 @@ from .sync_queue import SyncQueue
 
 class SyncMode(Enum):
     """Synchronization modes."""
+
     FULL = "full"
     INCREMENTAL = "incremental"
     SELECTIVE = "selective"
@@ -24,6 +25,7 @@ class SyncMode(Enum):
 
 class SyncDirection(Enum):
     """Synchronization directions."""
+
     UPLOAD = "upload"
     DOWNLOAD = "download"
     BIDIRECTIONAL = "bidirectional"
@@ -31,6 +33,7 @@ class SyncDirection(Enum):
 
 class SyncStatus(Enum):
     """Synchronization status."""
+
     IDLE = "idle"
     SYNCING = "syncing"
     COMPLETED = "completed"
@@ -41,7 +44,7 @@ class SyncStatus(Enum):
 class SyncManager:
     """
     Manages real-time synchronization between local and server knowledge stores.
-    
+
     Features:
     - Bi-directional sync with conflict resolution
     - Offline mode with sync queue
@@ -54,7 +57,7 @@ class SyncManager:
         local_db: UnifiedDatabase,
         server_url: str,
         websocket_url: str,
-        auth_token: str | None = None
+        auth_token: str | None = None,
     ):
         self.local_db = local_db
         self.server_url = server_url
@@ -111,16 +114,16 @@ class SyncManager:
         self,
         mode: SyncMode = SyncMode.INCREMENTAL,
         direction: SyncDirection = SyncDirection.BIDIRECTIONAL,
-        pattern_ids: list[str] | None = None
+        pattern_ids: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Perform synchronization between local and server stores.
-        
+
         Args:
             mode: Synchronization mode (full, incremental, selective)
             direction: Sync direction (upload, download, bidirectional)
             pattern_ids: Specific pattern IDs for selective sync
-            
+
         Returns:
             Sync result with status, conflicts, and statistics
         """
@@ -132,15 +135,21 @@ class SyncManager:
 
         try:
             result = await self._perform_sync(mode, direction, pattern_ids)
-            self.status = SyncStatus.COMPLETED if not result.get("conflicts") else SyncStatus.CONFLICT
+            self.status = (
+                SyncStatus.COMPLETED
+                if not result.get("conflicts")
+                else SyncStatus.CONFLICT
+            )
             self.last_sync_time = datetime.now()
 
             # Notify callbacks
-            self._notify_callbacks({
-                "type": "sync_completed",
-                "status": self.status.value,
-                "result": result
-            })
+            self._notify_callbacks(
+                {
+                    "type": "sync_completed",
+                    "status": self.status.value,
+                    "result": result,
+                }
+            )
 
             return result
 
@@ -148,18 +157,12 @@ class SyncManager:
             self.logger.error(f"Sync failed: {e}")
             self.status = SyncStatus.FAILED
 
-            self._notify_callbacks({
-                "type": "sync_failed",
-                "error": str(e)
-            })
+            self._notify_callbacks({"type": "sync_failed", "error": str(e)})
 
             return {"error": str(e)}
 
     async def _perform_sync(
-        self,
-        mode: SyncMode,
-        direction: SyncDirection,
-        pattern_ids: list[str] | None
+        self, mode: SyncMode, direction: SyncDirection, pattern_ids: list[str] | None
     ) -> dict[str, Any]:
         """Internal sync implementation."""
         conflicts = []
@@ -167,7 +170,7 @@ class SyncManager:
             "patterns_uploaded": 0,
             "patterns_downloaded": 0,
             "conflicts_detected": 0,
-            "total_items": 0
+            "total_items": 0,
         }
 
         try:
@@ -197,17 +200,15 @@ class SyncManager:
 
             stats["conflicts_detected"] = len(conflicts)
 
-            return {
-                "success": True,
-                "conflicts": conflicts,
-                "stats": stats
-            }
+            return {"success": True, "conflicts": conflicts, "stats": stats}
 
         except Exception as e:
             self.logger.error(f"Error in sync operation: {e}")
             return {"error": str(e)}
 
-    def _get_local_patterns_since_last_sync(self, mode: SyncMode) -> list[dict[str, Any]]:
+    def _get_local_patterns_since_last_sync(
+        self, mode: SyncMode
+    ) -> list[dict[str, Any]]:
         """Get local patterns that need syncing."""
         try:
             if mode == SyncMode.FULL or not self.last_sync_time:
@@ -284,14 +285,18 @@ class SyncManager:
                     self.sync_progress = 0.5 + (i + 1) / len(server_patterns) * 0.5
 
                 except Exception as e:
-                    self.logger.error(f"Error downloading pattern {pattern.get('id')}: {e}")
+                    self.logger.error(
+                        f"Error downloading pattern {pattern.get('id')}: {e}"
+                    )
 
         except Exception as e:
             self.logger.error(f"Error downloading patterns: {e}")
 
         return {"downloaded": downloaded, "conflicts": conflicts}
 
-    async def _check_upload_conflict(self, pattern: dict[str, Any]) -> dict[str, Any] | None:
+    async def _check_upload_conflict(
+        self, pattern: dict[str, Any]
+    ) -> dict[str, Any] | None:
         """Check for conflicts when uploading a pattern."""
         # Get server version of pattern
         server_pattern = await self._get_pattern_from_server(pattern["id"])
@@ -307,12 +312,14 @@ class SyncManager:
                 "pattern_id": pattern["id"],
                 "type": "upload_conflict",
                 "local_version": pattern,
-                "server_version": server_pattern
+                "server_version": server_pattern,
             }
 
         return None
 
-    async def _check_download_conflict(self, pattern: dict[str, Any]) -> dict[str, Any] | None:
+    async def _check_download_conflict(
+        self, pattern: dict[str, Any]
+    ) -> dict[str, Any] | None:
         """Check for conflicts when downloading a pattern."""
         # Get local version of pattern
         local_pattern = self.local_db.get_pattern(pattern["id"])
@@ -328,7 +335,7 @@ class SyncManager:
                 "pattern_id": pattern["id"],
                 "type": "download_conflict",
                 "local_version": local_pattern,
-                "server_version": pattern
+                "server_version": pattern,
             }
 
         return None
@@ -379,7 +386,7 @@ class SyncManager:
                 document_text=document,
                 embedding=embedding,
                 metadata=metadata,
-                pattern_id=pattern_id
+                pattern_id=pattern_id,
             )
 
             return result is not None
@@ -430,11 +437,13 @@ class SyncManager:
             self.sync_queue.add_pattern(pattern_id)
 
             # Notify callbacks
-            self._notify_callbacks({
-                "type": "realtime_update",
-                "pattern_id": pattern_id,
-                "message": message
-            })
+            self._notify_callbacks(
+                {
+                    "type": "realtime_update",
+                    "pattern_id": pattern_id,
+                    "message": message,
+                }
+            )
 
     async def _background_sync_loop(self):
         """Background task for periodic sync operations."""
@@ -449,7 +458,7 @@ class SyncManager:
                         await self.sync(
                             mode=SyncMode.SELECTIVE,
                             direction=SyncDirection.BIDIRECTIONAL,
-                            pattern_ids=pattern_ids
+                            pattern_ids=pattern_ids,
                         )
                         self.sync_queue.clear_processed(pattern_ids)
 
@@ -461,8 +470,10 @@ class SyncManager:
         return {
             "status": self.status.value,
             "progress": self.sync_progress,
-            "last_sync": self.last_sync_time.isoformat() if self.last_sync_time else None,
+            "last_sync": self.last_sync_time.isoformat()
+            if self.last_sync_time
+            else None,
             "is_online": self.is_online,
             "queue_size": self.sync_queue.size(),
-            "vector_clock": self.vector_clock.copy()
+            "vector_clock": self.vector_clock.copy(),
         }

@@ -26,12 +26,20 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
         # Sensitive headers to exclude from logs
         self.sensitive_headers = {
-            'authorization', 'x-api-key', 'x-api-token', 'cookie', 'set-cookie'
+            "authorization",
+            "x-api-key",
+            "x-api-token",
+            "cookie",
+            "set-cookie",
         }
 
         # Endpoints to exclude from detailed logging
         self.exclude_endpoints = {
-            '/health/ping', '/health/status', '/docs', '/redoc', '/openapi.json'
+            "/health/ping",
+            "/health/status",
+            "/docs",
+            "/redoc",
+            "/openapi.json",
         }
 
     async def dispatch(self, request: Request, call_next):
@@ -67,7 +75,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 await self._log_response(request, response, request_id, processing_time)
 
             # Log summary for all requests
-            await self._log_request_summary(request, response, request_id, processing_time)
+            await self._log_request_summary(
+                request, response, request_id, processing_time
+            )
 
             return response
 
@@ -99,7 +109,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 "headers": self._filter_headers(dict(request.headers)),
                 "client_ip": client_ip,
                 "user_agent": user_agent,
-                "user_info": user_info
+                "user_info": user_info,
             }
 
             # Add request body for POST/PUT requests (with size limit)
@@ -115,15 +125,21 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             logger.error(f"Error logging request: {e}")
 
-    async def _log_response(self, request: Request, response: Response, request_id: str, processing_time: float):
+    async def _log_response(
+        self,
+        request: Request,
+        response: Response,
+        request_id: str,
+        processing_time: float,
+    ):
         """Log response details"""
         try:
             # Get response body (with size limit)
             response_body = None
-            if hasattr(response, 'body'):
+            if hasattr(response, "body"):
                 body_size = len(response.body)
                 if body_size < 10000:  # Log body only if smaller than 10KB
-                    response_body = response.body.decode('utf-8', errors='ignore')
+                    response_body = response.body.decode("utf-8", errors="ignore")
 
             response_data = {
                 "event_type": "response",
@@ -132,7 +148,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 "status_code": response.status_code,
                 "headers": self._filter_headers(dict(response.headers)),
                 "processing_time_ms": round(processing_time * 1000, 2),
-                "body_size": len(response.body) if hasattr(response, 'body') else 0
+                "body_size": len(response.body) if hasattr(response, "body") else 0,
             }
 
             if response_body:
@@ -143,7 +159,13 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             logger.error(f"Error logging response: {e}")
 
-    async def _log_request_summary(self, request: Request, response: Response, request_id: str, processing_time: float):
+    async def _log_request_summary(
+        self,
+        request: Request,
+        response: Response,
+        request_id: str,
+        processing_time: float,
+    ):
         """Log request summary for all requests"""
         try:
             user_info = self._get_user_info(request)
@@ -158,7 +180,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 "processing_time_ms": round(processing_time * 1000, 2),
                 "client_ip": self._get_client_ip(request),
                 "user_id": user_info.get("user_id") if user_info else None,
-                "success": 200 <= response.status_code < 400
+                "success": 200 <= response.status_code < 400,
             }
 
             # Log level based on status code
@@ -172,7 +194,13 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             logger.error(f"Error logging request summary: {e}")
 
-    async def _log_error(self, request: Request, error: Exception, request_id: str, processing_time: float):
+    async def _log_error(
+        self,
+        request: Request,
+        error: Exception,
+        request_id: str,
+        processing_time: float,
+    ):
         """Log error details"""
         try:
             user_info = self._get_user_info(request)
@@ -187,12 +215,13 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 "error_message": str(error),
                 "processing_time_ms": round(processing_time * 1000, 2),
                 "client_ip": self._get_client_ip(request),
-                "user_id": user_info.get("user_id") if user_info else None
+                "user_id": user_info.get("user_id") if user_info else None,
             }
 
             # Add stack trace for internal errors
-            if not isinstance(error, (ValueError, TypeError)):
+            if not isinstance(error, ValueError | TypeError):
                 import traceback
+
                 error_data["stack_trace"] = traceback.format_exc()
 
             logger.error(json.dumps(error_data))
@@ -219,12 +248,12 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
     def _get_user_info(self, request: Request) -> dict[str, Any] | None:
         """Get user information from request state"""
-        if hasattr(request.state, 'user'):
+        if hasattr(request.state, "user"):
             user = request.state.user
             return {
                 "user_id": user.get("user_id"),
                 "username": user.get("username"),
-                "roles": user.get("roles", [])
+                "roles": user.get("roles", []),
             }
         return None
 
@@ -242,15 +271,15 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         """Get request body as string"""
         try:
             # Check if body has already been read
-            if hasattr(request, '_body'):
-                return request._body.decode('utf-8', errors='ignore')
+            if hasattr(request, "_body"):
+                return request._body.decode("utf-8", errors="ignore")
 
             # For JSON content type, try to get body
             content_type = request.headers.get("content-type", "")
             if "application/json" in content_type:
                 body = await request.body()
                 if body:
-                    return body.decode('utf-8', errors='ignore')
+                    return body.decode("utf-8", errors="ignore")
 
             return None
 

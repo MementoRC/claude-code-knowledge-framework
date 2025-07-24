@@ -23,15 +23,18 @@ try:
 except ImportError:
     ChromaDBConnector = None
 
-def _tech_stack_match(query_stack: list[str] | None, doc_stack: list[str] | None) -> float:
+
+def _tech_stack_match(
+    query_stack: list[str] | None, doc_stack: list[str] | None
+) -> float:
     """
     Compute a tech stack compatibility score between two stacks.
     Returns a float between 0.0 and 1.0.
     """
     if not query_stack or not doc_stack:
         return 0.5  # Neutral if unknown
-    set_query = set([s.lower() for s in query_stack])
-    set_doc = set([s.lower() for s in doc_stack])
+    set_query = {s.lower() for s in query_stack}
+    set_doc = {s.lower() for s in doc_stack}
     if not set_query or not set_doc:
         return 0.5
     intersection = set_query & set_doc
@@ -39,6 +42,7 @@ def _tech_stack_match(query_stack: list[str] | None, doc_stack: list[str] | None
     if not union:
         return 0.5
     return len(intersection) / len(union)
+
 
 class SemanticSearchEngine:
     """
@@ -59,32 +63,38 @@ class SemanticSearchEngine:
         chroma_connector: Any | None = None,
         embedding_atom: MultiModalEmbeddings | None = None,
         logger: logging.Logger | None = None,
-        cache_size: int = 128
+        cache_size: int = 128,
     ):
         self.logger = logger or logging.getLogger(__name__)
-        self.chroma_connector = chroma_connector or (ChromaDBConnector() if ChromaDBConnector else None)
+        self.chroma_connector = chroma_connector or (
+            ChromaDBConnector() if ChromaDBConnector else None
+        )
         self.embedding_atom = embedding_atom or MultiModalEmbeddings()
         self.cache_size = cache_size
 
         if not self.chroma_connector or not self.chroma_connector.is_available():
-            self.logger.warning("ChromaDBConnector not available. Semantic search will be disabled.")
+            self.logger.warning(
+                "ChromaDBConnector not available. Semantic search will be disabled."
+            )
 
         if not self.embedding_atom:
-            self.logger.warning("MultiModalEmbeddings atom not available. Embedding will be disabled.")
+            self.logger.warning(
+                "MultiModalEmbeddings atom not available. Embedding will be disabled."
+            )
 
     def is_available(self) -> bool:
         """
         Checks if the component is initialized and ready for use.
-        
+
         Returns:
             bool: True if component is ready, False otherwise.
         """
         # Check if dependencies and models are available
         return (
-            self.chroma_connector is not None and
-            self.chroma_connector.is_available() and
-            self.embedding_atom is not None and
-            self.embedding_atom.is_available()
+            self.chroma_connector is not None
+            and self.chroma_connector.is_available()
+            and self.embedding_atom is not None
+            and self.embedding_atom.is_available()
         )
 
     def _get_collection(self, collection_type: str) -> str:
@@ -94,7 +104,9 @@ class SemanticSearchEngine:
 
     def _get_success_rate(self, metadata: dict[str, Any]) -> float:
         # Try to extract a success rate from metadata, fallback to 0.5 if not present
-        return float(metadata.get("success_rate", metadata.get("avg_resolution_time", 0.5)))
+        return float(
+            metadata.get("success_rate", metadata.get("avg_resolution_time", 0.5))
+        )
 
     def _extract_tech_stack(self, metadata: dict[str, Any]) -> list[str]:
         # Try to extract technology stack from metadata
@@ -106,9 +118,7 @@ class SemanticSearchEngine:
         return []
 
     def _rank_results(
-        self,
-        results: list[dict[str, Any]],
-        query_tech_stack: list[str] | None = None
+        self, results: list[dict[str, Any]], query_tech_stack: list[str] | None = None
     ) -> list[dict[str, Any]]:
         """
         Rank results by a weighted combination of similarity, success_rate, and tech_stack_match.
@@ -138,9 +148,7 @@ class SemanticSearchEngine:
         return ranked
 
     def _filter_by_tech_stack(
-        self,
-        results: list[dict[str, Any]],
-        query_tech_stack: list[str] | None
+        self, results: list[dict[str, Any]], query_tech_stack: list[str] | None
     ) -> list[dict[str, Any]]:
         """
         Optionally filter results by technology stack compatibility.
@@ -181,7 +189,7 @@ class SemanticSearchEngine:
         limit: int,
         min_similarity: float,
         tech_stack: list[str] | None = None,
-        metadata_filter: dict[str, Any] | None = None
+        metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """
         Perform vector search in the specified collection.
@@ -195,7 +203,7 @@ class SemanticSearchEngine:
                 query_embedding=query_embedding,
                 n_results=limit * 2,  # Overfetch for better ranking/filtering
                 min_similarity=min_similarity,
-                where_clause=metadata_filter
+                where_clause=metadata_filter,
             )
         except Exception as e:
             self.logger.error(f"ChromaDB search failed: {e}")
@@ -215,7 +223,9 @@ class SemanticSearchEngine:
 
     # --- Public API ---
 
-    def search_by_text(self, query_text: str, tech_stack=None, limit: int = 10) -> list[dict[str, Any]]:
+    def search_by_text(
+        self, query_text: str, tech_stack=None, limit: int = 10
+    ) -> list[dict[str, Any]]:
         """
         Semantic search for code patterns and error solutions by text.
 
@@ -239,13 +249,15 @@ class SemanticSearchEngine:
                 collection_type=collection,
                 limit=limit,
                 min_similarity=0.7,
-                tech_stack=query_tech_stack
+                tech_stack=query_tech_stack,
             )
             results.extend(res)
         ranked = self._rank_results(results, query_tech_stack)
         return ranked[:limit]
 
-    def search_by_code(self, code_snippet: str, tech_stack=None, limit: int = 10) -> list[dict[str, Any]]:
+    def search_by_code(
+        self, code_snippet: str, tech_stack=None, limit: int = 10
+    ) -> list[dict[str, Any]]:
         """
         Semantic search for code patterns and error solutions by code snippet.
 
@@ -269,13 +281,15 @@ class SemanticSearchEngine:
                 collection_type=collection,
                 limit=limit,
                 min_similarity=0.7,
-                tech_stack=query_tech_stack
+                tech_stack=query_tech_stack,
             )
             results.extend(res)
         ranked = self._rank_results(results, query_tech_stack)
         return ranked[:limit]
 
-    def search_by_error(self, error_message: str, tech_stack=None, limit: int = 10) -> list[dict[str, Any]]:
+    def search_by_error(
+        self, error_message: str, tech_stack=None, limit: int = 10
+    ) -> list[dict[str, Any]]:
         """
         Semantic search for error solutions and code patterns by error message.
 
@@ -299,7 +313,7 @@ class SemanticSearchEngine:
                 collection_type=collection,
                 limit=limit,
                 min_similarity=0.7,
-                tech_stack=query_tech_stack
+                tech_stack=query_tech_stack,
             )
             results.extend(res)
         ranked = self._rank_results(results, query_tech_stack)
@@ -311,7 +325,7 @@ class SemanticSearchEngine:
         code: str | None = None,
         error: str | None = None,
         tech_stack=None,
-        limit: int = 10
+        limit: int = 10,
     ) -> list[dict[str, Any]]:
         """
         Multi-modal semantic search using any combination of text, code, and error.
@@ -338,7 +352,7 @@ class SemanticSearchEngine:
                 collection_type=collection,
                 limit=limit,
                 min_similarity=0.7,
-                tech_stack=query_tech_stack
+                tech_stack=query_tech_stack,
             )
             results.extend(res)
         ranked = self._rank_results(results, query_tech_stack)

@@ -9,11 +9,13 @@ from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
 
 # --- Pytest fixtures for temp directory and KnowledgeManager ---
 
+
 @pytest.fixture(scope="module")
 def temp_knowledge_dir():
     temp_dir = tempfile.mkdtemp(prefix="uckn_test_knowledge_")
     yield temp_dir
     shutil.rmtree(temp_dir)
+
 
 @pytest.fixture(scope="module")
 def km(temp_knowledge_dir):
@@ -23,7 +25,9 @@ def km(temp_knowledge_dir):
     yield km
     # No explicit teardown needed; temp dir fixture handles cleanup
 
+
 # --- Helper functions for test data ---
+
 
 def valid_pattern_data(pattern_id="pattern1"):
     # All metadata fields as strings (not lists), matching ChromaDB schema
@@ -35,9 +39,10 @@ def valid_pattern_data(pattern_id="pattern1"):
             "technology_stack": "python,pytest",  # String, not list
             "success_rate": 0.95,
             "created_at": "2024-06-28T12:00:00Z",
-            "updated_at": "2024-06-28T12:00:00Z"
-        }
+            "updated_at": "2024-06-28T12:00:00Z",
+        },
     }
+
 
 def valid_error_solution_data(solution_id="solution1"):
     return {
@@ -48,19 +53,23 @@ def valid_error_solution_data(solution_id="solution1"):
             "resolution_steps": "Check module path; reinstall package",  # String, not list
             "avg_resolution_time": 2.5,
             "created_at": "2024-06-28T12:00:00Z",
-            "updated_at": "2024-06-28T12:00:00Z"
-        }
+            "updated_at": "2024-06-28T12:00:00Z",
+        },
     }
 
+
 # --- Integration Tests ---
+
 
 def test_add_and_search_pattern(km):
     # Check system health before proceeding
     health = km.get_health_status()
     print(f"Health status: {health}")
     assert health["unified_db_available"] is True, f"Unified DB not available: {health}"
-    assert health["semantic_search_available"] is True, f"Semantic search not available: {health}"
-    
+    assert health["semantic_search_available"] is True, (
+        f"Semantic search not available: {health}"
+    )
+
     pattern = valid_pattern_data()
     pattern_id = km.add_pattern(pattern)
     assert pattern_id is not None, f"Failed to add pattern. Health: {health}"
@@ -70,13 +79,16 @@ def test_add_and_search_pattern(km):
     assert isinstance(results, list)
     assert any(r.get("id") == pattern_id for r in results)
 
+
 def test_pattern_classification_workflow(km):
     # Check system health before proceeding
     health = km.get_health_status()
     print(f"Health status: {health}")
     assert health["unified_db_available"] is True, f"Unified DB not available: {health}"
-    assert health["semantic_search_available"] is True, f"Semantic search not available: {health}"
-    
+    assert health["semantic_search_available"] is True, (
+        f"Semantic search not available: {health}"
+    )
+
     pattern = valid_pattern_data("pattern2")
     pattern_id = km.add_pattern(pattern)
     assert pattern_id is not None, f"Failed to add pattern. Health: {health}"
@@ -105,6 +117,7 @@ def test_pattern_classification_workflow(km):
     deleted = km.delete_category(cat_id)
     assert deleted
 
+
 def test_add_and_search_error_solution(km):
     solution = valid_error_solution_data()
     solution_id = km.add_error_solution(solution)
@@ -119,6 +132,7 @@ def test_add_and_search_error_solution(km):
     results = km.search_error_solutions("ImportError", limit=5)
     assert isinstance(results, list)
     assert any(r.get("id") == solution_id for r in results)
+
 
 def test_health_status_and_error_handling(km):
     health = km.get_health_status()
@@ -135,6 +149,7 @@ def test_health_status_and_error_handling(km):
     result = km.get_error_solution("nonexistent")
     assert result is None
 
+
 def test_update_and_delete_pattern(km):
     pattern = valid_pattern_data("pattern3")
     pattern_id = km.add_pattern(pattern)
@@ -147,6 +162,7 @@ def test_update_and_delete_pattern(km):
     # Delete the pattern
     deleted = km.delete_pattern(pattern_id)
     assert deleted
+
 
 def test_tech_stack_analysis(km):
     # Test tech stack detector integration

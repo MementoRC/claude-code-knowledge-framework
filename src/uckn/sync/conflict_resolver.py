@@ -11,6 +11,7 @@ from typing import Any
 
 class ConflictType(Enum):
     """Types of synchronization conflicts."""
+
     CONCURRENT_EDIT = "concurrent_edit"
     VERSION_MISMATCH = "version_mismatch"
     SCHEMA_CONFLICT = "schema_conflict"
@@ -19,6 +20,7 @@ class ConflictType(Enum):
 
 class ResolutionStrategy(Enum):
     """Conflict resolution strategies."""
+
     LOCAL_WINS = "local_wins"
     SERVER_WINS = "server_wins"
     MERGE = "merge"
@@ -29,7 +31,7 @@ class ResolutionStrategy(Enum):
 class ConflictResolver:
     """
     Handles conflict detection and resolution for pattern synchronization.
-    
+
     Features:
     - Vector clock-based conflict detection
     - Multiple resolution strategies
@@ -42,17 +44,15 @@ class ConflictResolver:
         self.default_strategy = ResolutionStrategy.MANUAL
 
     def detect_conflict(
-        self,
-        local_pattern: dict[str, Any],
-        server_pattern: dict[str, Any]
+        self, local_pattern: dict[str, Any], server_pattern: dict[str, Any]
     ) -> dict[str, Any] | None:
         """
         Detect conflicts between local and server patterns.
-        
+
         Args:
             local_pattern: Local version of the pattern
             server_pattern: Server version of the pattern
-            
+
         Returns:
             Conflict description if conflict detected, None otherwise
         """
@@ -73,15 +73,13 @@ class ConflictResolver:
                 "server_version": server_pattern,
                 "local_clock": local_clock,
                 "server_clock": server_clock,
-                "detected_at": datetime.now().isoformat()
+                "detected_at": datetime.now().isoformat(),
             }
 
         return None
 
     def _is_concurrent_modification(
-        self,
-        clock1: dict[str, int],
-        clock2: dict[str, int]
+        self, clock1: dict[str, int], clock2: dict[str, int]
     ) -> bool:
         """Check if two vector clocks indicate concurrent modifications."""
         # Two clocks are concurrent if neither dominates the other
@@ -92,9 +90,7 @@ class ConflictResolver:
         return not (clock1_dominates or clock2_dominates)
 
     def _determine_conflict_type(
-        self,
-        local_pattern: dict[str, Any],
-        server_pattern: dict[str, Any]
+        self, local_pattern: dict[str, Any], server_pattern: dict[str, Any]
     ) -> ConflictType:
         """Determine the type of conflict based on pattern differences."""
         local_content = local_pattern.get("document", "")
@@ -119,17 +115,15 @@ class ConflictResolver:
         return ConflictType.VERSION_MISMATCH
 
     def resolve_conflict(
-        self,
-        conflict: dict[str, Any],
-        strategy: ResolutionStrategy | None = None
+        self, conflict: dict[str, Any], strategy: ResolutionStrategy | None = None
     ) -> dict[str, Any]:
         """
         Resolve a conflict using the specified strategy.
-        
+
         Args:
             conflict: Conflict description from detect_conflict
             strategy: Resolution strategy to use
-            
+
         Returns:
             Resolution result with resolved pattern
         """
@@ -149,11 +143,7 @@ class ConflictResolver:
 
         except Exception as e:
             self.logger.error(f"Error resolving conflict: {e}")
-            return {
-                "success": False,
-                "error": str(e),
-                "conflict": conflict
-            }
+            return {"success": False, "error": str(e), "conflict": conflict}
 
     def _resolve_local_wins(self, conflict: dict[str, Any]) -> dict[str, Any]:
         """Resolve conflict by keeping local version."""
@@ -161,21 +151,20 @@ class ConflictResolver:
 
         # Update vector clock to indicate resolution
         new_clock = self._merge_vector_clocks(
-            conflict["local_clock"],
-            conflict["server_clock"]
+            conflict["local_clock"], conflict["server_clock"]
         )
 
         resolved_pattern = {
             **local_pattern,
             "vector_clock": new_clock,
             "resolved_at": datetime.now().isoformat(),
-            "resolution_strategy": "local_wins"
+            "resolution_strategy": "local_wins",
         }
 
         return {
             "success": True,
             "strategy": "local_wins",
-            "resolved_pattern": resolved_pattern
+            "resolved_pattern": resolved_pattern,
         }
 
     def _resolve_server_wins(self, conflict: dict[str, Any]) -> dict[str, Any]:
@@ -184,21 +173,20 @@ class ConflictResolver:
 
         # Update vector clock
         new_clock = self._merge_vector_clocks(
-            conflict["local_clock"],
-            conflict["server_clock"]
+            conflict["local_clock"], conflict["server_clock"]
         )
 
         resolved_pattern = {
             **server_pattern,
             "vector_clock": new_clock,
             "resolved_at": datetime.now().isoformat(),
-            "resolution_strategy": "server_wins"
+            "resolution_strategy": "server_wins",
         }
 
         return {
             "success": True,
             "strategy": "server_wins",
-            "resolved_pattern": resolved_pattern
+            "resolved_pattern": resolved_pattern,
         }
 
     def _resolve_newest_wins(self, conflict: dict[str, Any]) -> dict[str, Any]:
@@ -215,8 +203,8 @@ class ConflictResolver:
             return self._resolve_local_wins(conflict)
 
         try:
-            local_dt = datetime.fromisoformat(local_time.replace('Z', '+00:00'))
-            server_dt = datetime.fromisoformat(server_time.replace('Z', '+00:00'))
+            local_dt = datetime.fromisoformat(local_time.replace("Z", "+00:00"))
+            server_dt = datetime.fromisoformat(server_time.replace("Z", "+00:00"))
 
             if local_dt >= server_dt:
                 return self._resolve_local_wins(conflict)
@@ -249,12 +237,11 @@ class ConflictResolver:
                 "document": merged_doc,
                 "metadata": merged_metadata,
                 "vector_clock": self._merge_vector_clocks(
-                    conflict["local_clock"],
-                    conflict["server_clock"]
+                    conflict["local_clock"], conflict["server_clock"]
                 ),
                 "resolved_at": datetime.now().isoformat(),
                 "resolution_strategy": "merge",
-                "merge_source": "auto_merge"
+                "merge_source": "auto_merge",
             }
 
             # Keep other fields from local version
@@ -265,7 +252,7 @@ class ConflictResolver:
             return {
                 "success": True,
                 "strategy": "merge",
-                "resolved_pattern": merged_pattern
+                "resolved_pattern": merged_pattern,
             }
 
         except Exception as e:
@@ -280,18 +267,11 @@ class ConflictResolver:
             "strategy": "manual",
             "requires_manual_resolution": True,
             "conflict": conflict,
-            "resolution_options": [
-                "local_wins",
-                "server_wins",
-                "newest_wins",
-                "merge"
-            ]
+            "resolution_options": ["local_wins", "server_wins", "newest_wins", "merge"],
         }
 
     def _merge_vector_clocks(
-        self,
-        clock1: dict[str, int],
-        clock2: dict[str, int]
+        self, clock1: dict[str, int], clock2: dict[str, int]
     ) -> dict[str, int]:
         """Merge two vector clocks by taking the maximum value for each key."""
         merged = clock1.copy()
@@ -302,8 +282,7 @@ class ConflictResolver:
         return merged
 
     def suggest_resolution_strategy(
-        self,
-        conflict: dict[str, Any]
+        self, conflict: dict[str, Any]
     ) -> ResolutionStrategy:
         """Suggest the best resolution strategy for a conflict."""
         conflict_type = ConflictType(conflict.get("type", "concurrent_edit"))

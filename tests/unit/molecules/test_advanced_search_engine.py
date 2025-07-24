@@ -23,17 +23,17 @@ class TestAdvancedSearchEngine:
                 "similarity_score": 0.95,
                 "metadata": {
                     "technology_stack": ["python", "flask"],
-                    "complexity": "moderate"
-                }
+                    "complexity": "moderate",
+                },
             },
             {
                 "id": "pattern-2",
                 "similarity_score": 0.85,
                 "metadata": {
                     "technology_stack": ["python", "django"],
-                    "complexity": "simple"
-                }
-            }
+                    "complexity": "simple",
+                },
+            },
         ]
 
         return AdvancedSearchEngine(semantic_engine=mock_semantic)
@@ -49,10 +49,7 @@ class TestAdvancedSearchEngine:
 
     def test_search_with_filters(self, search_engine):
         """Test search with faceted filters."""
-        filters = {
-            "technology_stack": ["python"],
-            "complexity": "moderate"
-        }
+        filters = {"technology_stack": ["python"], "complexity": "moderate"}
 
         result = search_engine.search("web framework", filters=filters)
 

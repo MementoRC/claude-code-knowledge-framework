@@ -14,7 +14,7 @@ from typing import Any
 class FacetedSearchManager:
     """
     Manages faceted search capabilities for UCKN knowledge patterns.
-    
+
     Provides dynamic filtering based on:
     - Technology stack compatibility
     - Temporal filters (pattern age, update frequency)
@@ -31,10 +31,10 @@ class FacetedSearchManager:
     def extract_facets(self, documents: list[dict[str, Any]]) -> dict[str, Any]:
         """
         Extract available facets from a collection of documents.
-        
+
         Args:
             documents: List of documents with metadata
-            
+
         Returns:
             Dictionary of facets with possible values and counts
         """
@@ -46,7 +46,7 @@ class FacetedSearchManager:
             "age_range": defaultdict(int),
             "language": defaultdict(int),
             "framework": defaultdict(int),
-            "source": defaultdict(int)
+            "source": defaultdict(int),
         }
 
         for doc in documents:
@@ -69,7 +69,7 @@ class FacetedSearchManager:
 
             # Success rate ranges
             success_rate = metadata.get("success_rate", 0.0)
-            if isinstance(success_rate, (int, float)):
+            if isinstance(success_rate, int | float):
                 if success_rate >= 0.9:
                     facets["success_rate_range"]["excellent (90%+)"] += 1
                 elif success_rate >= 0.75:
@@ -84,11 +84,16 @@ class FacetedSearchManager:
             if created_at:
                 try:
                     if isinstance(created_at, str):
-                        created_date = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+                        created_date = datetime.fromisoformat(
+                            created_at.replace("Z", "+00:00")
+                        )
                     else:
                         created_date = created_at
 
-                    age_days = (datetime.now().replace(tzinfo=created_date.tzinfo) - created_date).days
+                    age_days = (
+                        datetime.now().replace(tzinfo=created_date.tzinfo)
+                        - created_date
+                    ).days
 
                     if age_days <= 30:
                         facets["age_range"]["recent (< 1 month)"] += 1
@@ -123,22 +128,22 @@ class FacetedSearchManager:
         result = {}
         for facet_name, facet_values in facets.items():
             if facet_values:
-                result[facet_name] = dict(sorted(facet_values.items(), key=lambda x: x[1], reverse=True))
+                result[facet_name] = dict(
+                    sorted(facet_values.items(), key=lambda x: x[1], reverse=True)
+                )
 
         return result
 
     def apply_facet_filters(
-        self,
-        documents: list[dict[str, Any]],
-        filters: dict[str, Any]
+        self, documents: list[dict[str, Any]], filters: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """
         Apply facet filters to a list of documents.
-        
+
         Args:
             documents: List of documents to filter
             filters: Dictionary of filters to apply
-            
+
         Returns:
             Filtered list of documents
         """
@@ -190,7 +195,7 @@ class FacetedSearchManager:
             if include_doc and "min_success_rate" in filters:
                 min_rate = filters["min_success_rate"]
                 doc_rate = metadata.get("success_rate", 0.0)
-                if isinstance(doc_rate, (int, float)) and doc_rate < min_rate:
+                if isinstance(doc_rate, int | float) and doc_rate < min_rate:
                     include_doc = False
 
             if include_doc:

@@ -23,11 +23,13 @@ def load_pytest_json(path: str = PYTEST_JSON) -> dict[str, Any]:
 def get_test_durations(pytest_json: dict[str, Any]) -> list[dict[str, Any]]:
     durations = []
     for test in pytest_json.get("tests", []):
-        durations.append({
-            "nodeid": test.get("nodeid"),
-            "outcome": test.get("outcome"),
-            "duration": test.get("duration", 0.0),
-        })
+        durations.append(
+            {
+                "nodeid": test.get("nodeid"),
+                "outcome": test.get("outcome"),
+                "duration": test.get("duration", 0.0),
+            }
+        )
     return durations
 
 

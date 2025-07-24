@@ -70,8 +70,7 @@ class InvitationResponse(BaseModel):
 # Team Management Endpoints
 @router.post("/teams", response_model=TeamResponse, status_code=status.HTTP_201_CREATED)
 async def create_team(
-    request: TeamCreateRequest,
-    km: KnowledgeManager = Depends(get_knowledge_manager)
+    request: TeamCreateRequest, km: KnowledgeManager = Depends(get_knowledge_manager)
 ):
     """Create a new team."""
     try:
@@ -85,7 +84,7 @@ async def create_team(
             "owner_id": owner_id,
             "settings": request.settings or {},
             "created_at": "2024-01-01T00:00:00Z",
-            "updated_at": "2024-01-01T00:00:00Z"
+            "updated_at": "2024-01-01T00:00:00Z",
         }
 
         # In real implementation, this would use team_manager to save to database
@@ -94,14 +93,12 @@ async def create_team(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create team: {str(e)}"
+            detail=f"Failed to create team: {str(e)}",
         )
 
 
 @router.get("/teams", response_model=list[TeamResponse])
-async def list_teams(
-    km: KnowledgeManager = Depends(get_knowledge_manager)
-):
+async def list_teams(km: KnowledgeManager = Depends(get_knowledge_manager)):
     """List teams for the current user."""
     try:
         # For now, return mock data - in real implementation, query from database
@@ -113,7 +110,7 @@ async def list_teams(
                 "owner_id": "mock_user_id",
                 "settings": {"pattern_sharing": "team"},
                 "created_at": "2024-01-01T00:00:00Z",
-                "updated_at": "2024-01-01T00:00:00Z"
+                "updated_at": "2024-01-01T00:00:00Z",
             }
         ]
 
@@ -122,15 +119,12 @@ async def list_teams(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list teams: {str(e)}"
+            detail=f"Failed to list teams: {str(e)}",
         )
 
 
 @router.get("/teams/{team_id}", response_model=TeamResponse)
-async def get_team(
-    team_id: str,
-    km: KnowledgeManager = Depends(get_knowledge_manager)
-):
+async def get_team(team_id: str, km: KnowledgeManager = Depends(get_knowledge_manager)):
     """Get team details."""
     try:
         # Mock implementation - in real version, query database
@@ -142,13 +136,12 @@ async def get_team(
                 "owner_id": "mock_user_id",
                 "settings": {"pattern_sharing": "team"},
                 "created_at": "2024-01-01T00:00:00Z",
-                "updated_at": "2024-01-01T00:00:00Z"
+                "updated_at": "2024-01-01T00:00:00Z",
             }
             return TeamResponse(**team_data)
         else:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Team not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Team not found"
             )
 
     except HTTPException:
@@ -156,14 +149,13 @@ async def get_team(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to get team: {str(e)}"
+            detail=f"Failed to get team: {str(e)}",
         )
 
 
 @router.get("/teams/{team_id}/members", response_model=list[TeamMemberResponse])
 async def list_team_members(
-    team_id: str,
-    km: KnowledgeManager = Depends(get_knowledge_manager)
+    team_id: str, km: KnowledgeManager = Depends(get_knowledge_manager)
 ):
     """List team members."""
     try:
@@ -173,7 +165,7 @@ async def list_team_members(
                 "user_id": "user-1",
                 "team_id": team_id,
                 "role": "admin",
-                "joined_at": "2024-01-01T00:00:00Z"
+                "joined_at": "2024-01-01T00:00:00Z",
             }
         ]
 
@@ -182,5 +174,5 @@ async def list_team_members(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to list team members: {str(e)}"
+            detail=f"Failed to list team members: {str(e)}",
         )

@@ -39,20 +39,30 @@ def summarize_pytest_results(pytest_json: dict[str, Any]) -> dict[str, Any]:
         "skipped": summary.get("skipped", 0),
         "errors": summary.get("errors", 0),
         "duration": summary.get("duration", 0.0),
-        "total": sum(summary.get(k, 0) for k in ["passed", "failed", "skipped", "errors"]),
+        "total": sum(
+            summary.get(k, 0) for k in ["passed", "failed", "skipped", "errors"]
+        ),
     }
 
 
 def print_summary(pytest_metrics: dict[str, Any], coverage_metrics: dict[str, Any]):
     print("==== UCKN Quality Metrics Summary ====")
-    print(f"Tests: {pytest_metrics['total']} | Passed: {pytest_metrics['passed']} | Failed: {pytest_metrics['failed']} | Skipped: {pytest_metrics['skipped']} | Errors: {pytest_metrics['errors']}")
+    print(
+        f"Tests: {pytest_metrics['total']} | Passed: {pytest_metrics['passed']} | Failed: {pytest_metrics['failed']} | Skipped: {pytest_metrics['skipped']} | Errors: {pytest_metrics['errors']}"
+    )
     print(f"Test Duration: {pytest_metrics['duration']:.2f}s")
-    print(f"Coverage: {coverage_metrics['percent_covered']}% lines, {coverage_metrics.get('percent_branches_covered', 'N/A')}% branches")
-    print(f"Statements: {coverage_metrics['num_statements']} | Covered: {coverage_metrics['covered_lines']} | Missing: {coverage_metrics['missing_lines']}")
+    print(
+        f"Coverage: {coverage_metrics['percent_covered']}% lines, {coverage_metrics.get('percent_branches_covered', 'N/A')}% branches"
+    )
+    print(
+        f"Statements: {coverage_metrics['num_statements']} | Covered: {coverage_metrics['covered_lines']} | Missing: {coverage_metrics['missing_lines']}"
+    )
     print("======================================")
 
 
-def check_quality_gate(coverage_metrics: dict[str, Any], fail_under: int = DEFAULT_FAIL_UNDER) -> bool:
+def check_quality_gate(
+    coverage_metrics: dict[str, Any], fail_under: int = DEFAULT_FAIL_UNDER
+) -> bool:
     percent = coverage_metrics.get("percent_covered", 0)
     if percent is None:
         print("Coverage percent not found.")
@@ -66,9 +76,22 @@ def check_quality_gate(coverage_metrics: dict[str, Any], fail_under: int = DEFAU
 
 def main():
     parser = argparse.ArgumentParser(description="UCKN Quality Metrics Dashboard")
-    parser.add_argument("--summary", action="store_true", help="Print summary of test and coverage metrics")
-    parser.add_argument("--check-gate", action="store_true", help="Check quality gate and exit nonzero if failed")
-    parser.add_argument("--fail-under", type=int, default=DEFAULT_FAIL_UNDER, help="Coverage threshold for quality gate")
+    parser.add_argument(
+        "--summary",
+        action="store_true",
+        help="Print summary of test and coverage metrics",
+    )
+    parser.add_argument(
+        "--check-gate",
+        action="store_true",
+        help="Check quality gate and exit nonzero if failed",
+    )
+    parser.add_argument(
+        "--fail-under",
+        type=int,
+        default=DEFAULT_FAIL_UNDER,
+        help="Coverage threshold for quality gate",
+    )
     args = parser.parse_args()
 
     pytest_json = load_pytest_json()

@@ -18,6 +18,7 @@ def test_cache_benchmark():
     # Only 100 should remain
     assert len(cache.cache) == 100
 
+
 def test_embedding_batch_performance():
     embeddings = MultiModalEmbeddingsOptimized()
     items = [f"item {i}" for i in range(1000)]
@@ -27,16 +28,19 @@ def test_embedding_batch_performance():
     assert len(result) == 1000
     assert elapsed < 5  # Should be fast
 
+
 def test_search_latency(monkeypatch):
     class DummyChroma:
         def search_documents(self, **kwargs):
             time.sleep(0.01)
             return [{"id": 1}]
+
     engine = SemanticSearchEngineOptimized(chroma_connector=DummyChroma())
     start = time.time()
     engine.search({"text": "latency"}, "code_patterns")
     elapsed = time.time() - start
     assert elapsed < 1
+
 
 def test_cache_hit_rate():
     cache = CacheManager(max_size=10)

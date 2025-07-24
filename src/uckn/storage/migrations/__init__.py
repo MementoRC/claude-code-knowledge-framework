@@ -2,6 +2,7 @@
 UCKN Database Migrations Layer
 Manages schema evolution for the PostgreSQL database using Alembic.
 """
+
 import logging
 import os
 
@@ -10,7 +11,10 @@ from alembic.config import Config
 
 _logger = logging.getLogger(__name__)
 
-def run_migrations(connection_string: str, script_location: str, revision: str = "head") -> bool:
+
+def run_migrations(
+    connection_string: str, script_location: str, revision: str = "head"
+) -> bool:
     """
     Runs Alembic migrations programmatically.
 
@@ -31,7 +35,9 @@ def run_migrations(connection_string: str, script_location: str, revision: str =
         # For this example, we'll assume alembic.ini is in the script_location
         alembic_cfg_path = os.path.join(script_location, "alembic.ini")
         if not os.path.exists(alembic_cfg_path):
-            _logger.error(f"Alembic config file not found at {alembic_cfg_path}. Please run 'alembic init' first.")
+            _logger.error(
+                f"Alembic config file not found at {alembic_cfg_path}. Please run 'alembic init' first."
+            )
             return False
 
         alembic_cfg = Config(alembic_cfg_path)
@@ -45,6 +51,7 @@ def run_migrations(connection_string: str, script_location: str, revision: str =
     except Exception as e:
         _logger.error(f"Alembic migration failed: {e}")
         return False
+
 
 # This file primarily serves as a marker for the migrations package.
 # The actual migration scripts will be in src/uckn/storage/migrations/versions/

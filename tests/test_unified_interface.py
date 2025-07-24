@@ -41,7 +41,7 @@ def test_health_status():
 
 def test_add_knowledge_pattern_with_feature_flags():
     """Test knowledge pattern addition with feature flag integration."""
-    with patch('src.uckn.bridge.unified_interface.KnowledgeManager') as mock_km:
+    with patch("src.uckn.bridge.unified_interface.KnowledgeManager") as mock_km:
         mock_instance = Mock()
         mock_instance.add_pattern.return_value = "pattern-123"
         mock_km.return_value = mock_instance
@@ -56,7 +56,7 @@ def test_add_knowledge_pattern_with_feature_flags():
 
 def test_search_patterns_with_capabilities():
     """Test pattern search with capability checking."""
-    with patch('src.uckn.bridge.unified_interface.KnowledgeManager') as mock_km:
+    with patch("src.uckn.bridge.unified_interface.KnowledgeManager") as mock_km:
         mock_instance = Mock()
         mock_instance.search_patterns.return_value = [{"result": "test"}]
         mock_km.return_value = mock_instance
@@ -74,7 +74,7 @@ def test_graceful_degradation():
     manager = UnifiedKnowledgeManager()
 
     # Mock disabled capabilities
-    with patch.object(manager, 'get_capabilities') as mock_caps:
+    with patch.object(manager, "get_capabilities") as mock_caps:
         mock_caps.return_value = dict.fromkeys(manager.KNOWN_CAPABILITIES, False)
 
         # Should return None when pattern extraction disabled

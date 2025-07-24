@@ -57,14 +57,18 @@ def print_coverage_trend(path: str = COVERAGE_HISTORY):
         history = json.load(f)
     print("Coverage Trend:")
     for entry in history:
-        print(f"{entry['timestamp']}: {entry['percent_covered']}% lines, {entry.get('percent_branches_covered', 'N/A')}% branches")
+        print(
+            f"{entry['timestamp']}: {entry['percent_covered']}% lines, {entry.get('percent_branches_covered', 'N/A')}% branches"
+        )
 
 
 def generate_markdown_summary(metrics: dict[str, Any], path: str = COVERAGE_MD):
     with open(path, "w") as f:
         f.write("# UCKN Coverage Summary\n\n")
         f.write(f"- **Line Coverage:** {metrics['percent_covered']}%\n")
-        f.write(f"- **Branch Coverage:** {metrics.get('percent_branches_covered', 'N/A')}%\n")
+        f.write(
+            f"- **Branch Coverage:** {metrics.get('percent_branches_covered', 'N/A')}%\n"
+        )
         f.write(f"- **Statements:** {metrics['num_statements']}\n")
         f.write(f"- **Covered Lines:** {metrics['covered_lines']}\n")
         f.write(f"- **Missing Lines:** {metrics['missing_lines']}\n")

@@ -30,17 +30,19 @@ except ImportError:
 Base = declarative_base()
 _logger = logging.getLogger(__name__)
 
+
 class JSONBOrJSON(TypeDecorator):
     """
     A TypeDecorator that uses JSONB for PostgreSQL and JSON for other databases.
     This provides cross-database compatibility for JSON column types.
     """
-    impl = JSON # Default implementation for non-PostgreSQL dialects
 
-    cache_ok = True # Indicate that this type is safe to cache
+    impl = JSON  # Default implementation for non-PostgreSQL dialects
+
+    cache_ok = True  # Indicate that this type is safe to cache
 
     def load_dialect_impl(self, dialect):
-        if dialect.name == 'postgresql' and JSONB is not None:
+        if dialect.name == "postgresql" and JSONB is not None:
             return dialect.type_descriptor(JSONB())
         else:
             return dialect.type_descriptor(JSON())
@@ -53,26 +55,36 @@ class JSONBOrJSON(TypeDecorator):
         # No special processing needed for results, SQLAlchemy handles JSON deserialization
         return value
 
+
 # To make the JSON column mutable (i.e., changes to the dictionary are detected)
 MutableJSONBOrJSON = MutableDict.as_mutable(JSONBOrJSON)
 
 
 class Project(Base):
-    __tablename__ = 'projects'
+    __tablename__ = "projects"
     id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False, unique=True)
     description = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    patterns = relationship("Pattern", back_populates="project", cascade="all, delete-orphan")
-    error_solutions = relationship("ErrorSolution", back_populates="project", cascade="all, delete-orphan")
-    team_access = relationship("TeamAccess", back_populates="project", cascade="all, delete-orphan")
+    patterns = relationship(
+        "Pattern", back_populates="project", cascade="all, delete-orphan"
+    )
+    error_solutions = relationship(
+        "ErrorSolution", back_populates="project", cascade="all, delete-orphan"
+    )
+    team_access = relationship(
+        "TeamAccess", back_populates="project", cascade="all, delete-orphan"
+    )
+
 
 class Pattern(Base):
-    __tablename__ = 'patterns'
+    __tablename__ = "patterns"
     id = Column(String, primary_key=True, index=True)
-    project_id = Column(String, ForeignKey('projects.id'), nullable=True) # Optional link to project
+    project_id = Column(
+        String, ForeignKey("projects.id"), nullable=True
+    )  # Optional link to project
     document_text = Column(Text, nullable=False)
     # Use MutableJSONBOrJSON for cross-database compatibility and mutability
     metadata_json = Column(MutableJSONBOrJSON, nullable=False, default={})
@@ -80,17 +92,22 @@ class Pattern(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Specific metadata fields for easier querying
-    technology_stack = Column(String, nullable=True) # Comma-separated string
+    technology_stack = Column(String, nullable=True)  # Comma-separated string
     pattern_type = Column(String, nullable=True)
     success_rate = Column(Float, nullable=True)
 
     project = relationship("Project", back_populates="patterns")
-    category_links = relationship("PatternCategoryLink", back_populates="pattern", cascade="all, delete-orphan")
+    category_links = relationship(
+        "PatternCategoryLink", back_populates="pattern", cascade="all, delete-orphan"
+    )
+
 
 class ErrorSolution(Base):
-    __tablename__ = 'error_solutions'
+    __tablename__ = "error_solutions"
     id = Column(String, primary_key=True, index=True)
-    project_id = Column(String, ForeignKey('projects.id'), nullable=True) # Optional link to project
+    project_id = Column(
+        String, ForeignKey("projects.id"), nullable=True
+    )  # Optional link to project
     document_text = Column(Text, nullable=False)
     # Use MutableJSONBOrJSON for cross-database compatibility and mutability
     metadata_json = Column(MutableJSONBOrJSON, nullable=False, default={})
@@ -99,47 +116,53 @@ class ErrorSolution(Base):
 
     # Specific metadata fields for easier querying
     error_category = Column(String, nullable=True)
-    resolution_steps = Column(Text, nullable=True) # Comma-separated string
+    resolution_steps = Column(Text, nullable=True)  # Comma-separated string
     avg_resolution_time = Column(Float, nullable=True)
 
     project = relationship("Project", back_populates="error_solutions")
 
+
 class PatternCategory(Base):
-    __tablename__ = 'pattern_categories'
+    __tablename__ = "pattern_categories"
     id = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False, unique=True)
     description = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    pattern_links = relationship("PatternCategoryLink", back_populates="category", cascade="all, delete-orphan")
+    pattern_links = relationship(
+        "PatternCategoryLink", back_populates="category", cascade="all, delete-orphan"
+    )
+
 
 class PatternCategoryLink(Base):
-    __tablename__ = 'pattern_category_links'
-    pattern_id = Column(String, ForeignKey('patterns.id'), primary_key=True)
-    category_id = Column(String, ForeignKey('pattern_categories.id'), primary_key=True)
+    __tablename__ = "pattern_category_links"
+    pattern_id = Column(String, ForeignKey("patterns.id"), primary_key=True)
+    category_id = Column(String, ForeignKey("pattern_categories.id"), primary_key=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     pattern = relationship("Pattern", back_populates="category_links")
     category = relationship("PatternCategory", back_populates="pattern_links")
 
+
 class TeamAccess(Base):
-    __tablename__ = 'team_access'
+    __tablename__ = "team_access"
     id = Column(String, primary_key=True, index=True)
     user_id = Column(String, nullable=False)
-    project_id = Column(String, ForeignKey('projects.id'), nullable=False)
-    role = Column(String, nullable=False) # e.g., 'admin', 'contributor', 'viewer'
+    project_id = Column(String, ForeignKey("projects.id"), nullable=False)
+    role = Column(String, nullable=False)  # e.g., 'admin', 'contributor', 'viewer'
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     project = relationship("Project", back_populates="team_access")
 
+
 class CompatibilityMatrix(Base):
-    __tablename__ = 'compatibility_matrix'
+    __tablename__ = "compatibility_matrix"
     id = Column(String, primary_key=True, index=True)
     source_tech = Column(String, nullable=False)
     target_tech = Column(String, nullable=False)
-    compatibility_score = Column(Float, nullable=False) # 0.0 to 1.0
+    compatibility_score = Column(Float, nullable=False)  # 0.0 to 1.0
     notes = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -157,7 +180,13 @@ class PostgreSQLConnector:
     Manages connection and operations with PostgreSQL for UCKN knowledge metadata.
     Uses SQLAlchemy for ORM and connection pooling.
     """
-    def __init__(self, db_url: str = "postgresql://user:password@localhost:5432/uckn_db", pool_size: int = 10, max_overflow: int = 20):
+
+    def __init__(
+        self,
+        db_url: str = "postgresql://user:password@localhost:5432/uckn_db",
+        pool_size: int = 10,
+        max_overflow: int = 20,
+    ):
         self.db_url = db_url
         self.engine = None
         self.SessionLocal = None
@@ -179,11 +208,15 @@ class PostgreSQLConnector:
                 poolclass=QueuePool,
                 pool_size=self.pool_size,
                 max_overflow=self.max_overflow,
-                pool_recycle=3600, # Recycle connections after 1 hour
-                echo=False # Set to True for SQL logging
+                pool_recycle=3600,  # Recycle connections after 1 hour
+                echo=False,  # Set to True for SQL logging
             )
-            self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
-            self._logger.info(f"PostgreSQL engine initialized for {self.db_url.split('@')[-1]}")
+            self.SessionLocal = sessionmaker(
+                autocommit=False, autoflush=False, bind=self.engine
+            )
+            self._logger.info(
+                f"PostgreSQL engine initialized for {self.db_url.split('@')[-1]}"
+            )
             # Base.metadata.create_all(self.engine) # This should be handled by Alembic migrations
             # self._logger.info("PostgreSQL tables checked/created (if not using Alembic).")
         except SQLAlchemyError as e:
@@ -223,7 +256,7 @@ class PostgreSQLConnector:
             with self.get_db_session() as session:
                 instance = model(**data)
                 session.add(instance)
-                session.flush() # To get ID if it's generated by DB
+                session.flush()  # To get ID if it's generated by DB
                 _logger.info(f"Added {model.__name__} with ID: {instance.id}")
                 return instance.id
         except SQLAlchemyError as e:
@@ -236,13 +269,18 @@ class PostgreSQLConnector:
             with self.get_db_session() as session:
                 instance = session.query(model).filter_by(id=record_id).first()
                 if instance:
-                    return {c.name: getattr(instance, c.name) for c in instance.__table__.columns}
+                    return {
+                        c.name: getattr(instance, c.name)
+                        for c in instance.__table__.columns
+                    }
                 return None
         except SQLAlchemyError as e:
             _logger.error(f"Failed to get {model.__name__} record {record_id}: {e}")
             return None
 
-    def update_record(self, model: Base, record_id: str, updates: dict[str, Any]) -> bool:
+    def update_record(
+        self, model: Base, record_id: str, updates: dict[str, Any]
+    ) -> bool:
         """Updates an existing record."""
         try:
             with self.get_db_session() as session:
@@ -254,7 +292,9 @@ class PostgreSQLConnector:
                     session.add(instance)
                     _logger.info(f"Updated {model.__name__} with ID: {record_id}")
                     return True
-                _logger.warning(f"{model.__name__} record {record_id} not found for update.")
+                _logger.warning(
+                    f"{model.__name__} record {record_id} not found for update."
+                )
                 return False
         except SQLAlchemyError as e:
             _logger.error(f"Failed to update {model.__name__} record {record_id}: {e}")
@@ -269,13 +309,17 @@ class PostgreSQLConnector:
                     session.delete(instance)
                     _logger.info(f"Deleted {model.__name__} with ID: {record_id}")
                     return True
-                _logger.warning(f"{model.__name__} record {record_id} not found for deletion.")
+                _logger.warning(
+                    f"{model.__name__} record {record_id} not found for deletion."
+                )
                 return False
         except SQLAlchemyError as e:
             _logger.error(f"Failed to delete {model.__name__} record {record_id}: {e}")
             return False
 
-    def get_all_records(self, model: Base, limit: int | None = None) -> list[dict[str, Any]]:
+    def get_all_records(
+        self, model: Base, limit: int | None = None
+    ) -> list[dict[str, Any]]:
         """Retrieves all records for a given model."""
         try:
             with self.get_db_session() as session:
@@ -283,12 +327,20 @@ class PostgreSQLConnector:
                 if limit:
                     query = query.limit(limit)
                 results = query.all()
-                return [{c.name: getattr(instance, c.name) for c in instance.__table__.columns} for instance in results]
+                return [
+                    {
+                        c.name: getattr(instance, c.name)
+                        for c in instance.__table__.columns
+                    }
+                    for instance in results
+                ]
         except SQLAlchemyError as e:
             _logger.error(f"Failed to retrieve all {model.__name__} records: {e}")
             return []
 
-    def filter_records(self, model: Base, filters: dict[str, Any], limit: int | None = None) -> list[dict[str, Any]]:
+    def filter_records(
+        self, model: Base, filters: dict[str, Any], limit: int | None = None
+    ) -> list[dict[str, Any]]:
         """Filters records based on provided criteria."""
         try:
             with self.get_db_session() as session:
@@ -299,12 +351,20 @@ class PostgreSQLConnector:
                 if limit:
                     query = query.limit(limit)
                 results = query.all()
-                return [{c.name: getattr(instance, c.name) for c in instance.__table__.columns} for instance in results]
+                return [
+                    {
+                        c.name: getattr(instance, c.name)
+                        for c in instance.__table__.columns
+                    }
+                    for instance in results
+                ]
         except SQLAlchemyError as e:
             _logger.error(f"Failed to filter {model.__name__} records: {e}")
             return []
 
-    def search_records_by_metadata(self, model: Base, metadata_filter: dict[str, Any], limit: int | None = None) -> list[dict[str, Any]]:
+    def search_records_by_metadata(
+        self, model: Base, metadata_filter: dict[str, Any], limit: int | None = None
+    ) -> list[dict[str, Any]]:
         """Search records by JSONB/JSON metadata fields using cross-database compatible operators."""
         try:
             with self.get_db_session() as session:
@@ -320,7 +380,13 @@ class PostgreSQLConnector:
                     query = query.limit(limit)
 
                 results = query.all()
-                return [{c.name: getattr(instance, c.name) for c in instance.__table__.columns} for instance in results]
+                return [
+                    {
+                        c.name: getattr(instance, c.name)
+                        for c in instance.__table__.columns
+                    }
+                    for instance in results
+                ]
 
         except SQLAlchemyError as e:
             _logger.error(f"Failed to search {model.__name__} records by metadata: {e}")
@@ -332,43 +398,63 @@ class PostgreSQLConnector:
         try:
             with self.get_db_session() as session:
                 # Check if link already exists (idempotent)
-                existing_link = session.query(PatternCategoryLink).filter_by(
-                    pattern_id=pattern_id, category_id=category_id
-                ).first()
+                existing_link = (
+                    session.query(PatternCategoryLink)
+                    .filter_by(pattern_id=pattern_id, category_id=category_id)
+                    .first()
+                )
                 if existing_link:
-                    _logger.info(f"Link between pattern {pattern_id} and category {category_id} already exists.")
+                    _logger.info(
+                        f"Link between pattern {pattern_id} and category {category_id} already exists."
+                    )
                     return True
 
-                link = PatternCategoryLink(pattern_id=pattern_id, category_id=category_id)
+                link = PatternCategoryLink(
+                    pattern_id=pattern_id, category_id=category_id
+                )
                 session.add(link)
                 _logger.info(f"Linked pattern {pattern_id} to category {category_id}.")
                 return True
         except SQLAlchemyError as e:
-            _logger.error(f"Failed to link pattern {pattern_id} to category {category_id}: {e}")
+            _logger.error(
+                f"Failed to link pattern {pattern_id} to category {category_id}: {e}"
+            )
             return False
 
     def remove_pattern_from_category(self, pattern_id: str, category_id: str) -> bool:
         """Removes a link between a pattern and a category."""
         try:
             with self.get_db_session() as session:
-                link = session.query(PatternCategoryLink).filter_by(
-                    pattern_id=pattern_id, category_id=category_id
-                ).first()
+                link = (
+                    session.query(PatternCategoryLink)
+                    .filter_by(pattern_id=pattern_id, category_id=category_id)
+                    .first()
+                )
                 if link:
                     session.delete(link)
-                    _logger.info(f"Removed link between pattern {pattern_id} and category {category_id}.")
+                    _logger.info(
+                        f"Removed link between pattern {pattern_id} and category {category_id}."
+                    )
                     return True
-                _logger.warning(f"Link between pattern {pattern_id} and category {category_id} not found.")
+                _logger.warning(
+                    f"Link between pattern {pattern_id} and category {category_id} not found."
+                )
                 return False
         except SQLAlchemyError as e:
-            _logger.error(f"Failed to remove link between pattern {pattern_id} and category {category_id}: {e}")
+            _logger.error(
+                f"Failed to remove link between pattern {pattern_id} and category {category_id}: {e}"
+            )
             return False
 
     def get_patterns_in_category(self, category_id: str) -> list[str]:
         """Gets all pattern IDs associated with a category."""
         try:
             with self.get_db_session() as session:
-                links = session.query(PatternCategoryLink).filter_by(category_id=category_id).all()
+                links = (
+                    session.query(PatternCategoryLink)
+                    .filter_by(category_id=category_id)
+                    .all()
+                )
                 return [link.pattern_id for link in links]
         except SQLAlchemyError as e:
             _logger.error(f"Failed to get patterns for category {category_id}: {e}")
@@ -378,10 +464,21 @@ class PostgreSQLConnector:
         """Gets all categories associated with a pattern."""
         try:
             with self.get_db_session() as session:
-                links = session.query(PatternCategoryLink).filter_by(pattern_id=pattern_id).all()
+                links = (
+                    session.query(PatternCategoryLink)
+                    .filter_by(pattern_id=pattern_id)
+                    .all()
+                )
                 category_ids = [link.category_id for link in links]
-                categories = session.query(PatternCategory).filter(PatternCategory.id.in_(category_ids)).all()
-                return [{c.name: getattr(cat, c.name) for c in cat.__table__.columns} for cat in categories]
+                categories = (
+                    session.query(PatternCategory)
+                    .filter(PatternCategory.id.in_(category_ids))
+                    .all()
+                )
+                return [
+                    {c.name: getattr(cat, c.name) for c in cat.__table__.columns}
+                    for cat in categories
+                ]
         except SQLAlchemyError as e:
             _logger.error(f"Failed to get categories for pattern {pattern_id}: {e}")
             return []

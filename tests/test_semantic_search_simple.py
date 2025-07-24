@@ -34,16 +34,13 @@ def test_text_extraction_for_embedding(temp_knowledge_dir):
 
     session_data = {
         "session_id": "test-session",
-        "context": {
-            "error_type": "ImportError",
-            "tools_used": ["pytest", "ruff"]
-        },
+        "context": {"error_type": "ImportError", "tools_used": ["pytest", "ruff"]},
         "lessons_learned": ["Check import paths", "Verify dependencies"],
         "solution_patterns": [
             {"description": "Fix import statement"},
-            {"description": "Install missing package"}
+            {"description": "Install missing package"},
         ],
-        "manual_insights": ["Python path issue"]
+        "manual_insights": ["Python path issue"],
     }
 
     text = engine._extract_text_for_embedding(session_data)
@@ -106,7 +103,7 @@ def test_integration_with_knowledge_manager(temp_knowledge_dir):
     km = KnowledgeManager(temp_knowledge_dir)
 
     # Should have semantic search engine
-    assert hasattr(km, 'semantic_search')
+    assert hasattr(km, "semantic_search")
 
     # Should be able to search patterns (even if returns empty)
     results = km.search_patterns("test query")

@@ -27,7 +27,7 @@ def sample_patterns() -> list:
             "content": "def test_function():\n    pass",
             "language": "python",
             "tags": ["test", "python"],
-            "metadata": {"complexity": "low", "size": "small"}
+            "metadata": {"complexity": "low", "size": "small"},
         },
         {
             "id": "test-pattern-2",
@@ -36,7 +36,7 @@ def sample_patterns() -> list:
             "content": "class TestClass:\n    def __init__(self):\n        self.value = 42",
             "language": "python",
             "tags": ["test", "class"],
-            "metadata": {"complexity": "medium", "size": "medium"}
+            "metadata": {"complexity": "medium", "size": "medium"},
         },
         {
             "id": "test-pattern-3",
@@ -45,15 +45,17 @@ def sample_patterns() -> list:
             "content": "class Singleton:\n    _instance = None\n    def __new__(cls):\n        if not cls._instance:\n            cls._instance = super().__new__(cls)\n        return cls._instance",
             "language": "python",
             "tags": ["singleton", "design-pattern"],
-            "metadata": {"complexity": "medium", "size": "small"}
-        }
+            "metadata": {"complexity": "medium", "size": "small"},
+        },
     ]
+
 
 @pytest.fixture
 def pattern_lifecycle_helper():
     """
     Helper for pattern lifecycle management (add, update, delete).
     """
+
     class PatternLifecycle:
         def __init__(self):
             self.patterns = {}
@@ -79,16 +81,24 @@ def pattern_lifecycle_helper():
 
     return PatternLifecycle()
 
+
 @pytest.fixture
 def semantic_similarity_pairs():
     """
     Returns pairs of patterns and queries for semantic similarity validation.
     """
     return [
-        ("singleton", "class Singleton:\n    _instance = None\n    def __new__(cls):\n        if not cls._instance:\n            cls._instance = super().__new__(cls)\n        return cls._instance"),
+        (
+            "singleton",
+            "class Singleton:\n    _instance = None\n    def __new__(cls):\n        if not cls._instance:\n            cls._instance = super().__new__(cls)\n        return cls._instance",
+        ),
         ("test function", "def test_function():\n    pass"),
-        ("class with value", "class TestClass:\n    def __init__(self):\n        self.value = 42"),
+        (
+            "class with value",
+            "class TestClass:\n    def __init__(self):\n        self.value = 42",
+        ),
     ]
+
 
 @pytest.fixture
 def pattern_analytics_dataset():
@@ -101,12 +111,12 @@ def pattern_analytics_dataset():
             "pattern_id": "test-pattern-1",
             "usage_count": 10,
             "success_rate": 0.9,
-            "last_used": (now - timedelta(days=1)).isoformat()
+            "last_used": (now - timedelta(days=1)).isoformat(),
         },
         {
             "pattern_id": "test-pattern-2",
             "usage_count": 5,
             "success_rate": 0.8,
-            "last_used": (now - timedelta(days=2)).isoformat()
-        }
+            "last_used": (now - timedelta(days=2)).isoformat(),
+        },
     ]

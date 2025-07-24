@@ -11,5 +11,5 @@ __all__ = [
     "get_current_user",
     "require_permission",
     "require_role",
-    "RateLimitExceeded"
+    "RateLimitExceeded",
 ]

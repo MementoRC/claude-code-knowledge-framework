@@ -56,27 +56,28 @@ class TestPatternMigrator:
         """Test PatternMigrator initializes correctly in report-only mode"""
         with tempfile.TemporaryDirectory() as temp_dir:
             migrator = PatternMigrator(
-                source_dir=temp_dir,
-                target_dir=None,
-                report_only=True
+                source_dir=temp_dir, target_dir=None, report_only=True
             )
             assert migrator.source_dir == Path(temp_dir)
             assert migrator.report_only is True
             assert migrator.chroma_connector is None
             assert migrator.semantic_search is None
 
-    @patch('uckn.core.molecules.pattern_migrator.ChromaDBConnector')
-    @patch('uckn.core.molecules.pattern_migrator.SemanticSearch')
-    @patch('uckn.core.molecules.pattern_migrator.PatternManager')
-    @patch('uckn.core.molecules.pattern_migrator.ErrorSolutionManager')
-    def test_migrator_initialization_full_mode(self, mock_error_manager, mock_pattern_manager,
-                                               mock_semantic_search, mock_chroma):
+    @patch("uckn.core.molecules.pattern_migrator.ChromaDBConnector")
+    @patch("uckn.core.molecules.pattern_migrator.SemanticSearch")
+    @patch("uckn.core.molecules.pattern_migrator.PatternManager")
+    @patch("uckn.core.molecules.pattern_migrator.ErrorSolutionManager")
+    def test_migrator_initialization_full_mode(
+        self,
+        mock_error_manager,
+        mock_pattern_manager,
+        mock_semantic_search,
+        mock_chroma,
+    ):
         """Test PatternMigrator initializes correctly in full mode"""
         with tempfile.TemporaryDirectory() as temp_dir:
             migrator = PatternMigrator(
-                source_dir=temp_dir,
-                target_dir=temp_dir,
-                report_only=False
+                source_dir=temp_dir, target_dir=temp_dir, report_only=False
             )
             assert migrator.source_dir == Path(temp_dir)
             assert migrator.report_only is False
@@ -92,7 +93,7 @@ class TestPatternMigrator:
             test_dir = Path(temp_dir)
             (test_dir / "pattern1.json").write_text('{"test": true}')
             (test_dir / "pattern2.json").write_text('{"test": true}')
-            (test_dir / "not_json.txt").write_text('not json')
+            (test_dir / "not_json.txt").write_text("not json")
 
             # Create subdirectory with JSON
             subdir = test_dir / "subdir"
@@ -125,7 +126,7 @@ class TestPatternMigrator:
         """Test loading invalid JSON"""
         with tempfile.TemporaryDirectory() as temp_dir:
             test_file = Path(temp_dir) / "test.json"
-            test_file.write_text('invalid json content {')
+            test_file.write_text("invalid json content {")
 
             migrator = PatternMigrator(source_dir=temp_dir, report_only=True)
             data = migrator._load_json(test_file)
@@ -141,12 +142,14 @@ class TestPatternMigrator:
                 {
                     "session_id": "test-123",
                     "document": "test content",
-                    "metadata": {"pattern_id": "pattern-123"}
+                    "metadata": {"pattern_id": "pattern-123"},
                 }
             ]
         }
 
-        obj_type, obj_list = migrator._detect_type_and_extract(legacy_data, Path("test.json"))
+        obj_type, obj_list = migrator._detect_type_and_extract(
+            legacy_data, Path("test.json")
+        )
 
         assert obj_type == "code_patterns"
         assert len(obj_list) == 1
@@ -160,13 +163,12 @@ class TestPatternMigrator:
         pattern_data = {
             "pattern_id": "test-123",
             "document": "test content",
-            "metadata": {
-                "technology_stack": ["python"],
-                "pattern_type": "setup"
-            }
+            "metadata": {"technology_stack": ["python"], "pattern_type": "setup"},
         }
 
-        obj_type, obj_list = migrator._detect_type_and_extract(pattern_data, Path("test.json"))
+        obj_type, obj_list = migrator._detect_type_and_extract(
+            pattern_data, Path("test.json")
+        )
 
         assert obj_type == "code_patterns"
         assert len(obj_list) == 1
@@ -179,12 +181,12 @@ class TestPatternMigrator:
         error_data = {
             "solution_id": "error-123",
             "document": "error solution",
-            "metadata": {
-                "error_category": "import_error"
-            }
+            "metadata": {"error_category": "import_error"},
         }
 
-        obj_type, obj_list = migrator._detect_type_and_extract(error_data, Path("test.json"))
+        obj_type, obj_list = migrator._detect_type_and_extract(
+            error_data, Path("test.json")
+        )
 
         assert obj_type == "error_solutions"
         assert len(obj_list) == 1
@@ -203,8 +205,8 @@ class TestPatternMigrator:
                 "pattern_type": "setup",
                 "success_rate": 0.9,
                 "created_at": "2024-01-01T00:00:00Z",
-                "updated_at": "2024-01-01T00:00:00Z"
-            }
+                "updated_at": "2024-01-01T00:00:00Z",
+            },
         }
 
         valid, reason = migrator._validate_object(pattern, "code_patterns")
@@ -215,10 +217,7 @@ class TestPatternMigrator:
         """Test validating code pattern with missing document"""
         migrator = PatternMigrator(source_dir=".", report_only=True)
 
-        pattern = {
-            "pattern_id": "test-123",
-            "metadata": {}
-        }
+        pattern = {"pattern_id": "test-123", "metadata": {}}
 
         valid, reason = migrator._validate_object(pattern, "code_patterns")
         assert valid is False
@@ -232,10 +231,7 @@ class TestPatternMigrator:
             test_data = {
                 "pattern_id": "test-123",
                 "document": "test content",
-                "metadata": {
-                    "technology_stack": ["python"],
-                    "pattern_type": "setup"
-                }
+                "metadata": {"technology_stack": ["python"], "pattern_type": "setup"},
             }
             test_file.write_text(json.dumps(test_data))
 

@@ -45,7 +45,9 @@ class MultiModalEmbeddingsOptimized:
             self.analytics.log("embed_batch_latency", elapsed)
         return embeddings
 
-    def multi_modal_embed(self, code=None, text=None, config=None, error=None, combine_method="mean"):
+    def multi_modal_embed(
+        self, code=None, text=None, config=None, error=None, combine_method="mean"
+    ):
         # Simulate multi-modal embedding
         parts = [x for x in [code, text, config, error] if x is not None]
         if not parts:

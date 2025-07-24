@@ -36,7 +36,7 @@ class TestPatternRecommendationEngine:
             semantic_search=self.mock_semantic_search,
             compatibility_matrix=self.mock_compatibility_matrix,
             pattern_analytics=self.mock_pattern_analytics,
-            pattern_manager=self.mock_pattern_manager
+            pattern_manager=self.mock_pattern_manager,
         )
 
     def test_initialization(self):
@@ -63,7 +63,7 @@ class TestPatternRecommendationEngine:
             semantic_search=self.mock_semantic_search,
             compatibility_matrix=self.mock_compatibility_matrix,
             pattern_analytics=self.mock_pattern_analytics,
-            pattern_manager=self.mock_pattern_manager
+            pattern_manager=self.mock_pattern_manager,
         )
         assert engine.is_available() is False
 
@@ -73,7 +73,7 @@ class TestPatternRecommendationEngine:
         mock_fingerprint = {
             "languages": ["Python"],
             "frameworks": ["FastAPI"],
-            "testing": ["pytest"]
+            "testing": ["pytest"],
         }
         self.mock_dna_fingerprinter.generate_fingerprint.return_value = mock_fingerprint
 
@@ -84,22 +84,28 @@ class TestPatternRecommendationEngine:
                 "document": "Python FastAPI setup pattern",
                 "metadata": {
                     "description": "Setup FastAPI with Python",
-                    "tech_stack": {"languages": ["Python"], "frameworks": ["FastAPI"]}
+                    "tech_stack": {"languages": ["Python"], "frameworks": ["FastAPI"]},
                 },
-                "similarity_score": 0.9
+                "similarity_score": 0.9,
             }
         ]
         self.mock_semantic_search.search_by_text.return_value = mock_search_results
 
         # Mock pattern analytics
-        self.mock_pattern_analytics.get_pattern_metrics.return_value = {"success_rate": 0.85}
+        self.mock_pattern_analytics.get_pattern_metrics.return_value = {
+            "success_rate": 0.85
+        }
 
-        recommendations = self.engine.get_setup_recommendations("/test/project", limit=5)
+        recommendations = self.engine.get_setup_recommendations(
+            "/test/project", limit=5
+        )
 
         assert len(recommendations) > 0
         assert recommendations[0].recommendation_type == RecommendationType.SETUP
         assert recommendations[0].pattern_id == "setup_1"
-        self.mock_dna_fingerprinter.generate_fingerprint.assert_called_once_with("/test/project")
+        self.mock_dna_fingerprinter.generate_fingerprint.assert_called_once_with(
+            "/test/project"
+        )
 
     def test_get_setup_recommendations_unavailable(self):
         """Test getting setup recommendations when engine is unavailable."""
@@ -112,10 +118,7 @@ class TestPatternRecommendationEngine:
     def test_get_issue_resolution_recommendations_success(self):
         """Test getting issue resolution recommendations successfully."""
         # Mock DNA fingerprinting
-        mock_fingerprint = {
-            "languages": ["Python"],
-            "frameworks": ["Django"]
-        }
+        mock_fingerprint = {"languages": ["Python"], "frameworks": ["Django"]}
         self.mock_dna_fingerprinter.generate_fingerprint.return_value = mock_fingerprint
 
         # Mock search results
@@ -125,32 +128,34 @@ class TestPatternRecommendationEngine:
                 "document": "Django import error resolution",
                 "metadata": {
                     "description": "Fix Django import errors",
-                    "tech_stack": {"languages": ["Python"], "frameworks": ["Django"]}
+                    "tech_stack": {"languages": ["Python"], "frameworks": ["Django"]},
                 },
-                "similarity_score": 0.8
+                "similarity_score": 0.8,
             }
         ]
         self.mock_semantic_search.search_by_error.return_value = mock_search_results
 
         # Mock pattern analytics
-        self.mock_pattern_analytics.get_pattern_metrics.return_value = {"success_rate": 0.9}
+        self.mock_pattern_analytics.get_pattern_metrics.return_value = {
+            "success_rate": 0.9
+        }
 
         recommendations = self.engine.get_issue_resolution_recommendations(
             "ImportError: No module named 'django'", "/test/project", limit=3
         )
 
         assert len(recommendations) > 0
-        assert recommendations[0].recommendation_type == RecommendationType.ISSUE_RESOLUTION
+        assert (
+            recommendations[0].recommendation_type
+            == RecommendationType.ISSUE_RESOLUTION
+        )
         assert recommendations[0].pattern_id == "error_1"
         self.mock_semantic_search.search_by_error.assert_called_once()
 
     def test_get_best_practice_recommendations_success(self):
         """Test getting best practice recommendations successfully."""
         # Mock DNA fingerprinting
-        mock_fingerprint = {
-            "languages": ["Python"],
-            "frameworks": ["FastAPI"]
-        }
+        mock_fingerprint = {"languages": ["Python"], "frameworks": ["FastAPI"]}
         self.mock_dna_fingerprinter.generate_fingerprint.return_value = mock_fingerprint
 
         # Mock high success patterns
@@ -160,29 +165,32 @@ class TestPatternRecommendationEngine:
                 "content": "Python testing best practices",
                 "metadata": {
                     "description": "Best practices for Python testing",
-                    "success_metrics": {"success_rate": 0.95}
+                    "success_metrics": {"success_rate": 0.95},
                 },
-                "similarity_score": 0.85
+                "similarity_score": 0.85,
             }
         ]
         self.engine._search_high_success_patterns = Mock(return_value=mock_patterns)
 
         # Mock pattern analytics
-        self.mock_pattern_analytics.get_pattern_metrics.return_value = {"success_rate": 0.95}
+        self.mock_pattern_analytics.get_pattern_metrics.return_value = {
+            "success_rate": 0.95
+        }
 
-        recommendations = self.engine.get_best_practice_recommendations("/test/project", limit=5)
+        recommendations = self.engine.get_best_practice_recommendations(
+            "/test/project", limit=5
+        )
 
         assert len(recommendations) > 0
-        assert recommendations[0].recommendation_type == RecommendationType.BEST_PRACTICE
+        assert (
+            recommendations[0].recommendation_type == RecommendationType.BEST_PRACTICE
+        )
         assert recommendations[0].pattern_id == "best_1"
 
     def test_get_proactive_recommendations_success(self):
         """Test getting proactive recommendations successfully."""
         # Mock DNA fingerprinting
-        mock_fingerprint = {
-            "languages": ["Python"],
-            "frameworks": ["Flask"]
-        }
+        mock_fingerprint = {"languages": ["Python"], "frameworks": ["Flask"]}
         self.mock_dna_fingerprinter.generate_fingerprint.return_value = mock_fingerprint
 
         # Mock search results
@@ -192,17 +200,21 @@ class TestPatternRecommendationEngine:
                 "document": "Prevent common Flask security issues",
                 "metadata": {
                     "description": "Security patterns for Flask",
-                    "tech_stack": {"languages": ["Python"], "frameworks": ["Flask"]}
+                    "tech_stack": {"languages": ["Python"], "frameworks": ["Flask"]},
                 },
-                "similarity_score": 0.8
+                "similarity_score": 0.8,
             }
         ]
         self.mock_semantic_search.search_by_text.return_value = mock_search_results
 
         # Mock pattern analytics
-        self.mock_pattern_analytics.get_pattern_metrics.return_value = {"success_rate": 0.8}
+        self.mock_pattern_analytics.get_pattern_metrics.return_value = {
+            "success_rate": 0.8
+        }
 
-        recommendations = self.engine.get_proactive_recommendations("/test/project", limit=3)
+        recommendations = self.engine.get_proactive_recommendations(
+            "/test/project", limit=3
+        )
 
         assert len(recommendations) > 0
         assert recommendations[0].recommendation_type == RecommendationType.PROACTIVE
@@ -211,19 +223,29 @@ class TestPatternRecommendationEngine:
     def test_get_comprehensive_recommendations_without_error(self):
         """Test getting comprehensive recommendations without error context."""
         # Mock setup recommendations
-        self.engine.get_setup_recommendations = Mock(return_value=[
-            self._create_mock_recommendation("setup_1", RecommendationType.SETUP)
-        ])
+        self.engine.get_setup_recommendations = Mock(
+            return_value=[
+                self._create_mock_recommendation("setup_1", RecommendationType.SETUP)
+            ]
+        )
 
         # Mock best practice recommendations
-        self.engine.get_best_practice_recommendations = Mock(return_value=[
-            self._create_mock_recommendation("best_1", RecommendationType.BEST_PRACTICE)
-        ])
+        self.engine.get_best_practice_recommendations = Mock(
+            return_value=[
+                self._create_mock_recommendation(
+                    "best_1", RecommendationType.BEST_PRACTICE
+                )
+            ]
+        )
 
         # Mock proactive recommendations
-        self.engine.get_proactive_recommendations = Mock(return_value=[
-            self._create_mock_recommendation("proactive_1", RecommendationType.PROACTIVE)
-        ])
+        self.engine.get_proactive_recommendations = Mock(
+            return_value=[
+                self._create_mock_recommendation(
+                    "proactive_1", RecommendationType.PROACTIVE
+                )
+            ]
+        )
 
         recommendations = self.engine.get_comprehensive_recommendations("/test/project")
 
@@ -241,9 +263,13 @@ class TestPatternRecommendationEngine:
         self.engine.get_setup_recommendations = Mock(return_value=[])
         self.engine.get_best_practice_recommendations = Mock(return_value=[])
         self.engine.get_proactive_recommendations = Mock(return_value=[])
-        self.engine.get_issue_resolution_recommendations = Mock(return_value=[
-            self._create_mock_recommendation("error_1", RecommendationType.ISSUE_RESOLUTION)
-        ])
+        self.engine.get_issue_resolution_recommendations = Mock(
+            return_value=[
+                self._create_mock_recommendation(
+                    "error_1", RecommendationType.ISSUE_RESOLUTION
+                )
+            ]
+        )
 
         recommendations = self.engine.get_comprehensive_recommendations(
             "/test/project", error_context="ImportError occurred"
@@ -258,13 +284,19 @@ class TestPatternRecommendationEngine:
     def test_personalize_recommendations_with_history(self):
         """Test personalizing recommendations with user history."""
         recommendations = [
-            self._create_mock_recommendation("pattern_1", RecommendationType.SETUP, confidence=0.7),
-            self._create_mock_recommendation("pattern_2", RecommendationType.SETUP, confidence=0.8)
+            self._create_mock_recommendation(
+                "pattern_1", RecommendationType.SETUP, confidence=0.7
+            ),
+            self._create_mock_recommendation(
+                "pattern_2", RecommendationType.SETUP, confidence=0.8
+            ),
         ]
 
         user_history = ["pattern_1"]
 
-        personalized = self.engine.personalize_recommendations(recommendations, user_history)
+        personalized = self.engine.personalize_recommendations(
+            recommendations, user_history
+        )
 
         # pattern_1 should have boosted confidence score
         pattern_1_rec = next(r for r in personalized if r.pattern_id == "pattern_1")
@@ -274,13 +306,15 @@ class TestPatternRecommendationEngine:
         assert pattern_2_rec.confidence_score == 0.8  # Should remain same
 
         # Recommendations should be re-sorted by confidence
-        assert personalized[0].pattern_id == "pattern_1"  # Higher confidence after boost
+        assert (
+            personalized[0].pattern_id == "pattern_1"
+        )  # Higher confidence after boost
 
     def test_personalize_recommendations_without_history(self):
         """Test personalizing recommendations without user history."""
         recommendations = [
             self._create_mock_recommendation("pattern_1", RecommendationType.SETUP),
-            self._create_mock_recommendation("pattern_2", RecommendationType.SETUP)
+            self._create_mock_recommendation("pattern_2", RecommendationType.SETUP),
         ]
 
         personalized = self.engine.personalize_recommendations(recommendations, [])
@@ -291,10 +325,7 @@ class TestPatternRecommendationEngine:
         """Test calculating compatibility score between pattern and tech stack."""
         pattern = {
             "metadata": {
-                "tech_stack": {
-                    "languages": ["Python"],
-                    "frameworks": ["Django"]
-                }
+                "tech_stack": {"languages": ["Python"], "frameworks": ["Django"]}
             }
         }
         tech_stack = ["Python", "Django"]
@@ -307,10 +338,7 @@ class TestPatternRecommendationEngine:
         """Test calculating compatibility score with partial match."""
         pattern = {
             "metadata": {
-                "tech_stack": {
-                    "languages": ["Python"],
-                    "frameworks": ["Django"]
-                }
+                "tech_stack": {"languages": ["Python"], "frameworks": ["Django"]}
             }
         }
         tech_stack = ["Python", "FastAPI"]  # Different framework
@@ -335,9 +363,15 @@ class TestPatternRecommendationEngine:
     def test_rank_recommendations(self):
         """Test ranking recommendations by confidence and other factors."""
         recommendations = [
-            self._create_mock_recommendation("low", RecommendationType.SETUP, confidence=0.5),
-            self._create_mock_recommendation("high", RecommendationType.SETUP, confidence=0.9),
-            self._create_mock_recommendation("medium", RecommendationType.SETUP, confidence=0.7)
+            self._create_mock_recommendation(
+                "low", RecommendationType.SETUP, confidence=0.5
+            ),
+            self._create_mock_recommendation(
+                "high", RecommendationType.SETUP, confidence=0.9
+            ),
+            self._create_mock_recommendation(
+                "medium", RecommendationType.SETUP, confidence=0.7
+            ),
         ]
 
         ranked = self.engine._rank_recommendations(recommendations, {})
@@ -347,10 +381,7 @@ class TestPatternRecommendationEngine:
         assert ranked[2].pattern_id == "low"
 
     def _create_mock_recommendation(
-        self,
-        pattern_id: str,
-        rec_type: RecommendationType,
-        confidence: float = 0.8
+        self, pattern_id: str, rec_type: RecommendationType, confidence: float = 0.8
     ) -> Recommendation:
         """Helper to create a mock recommendation."""
         return Recommendation(
@@ -362,7 +393,7 @@ class TestPatternRecommendationEngine:
             success_rate=0.85,
             relevance_score=0.75,
             description=f"Description for {pattern_id}",
-            metadata={}
+            metadata={},
         )
 
 

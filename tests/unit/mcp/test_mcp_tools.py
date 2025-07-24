@@ -64,10 +64,20 @@ class TestMCPToolsFunctionality:
             content = f.read()
 
         # Check for UCKN component imports
-        assert "from uckn.core.organisms.knowledge_manager import KnowledgeManager" in content
-        assert "from uckn.core.organisms.pattern_recommendation_engine import" in content
-        assert "from uckn.core.atoms.project_dna_fingerprinter import ProjectDNAFingerprinter" in content
-        assert "from uckn.core.molecules.pattern_manager import PatternManager" in content
+        assert (
+            "from uckn.core.organisms.knowledge_manager import KnowledgeManager"
+            in content
+        )
+        assert (
+            "from uckn.core.organisms.pattern_recommendation_engine import" in content
+        )
+        assert (
+            "from uckn.core.atoms.project_dna_fingerprinter import ProjectDNAFingerprinter"
+            in content
+        )
+        assert (
+            "from uckn.core.molecules.pattern_manager import PatternManager" in content
+        )
 
     def test_mcp_server_error_handling(self):
         """Test that MCP server has proper error handling."""
@@ -115,7 +125,10 @@ class TestMCPToolsFunctionality:
         with open(init_file) as f:
             content = f.read()
 
-        assert "from .universal_knowledge_server import UniversalKnowledgeServer" in content
+        assert (
+            "from .universal_knowledge_server import UniversalKnowledgeServer"
+            in content
+        )
         assert "__all__" in content
         assert "UniversalKnowledgeServer" in content
 

@@ -24,24 +24,25 @@ def tech_stack_scenarios():
         {
             "project_type": "python",
             "files": ["main.py", "requirements.txt", "setup.py"],
-            "expected_stack": ["python"]
+            "expected_stack": ["python"],
         },
         {
             "project_type": "nodejs",
             "files": ["index.js", "package.json"],
-            "expected_stack": ["nodejs", "javascript"]
+            "expected_stack": ["nodejs", "javascript"],
         },
         {
             "project_type": "java",
             "files": ["Main.java", "pom.xml"],
-            "expected_stack": ["java", "maven"]
+            "expected_stack": ["java", "maven"],
         },
         {
             "project_type": "dotnet",
             "files": ["Program.cs", "project.csproj"],
-            "expected_stack": ["dotnet", "csharp"]
-        }
+            "expected_stack": ["dotnet", "csharp"],
+        },
     ]
+
 
 @pytest.fixture
 def project_structure_generator():
@@ -65,6 +66,7 @@ def project_structure_generator():
     for d in temp_dirs:
         shutil.rmtree(d, ignore_errors=True)
 
+
 @pytest.fixture
 def dependency_file_samples():
     """
@@ -74,5 +76,5 @@ def dependency_file_samples():
         "requirements.txt": "pytest\nrequests\nsentence-transformers\n",
         "package.json": '{ "dependencies": { "express": "^4.17.1" } }',
         "pom.xml": "<project><dependencies></dependencies></project>",
-        "project.csproj": "<Project Sdk=\"Microsoft.NET.Sdk\"></Project>"
+        "project.csproj": '<Project Sdk="Microsoft.NET.Sdk"></Project>',
     }

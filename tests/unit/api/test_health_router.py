@@ -34,8 +34,8 @@ def test_system_status_healthy(mock_get_km, client):
         "unified_db_available": True,
         "components": {
             "pattern_manager": "healthy",
-            "error_solution_manager": "healthy"
-        }
+            "error_solution_manager": "healthy",
+        },
     }
     mock_get_km.return_value = mock_km
 
@@ -56,8 +56,8 @@ def test_system_status_degraded(mock_get_km, client):
         "unified_db_available": False,
         "components": {
             "pattern_manager": "degraded",
-            "error_solution_manager": "degraded"
-        }
+            "error_solution_manager": "degraded",
+        },
     }
     mock_get_km.return_value = mock_km
 

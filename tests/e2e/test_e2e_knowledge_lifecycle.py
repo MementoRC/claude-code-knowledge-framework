@@ -14,10 +14,12 @@ def temp_knowledge_dir():
     yield temp_dir
     shutil.rmtree(temp_dir)
 
+
 @pytest.fixture(scope="module")
 def km(temp_knowledge_dir):
     km = KnowledgeManager(knowledge_dir=temp_knowledge_dir)
     yield km
+
 
 def test_complete_knowledge_lifecycle(km):
     """Test complete knowledge lifecycle: ingestion → processing → storage → retrieval → analytics"""
@@ -31,8 +33,8 @@ def test_complete_knowledge_lifecycle(km):
             "technology_stack": "python",  # String, not list
             "success_rate": 0.92,
             "created_at": "2024-06-28T12:00:00Z",
-            "updated_at": "2024-06-28T12:00:00Z"
-        }
+            "updated_at": "2024-06-28T12:00:00Z",
+        },
     }
     pattern_id = km.add_pattern(pattern)
     assert pattern_id is not None
@@ -45,8 +47,8 @@ def test_complete_knowledge_lifecycle(km):
             "resolution_steps": "Use hasattr() before access",  # String, not list
             "avg_resolution_time": 1.0,
             "created_at": "2024-06-28T12:00:00Z",
-            "updated_at": "2024-06-28T12:00:00Z"
-        }
+            "updated_at": "2024-06-28T12:00:00Z",
+        },
     }
     solution_id = km.add_error_solution(solution)
     assert solution_id is not None
@@ -73,7 +75,9 @@ def test_complete_knowledge_lifecycle(km):
 
     # 4. Retrieval: Test classification and categorization
     # Create category and assign pattern
-    category_id = km.create_category("Architecture Patterns", "Software architecture patterns")
+    category_id = km.create_category(
+        "Architecture Patterns", "Software architecture patterns"
+    )
     assert category_id is not None
 
     assigned = km.assign_pattern_to_category(pattern_id, category_id)
@@ -105,6 +109,7 @@ def test_complete_knowledge_lifecycle(km):
     solution_deleted = km.error_solution_manager.delete_error_solution(solution_id)
     assert solution_deleted
 
+
 def test_end_to_end_error_handling(km):
     """Test end-to-end error handling and graceful degradation"""
 
@@ -122,8 +127,11 @@ def test_end_to_end_error_handling(km):
     assert len(results) == 0
 
     # Test invalid category operations
-    invalid_assignment = km.assign_pattern_to_category("invalid_pattern", "invalid_category")
+    invalid_assignment = km.assign_pattern_to_category(
+        "invalid_pattern", "invalid_category"
+    )
     assert not invalid_assignment
+
 
 def test_concurrent_operations(km):
     """Test system behavior under concurrent operations"""
@@ -139,8 +147,8 @@ def test_concurrent_operations(km):
                 "technology_stack": "python",
                 "success_rate": 0.8 + (i * 0.05),
                 "created_at": "2024-06-28T12:00:00Z",
-                "updated_at": "2024-06-28T12:00:00Z"
-            }
+                "updated_at": "2024-06-28T12:00:00Z",
+            },
         }
         pattern_id = km.add_pattern(pattern)
         assert pattern_id is not None

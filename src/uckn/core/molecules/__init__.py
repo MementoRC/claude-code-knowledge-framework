@@ -16,5 +16,5 @@ __all__ = [
     "PatternMigrator",
     "PatternAnalytics",
     "TechStackCompatibilityMatrix",
-    "PatternClassification"
+    "PatternClassification",
 ]

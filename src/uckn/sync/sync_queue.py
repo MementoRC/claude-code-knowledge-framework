@@ -13,6 +13,7 @@ from typing import Any
 
 class QueueOperation(Enum):
     """Types of queued operations."""
+
     ADD = "add"
     UPDATE = "update"
     DELETE = "delete"
@@ -21,6 +22,7 @@ class QueueOperation(Enum):
 
 class QueuePriority(Enum):
     """Queue operation priorities."""
+
     LOW = 1
     NORMAL = 2
     HIGH = 3
@@ -30,7 +32,7 @@ class QueuePriority(Enum):
 class SyncQueue:
     """
     Manages a queue of synchronization operations for offline mode.
-    
+
     Features:
     - Priority-based queuing
     - Duplicate detection and merging
@@ -55,7 +57,7 @@ class SyncQueue:
             "total_queued": 0,
             "total_processed": 0,
             "total_failed": 0,
-            "current_size": 0
+            "current_size": 0,
         }
 
     def add_pattern(
@@ -63,17 +65,17 @@ class SyncQueue:
         pattern_id: str,
         operation: QueueOperation = QueueOperation.SYNC,
         priority: QueuePriority = QueuePriority.NORMAL,
-        data: dict[str, Any] | None = None
+        data: dict[str, Any] | None = None,
     ) -> bool:
         """
         Add a pattern operation to the sync queue.
-        
+
         Args:
             pattern_id: ID of the pattern to sync
             operation: Type of operation to perform
             priority: Priority level for the operation
             data: Additional data for the operation
-            
+
         Returns:
             True if added successfully, False if queue is full or duplicate
         """
@@ -94,7 +96,7 @@ class SyncQueue:
             "data": data or {},
             "queued_at": datetime.now().isoformat(),
             "retry_count": 0,
-            "last_error": None
+            "last_error": None,
         }
 
         # Add to appropriate priority queue
@@ -115,10 +117,10 @@ class SyncQueue:
     def get_next_batch(self, batch_size: int = 10) -> list[dict[str, Any]]:
         """
         Get the next batch of items to process, ordered by priority.
-        
+
         Args:
             batch_size: Maximum number of items to return
-            
+
         Returns:
             List of queue items to process
         """
@@ -136,10 +138,10 @@ class SyncQueue:
     def get_pending_patterns(self, limit: int = 100) -> list[str]:
         """
         Get list of pattern IDs that are pending sync.
-        
+
         Args:
             limit: Maximum number of pattern IDs to return
-            
+
         Returns:
             List of pattern IDs pending sync
         """
@@ -148,7 +150,7 @@ class SyncQueue:
         # Collect from all queues
         for priority in QueuePriority:
             queue = self.queues[priority]
-            for item in list(queue)[:limit - len(pattern_ids)]:
+            for item in list(queue)[: limit - len(pattern_ids)]:
                 pattern_ids.append(item["pattern_id"])
                 if len(pattern_ids) >= limit:
                     break
@@ -169,27 +171,22 @@ class SyncQueue:
 
         self.logger.debug(f"Marked {len(pattern_ids)} patterns as processed")
 
-    def mark_failed(
-        self,
-        pattern_id: str,
-        error: str,
-        max_retries: int = 3
-    ) -> bool:
+    def mark_failed(self, pattern_id: str, error: str, max_retries: int = 3) -> bool:
         """
         Mark a pattern operation as failed and handle retry logic.
-        
+
         Args:
             pattern_id: Pattern ID that failed
             error: Error message
             max_retries: Maximum retry attempts
-            
+
         Returns:
             True if item will be retried, False if permanently failed
         """
         # Find the item in queues
         for priority in QueuePriority:
             queue = self.queues[priority]
-            for i, item in enumerate(queue):
+            for _i, item in enumerate(queue):
                 if item["pattern_id"] == pattern_id:
                     item["retry_count"] += 1
                     item["last_error"] = error
@@ -246,7 +243,9 @@ class SyncQueue:
         return {
             **self.stats,
             "priority_breakdown": priority_counts,
-            "queue_utilization": self.size() / self.max_size if self.max_size > 0 else 0
+            "queue_utilization": self.size() / self.max_size
+            if self.max_size > 0
+            else 0,
         }
 
     def get_failed_items(self) -> list[dict[str, Any]]:
@@ -263,10 +262,10 @@ class SyncQueue:
     def retry_failed(self, pattern_id: str | None = None) -> int:
         """
         Retry failed items by resetting their retry count.
-        
+
         Args:
             pattern_id: Specific pattern to retry, or None to retry all
-            
+
         Returns:
             Number of items reset for retry
         """
@@ -294,7 +293,7 @@ class SyncQueue:
             "queues": queue_data,
             "queued_patterns": list(self.queued_patterns),
             "stats": self.stats,
-            "max_size": self.max_size
+            "max_size": self.max_size,
         }
 
     def from_dict(self, data: dict[str, Any]) -> None:
@@ -325,7 +324,7 @@ class SyncQueue:
     def save_to_file(self, file_path: str) -> bool:
         """Save queue to file for persistence."""
         try:
-            with open(file_path, 'w') as f:
+            with open(file_path, "w") as f:
                 json.dump(self.to_dict(), f, indent=2)
 
             self.logger.debug(f"Saved sync queue to {file_path}")

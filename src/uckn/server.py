@@ -63,26 +63,29 @@ async def handle_read_resource(uri: AnyUrl) -> str:
     if uri_str == "uckn://knowledge/patterns":
         # Return knowledge patterns
         patterns = await knowledge_manager.get_all_patterns()
-        return f"Available patterns: {len(patterns)} found\n" + "\n".join([
-            f"- {pattern.get('title', 'Unknown')}: {pattern.get('description', 'No description')}"
-            for pattern in patterns
-        ])
+        return f"Available patterns: {len(patterns)} found\n" + "\n".join(
+            [
+                f"- {pattern.get('title', 'Unknown')}: {pattern.get('description', 'No description')}"
+                for pattern in patterns
+            ]
+        )
 
     elif uri_str == "uckn://knowledge/tech-stack":
         # Return technology stack detection
         tech_stack = await knowledge_manager.detect_tech_stack(".")
-        return "Technology Stack:\n" + "\n".join([
-            f"- {tech}: {version}"
-            for tech, version in tech_stack.items()
-        ])
+        return "Technology Stack:\n" + "\n".join(
+            [f"- {tech}: {version}" for tech, version in tech_stack.items()]
+        )
 
     elif uri_str == "uckn://knowledge/errors":
         # Return error solutions
         errors = await knowledge_manager.get_error_solutions()
-        return f"Error Solutions: {len(errors)} found\n" + "\n".join([
-            f"- {error.get('pattern', 'Unknown error')}: {error.get('solution', 'No solution')}"
-            for error in errors
-        ])
+        return f"Error Solutions: {len(errors)} found\n" + "\n".join(
+            [
+                f"- {error.get('pattern', 'Unknown error')}: {error.get('solution', 'No solution')}"
+                for error in errors
+            ]
+        )
 
     else:
         raise ValueError(f"Unknown resource: {uri_str}")
@@ -100,16 +103,16 @@ async def handle_list_tools() -> list[Tool]:
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "Search query for patterns"
+                        "description": "Search query for patterns",
                     },
                     "limit": {
                         "type": "integer",
                         "description": "Maximum number of results",
-                        "default": 10
-                    }
+                        "default": 10,
+                    },
                 },
-                "required": ["query"]
-            }
+                "required": ["query"],
+            },
         ),
         Tool(
             name="analyze_project",
@@ -120,10 +123,10 @@ async def handle_list_tools() -> list[Tool]:
                     "path": {
                         "type": "string",
                         "description": "Project path to analyze",
-                        "default": "."
+                        "default": ".",
                     }
-                }
-            }
+                },
+            },
         ),
         Tool(
             name="find_error_solution",
@@ -133,17 +136,17 @@ async def handle_list_tools() -> list[Tool]:
                 "properties": {
                     "error_message": {
                         "type": "string",
-                        "description": "Error message or pattern to search for solutions"
+                        "description": "Error message or pattern to search for solutions",
                     },
                     "context": {
                         "type": "string",
                         "description": "Additional context about the error",
-                        "default": ""
-                    }
+                        "default": "",
+                    },
                 },
-                "required": ["error_message"]
-            }
-        )
+                "required": ["error_message"],
+            },
+        ),
     ]
 
 
@@ -216,7 +219,7 @@ async def main():
     # Configure logging
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     logger.info("Starting UCKN MCP Server...")
@@ -232,9 +235,9 @@ async def main():
                 server_version="1.0.0",
                 capabilities=ServerCapabilities(
                     resources={"subscribe": True, "listChanged": True},
-                    tools={"listChanged": True}
-                )
-            )
+                    tools={"listChanged": True},
+                ),
+            ),
         )
 
 

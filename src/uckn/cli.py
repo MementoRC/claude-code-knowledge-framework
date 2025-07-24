@@ -14,11 +14,13 @@ from rich.table import Table
 
 console = Console()
 
+
 @click.group()
 @click.version_option(version="1.0.0", prog_name="uckn")
 def main():
     """Universal Claude Code Knowledge Network (UCKN) CLI"""
     pass
+
 
 @main.command()
 @click.option("--template", default="python-ml", help="Project template to use")
@@ -33,6 +35,7 @@ def init(template: str, project_name: str):
 
     # TODO: Implement project initialization
     console.print("✅ Project initialized successfully!")
+
 
 @main.command()
 @click.argument("path", default=".")
@@ -52,6 +55,7 @@ def analyze(path: str):
 
     console.print(table)
 
+
 @main.command()
 @click.argument("query")
 @click.option("--limit", default=10, help="Number of results to return")
@@ -65,26 +69,56 @@ def search(query: str, limit: int):
     console.print("2. PyTest configuration best practices")
     console.print("3. GitHub Actions for Python projects")
 
+
 @main.command()
-@click.option("--source", required=True, help="Source knowledge directory (e.g. .claude/knowledge)")
-@click.option("--target", required=False, help="Target UCKN knowledge directory (e.g. .uckn/knowledge)")
-@click.option("--dry-run", is_flag=True, default=False, help="Perform a dry run without writing to the database")
-@click.option("--validate-only", is_flag=True, default=False, help="Only validate patterns, do not migrate")
-@click.option("--report-only", is_flag=True, default=False, help="Only generate a migration report, do not migrate or validate")
-def migrate(source: str, target: str, dry_run: bool, validate_only: bool, report_only: bool):
+@click.option(
+    "--source",
+    required=True,
+    help="Source knowledge directory (e.g. .claude/knowledge)",
+)
+@click.option(
+    "--target",
+    required=False,
+    help="Target UCKN knowledge directory (e.g. .uckn/knowledge)",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="Perform a dry run without writing to the database",
+)
+@click.option(
+    "--validate-only",
+    is_flag=True,
+    default=False,
+    help="Only validate patterns, do not migrate",
+)
+@click.option(
+    "--report-only",
+    is_flag=True,
+    default=False,
+    help="Only generate a migration report, do not migrate or validate",
+)
+def migrate(
+    source: str, target: str, dry_run: bool, validate_only: bool, report_only: bool
+):
     """Migrate existing knowledge patterns to UCKN format"""
     import logging
 
     from uckn.core.molecules.pattern_migrator import PatternMigrator
+
     logger = logging.getLogger("uckn.migrate")
     logger.setLevel(logging.INFO)
 
     if not target:
         # Default: sibling of source, named .uckn/knowledge
         from pathlib import Path
+
         target = str(Path(source).parent / ".uckn" / "knowledge")
 
-    console.print(f"📦 Migrating patterns from [bold]{source}[/bold] to [bold]{target}[/bold]")
+    console.print(
+        f"📦 Migrating patterns from [bold]{source}[/bold] to [bold]{target}[/bold]"
+    )
     if dry_run:
         console.print("[yellow]Dry run mode: No data will be written.[/yellow]")
     if validate_only:
@@ -110,21 +144,29 @@ def migrate(source: str, target: str, dry_run: bool, validate_only: bool, report
         report = migrator.migrate()
     report.print_report(console=console)
     if report.failed or report.errors:
-        console.print("[red]Some patterns failed to migrate or validate. See report above.[/red]")
+        console.print(
+            "[red]Some patterns failed to migrate or validate. See report above.[/red]"
+        )
     else:
         console.print("[green]✅ Migration/validation completed successfully![/green]")
 
+
 # --- Analytics CLI Integration ---
+
 
 def get_pattern_analytics():
     try:
         from uckn.core.molecules.pattern_analytics import PatternAnalytics
         from uckn.storage.chromadb_connector import ChromaDBConnector
+
         chroma_connector = ChromaDBConnector()
         return PatternAnalytics(chroma_connector)
     except ImportError as e:
-        console.print(f"[red]PatternAnalytics molecule not found: {e}. Please ensure it is installed.[/red]")
+        console.print(
+            f"[red]PatternAnalytics molecule not found: {e}. Please ensure it is installed.[/red]"
+        )
         sys.exit(1)
+
 
 def print_json_or_table(data, json_flag, table_title=None, columns=None, row_fn=None):
     if json_flag:
@@ -140,10 +182,12 @@ def print_json_or_table(data, json_flag, table_title=None, columns=None, row_fn=
         else:
             console.print(data)
 
+
 @click.group()
 def analytics():
     """Analytics commands for UCKN patterns"""
     pass
+
 
 @analytics.command("pattern")
 @click.argument("pattern_id")
@@ -154,7 +198,9 @@ def analytics_pattern(pattern_id, json_flag):
     try:
         metrics = analytics.get_pattern_metrics(pattern_id)
         if not metrics:
-            console.print(f"[yellow]No metrics found for pattern: {pattern_id}[/yellow]")
+            console.print(
+                f"[yellow]No metrics found for pattern: {pattern_id}[/yellow]"
+            )
             return
         if json_flag:
             console.print(JSON.from_data(metrics))
@@ -167,6 +213,7 @@ def analytics_pattern(pattern_id, json_flag):
             console.print(table)
     except Exception as e:
         console.print(f"[red]Error fetching pattern metrics: {e}[/red]")
+
 
 @analytics.command("top")
 @click.option("--limit", default=10, help="Number of top patterns to show")
@@ -187,17 +234,18 @@ def analytics_top(limit, json_flag):
                 ("Pattern ID", "cyan"),
                 ("Quality Score", "green"),
                 ("Applications", "yellow"),
-                ("Last Applied", "magenta")
+                ("Last Applied", "magenta"),
             ],
             row_fn=lambda p: (
                 str(p.get("pattern_id", "")),
                 f"{p.get('quality_score', 0):.2f}",
                 str(p.get("application_count", 0)),
-                "N/A"  # last_applied not available in current implementation
-            )
+                "N/A",  # last_applied not available in current implementation
+            ),
         )
     except Exception as e:
         console.print(f"[red]Error fetching top patterns: {e}[/red]")
+
 
 @analytics.command("problematic")
 @click.option("--threshold", default=0.5, help="Success rate threshold")
@@ -221,17 +269,18 @@ def analytics_problematic(threshold, min_applications, json_flag):
                 ("Pattern ID", "cyan"),
                 ("Success Rate", "red"),
                 ("Applications", "yellow"),
-                ("Last Applied", "magenta")
+                ("Last Applied", "magenta"),
             ],
             row_fn=lambda p: (
                 str(p.get("pattern_id", "")),
                 f"{p.get('success_rate', 0):.2f}",
                 str(p.get("application_count", 0)),
-                "N/A"  # last_applied not available in current implementation
-            )
+                "N/A",  # last_applied not available in current implementation
+            ),
         )
     except Exception as e:
         console.print(f"[red]Error fetching problematic patterns: {e}[/red]")
+
 
 @analytics.command("trends")
 @click.argument("pattern_id")
@@ -243,12 +292,16 @@ def analytics_trends(pattern_id, days, json_flag):
     try:
         trends = analytics.get_trend_analysis(pattern_id, days=days)
         if not trends:
-            console.print(f"[yellow]No trend data found for pattern: {pattern_id}[/yellow]")
+            console.print(
+                f"[yellow]No trend data found for pattern: {pattern_id}[/yellow]"
+            )
             return
         if json_flag:
             console.print(JSON.from_data(trends))
         else:
-            table = Table(title=f"Trend Analysis: {pattern_id} (Last {days} days)", box=box.SIMPLE)
+            table = Table(
+                title=f"Trend Analysis: {pattern_id} (Last {days} days)", box=box.SIMPLE
+            )
             table.add_column("Date", style="cyan")
             table.add_column("Applications", style="yellow")
             table.add_column("Success Rate", style="green")
@@ -256,11 +309,14 @@ def analytics_trends(pattern_id, days, json_flag):
                 table.add_row(
                     str(entry.get("date", "")),
                     str(entry.get("count", "")),
-                    f"{entry.get('success_rate', 0):.2f}" if entry.get('success_rate') is not None else "N/A"
+                    f"{entry.get('success_rate', 0):.2f}"
+                    if entry.get("success_rate") is not None
+                    else "N/A",
                 )
             console.print(table)
     except Exception as e:
         console.print(f"[red]Error fetching trend analysis: {e}[/red]")
+
 
 @analytics.command("batch-update")
 @click.option("--json", "json_flag", is_flag=True, help="Output as JSON")
@@ -277,11 +333,17 @@ def analytics_batch_update(json_flag):
     except Exception as e:
         console.print(f"[red]Error during batch update: {e}[/red]")
 
+
 # --- Application Tracking Commands ---
+
 
 @main.command("track-application")
 @click.argument("pattern_id")
-@click.option("--context", default="{}", help="Context JSON (e.g. '{\"technology_stack\": [\"python\"]}')")
+@click.option(
+    "--context",
+    default="{}",
+    help='Context JSON (e.g. \'{"technology_stack": ["python"]}\')',
+)
 @click.option("--json", "json_flag", is_flag=True, help="Output as JSON")
 def track_application(pattern_id, context, json_flag):
     """Record a pattern application event"""
@@ -298,18 +360,27 @@ def track_application(pattern_id, context, json_flag):
         if not application_id:
             console.print("[red]Failed to record application.[/red]")
             return
-        result = {"application_id": application_id, "pattern_id": pattern_id, "status": "recorded"}
+        result = {
+            "application_id": application_id,
+            "pattern_id": pattern_id,
+            "status": "recorded",
+        }
         if json_flag:
             console.print(JSON.from_data(result))
         else:
-            console.print(f"[green]Application recorded! Application ID: {application_id}[/green]")
+            console.print(
+                f"[green]Application recorded! Application ID: {application_id}[/green]"
+            )
     except Exception as e:
         console.print(f"[red]Error recording application: {e}[/red]")
+
 
 @main.command("record-outcome")
 @click.argument("application_id")
 @click.argument("outcome")
-@click.option("--time", "time_taken", type=float, required=False, help="Time taken (seconds)")
+@click.option(
+    "--time", "time_taken", type=float, required=False, help="Time taken (seconds)"
+)
 @click.option("--json", "json_flag", is_flag=True, help="Output as JSON")
 def record_outcome(application_id, outcome, time_taken, json_flag):
     """Record the outcome of a pattern application"""
@@ -319,13 +390,20 @@ def record_outcome(application_id, outcome, time_taken, json_flag):
         if not success:
             console.print("[red]Failed to record outcome.[/red]")
             return
-        result = {"application_id": application_id, "outcome": outcome, "status": "recorded"}
+        result = {
+            "application_id": application_id,
+            "outcome": outcome,
+            "status": "recorded",
+        }
         if json_flag:
             console.print(JSON.from_data(result))
         else:
-            console.print(f"[green]Outcome '{outcome}' recorded for application {application_id}![/green]")
+            console.print(
+                f"[green]Outcome '{outcome}' recorded for application {application_id}![/green]"
+            )
     except Exception as e:
         console.print(f"[red]Error recording outcome: {e}[/red]")
+
 
 # Register analytics group
 main.add_command(analytics)

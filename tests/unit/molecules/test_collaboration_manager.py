@@ -43,7 +43,7 @@ class TestCollaborationManager:
             team_id="team-456",
             resource_id="pattern-789",
             resource_type="pattern",
-            action="share"
+            action="share",
         )
 
         # Mock the notification methods
@@ -54,17 +54,21 @@ class TestCollaborationManager:
         await collaboration_manager.track_activity(event)
 
         # Verify all notification methods were called
-        collaboration_manager._notify_activity_subscribers.assert_called_once_with(event)
+        collaboration_manager._notify_activity_subscribers.assert_called_once_with(
+            event
+        )
         collaboration_manager._send_notifications.assert_called_once_with(event)
         collaboration_manager._trigger_webhooks.assert_called_once_with(event)
 
-    async def test_add_comment_success(self, collaboration_manager, mock_knowledge_manager):
+    async def test_add_comment_success(
+        self, collaboration_manager, mock_knowledge_manager
+    ):
         """Test successful comment addition."""
         comment = Comment(
             pattern_id="pattern-123",
             user_id="user-456",
             content="Great pattern!",
-            metadata={"source": "web"}
+            metadata={"source": "web"},
         )
 
         collaboration_manager.track_activity = AsyncMock()
@@ -82,14 +86,16 @@ class TestCollaborationManager:
         assert activity_call.user_id == "user-456"
         assert activity_call.resource_id == "pattern-123"
 
-    async def test_add_comment_pattern_not_found(self, collaboration_manager, mock_knowledge_manager):
+    async def test_add_comment_pattern_not_found(
+        self, collaboration_manager, mock_knowledge_manager
+    ):
         """Test comment addition when pattern doesn't exist."""
         mock_knowledge_manager.get_pattern.return_value = None
 
         comment = Comment(
             pattern_id="nonexistent-pattern",
             user_id="user-456",
-            content="Comment on nonexistent pattern"
+            content="Comment on nonexistent pattern",
         )
 
         with pytest.raises(ValueError, match="Pattern nonexistent-pattern not found"):
@@ -108,9 +114,9 @@ class TestCollaborationManager:
         if comments:
             comment = comments[0]
             assert comment.pattern_id == pattern_id
-            assert hasattr(comment, 'user_id')
-            assert hasattr(comment, 'content')
-            assert hasattr(comment, 'created_at')
+            assert hasattr(comment, "user_id")
+            assert hasattr(comment, "content")
+            assert hasattr(comment, "created_at")
 
     async def test_set_notification_preference(self, collaboration_manager):
         """Test setting notification preferences."""
@@ -118,7 +124,7 @@ class TestCollaborationManager:
             user_id="user-123",
             notification_type="email",
             event_types=["pattern_shared", "comment_added"],
-            enabled=True
+            enabled=True,
         )
 
         await collaboration_manager.set_notification_preference(preference)
@@ -136,7 +142,7 @@ class TestCollaborationManager:
             name="Slack Integration",
             url="https://hooks.slack.com/webhook",
             event_types=["pattern_shared", "comment_added"],
-            enabled=True
+            enabled=True,
         )
 
         await collaboration_manager.add_webhook(webhook)
@@ -171,7 +177,7 @@ class TestActivityEvent:
             resource_id="pattern-789",
             resource_type="pattern",
             action="create",
-            metadata={"source": "api"}
+            metadata={"source": "api"},
         )
 
         assert event.type == "pattern_created"

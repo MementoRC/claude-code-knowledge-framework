@@ -14,16 +14,18 @@ try:
     import nltk
     from nltk.stem import PorterStemmer
     from nltk.tokenize import word_tokenize
+
     # Download necessary NLTK data if not already present
     try:
-        nltk.data.find('tokenizers/punkt')
+        nltk.data.find("tokenizers/punkt")
     except LookupError:
-        nltk.download('punkt', quiet=True)
+        nltk.download("punkt", quiet=True)
     NLTK_AVAILABLE = True
 except ImportError:
     PorterStemmer = None
     word_tokenize = None
     NLTK_AVAILABLE = False
+
 
 class QueryParser:
     """
@@ -48,7 +50,7 @@ class QueryParser:
             "performance": ["speed", "optimize", "efficiency"],
             "security": ["vulnerability", "exploit", "secure"],
             "deployment": ["deploy", "ci/cd", "devops"],
-            "testing": ["test", "qa", "unit test", "integration test"]
+            "testing": ["test", "qa", "unit test", "integration test"],
         }
 
     def _stem_word(self, word: str) -> str:
@@ -66,11 +68,13 @@ class QueryParser:
 
         # Check for exact match or stemmed match in synonym map
         for key, synonyms in self.synonym_map.items():
-            if word_lower == key or (self.stemmer and self.stemmer.stem(word_lower) == self.stemmer.stem(key)):
+            if word_lower == key or (
+                self.stemmer and self.stemmer.stem(word_lower) == self.stemmer.stem(key)
+            ):
                 expanded_words.update(synonyms)
                 if self.stemmer:
                     expanded_words.update(self.stemmer.stem(s) for s in synonyms)
-            elif word_lower in synonyms: # If the word itself is a synonym
+            elif word_lower in synonyms:  # If the word itself is a synonym
                 expanded_words.add(key)
                 if self.stemmer:
                     expanded_words.add(self.stemmer.stem(key))
@@ -87,10 +91,14 @@ class QueryParser:
             return {"operator": "AND", "clauses": []}
 
         # Normalize operators to uppercase for consistent parsing
-        query_string = query_string.replace(" AND ", " AND ").replace(" OR ", " OR ").replace(" NOT ", " NOT ")
+        query_string = (
+            query_string.replace(" AND ", " AND ")
+            .replace(" OR ", " OR ")
+            .replace(" NOT ", " NOT ")
+        )
 
         # Regex to split by operators, keeping them
-        tokens = re.split(r'( AND | OR | NOT )', query_string)
+        tokens = re.split(r"( AND | OR | NOT )", query_string)
         tokens = [t.strip() for t in tokens if t.strip()]
 
         # Handle implicit ANDs and parentheses
@@ -98,26 +106,30 @@ class QueryParser:
         i = 0
         while i < len(tokens):
             token = tokens[i]
-            if token == '(':
+            if token == "(":
                 # Find matching parenthesis
                 paren_level = 1
                 sub_tokens = []
                 j = i + 1
                 while j < len(tokens) and paren_level > 0:
-                    if tokens[j] == '(':
+                    if tokens[j] == "(":
                         paren_level += 1
-                    elif tokens[j] == ')':
+                    elif tokens[j] == ")":
                         paren_level -= 1
                     if paren_level > 0:
                         sub_tokens.append(tokens[j])
                     j += 1
                 if paren_level != 0:
-                    self._logger.warning(f"Mismatched parentheses in query: {query_string}")
+                    self._logger.warning(
+                        f"Mismatched parentheses in query: {query_string}"
+                    )
                     # Treat as a single term if parentheses are mismatched
                     processed_tokens.append(token + " ".join(sub_tokens))
                     i = j
                 else:
-                    processed_tokens.append(self.parse_query(" ".join(sub_tokens))) # Recursively parse sub-query
+                    processed_tokens.append(
+                        self.parse_query(" ".join(sub_tokens))
+                    )  # Recursively parse sub-query
                     i = j
             elif token in ["AND", "OR", "NOT"]:
                 processed_tokens.append(token)
@@ -127,18 +139,31 @@ class QueryParser:
                 expanded_terms = self._expand_synonyms(token)
                 if len(expanded_terms) > 1:
                     # If multiple synonyms, treat as an OR clause
-                    processed_tokens.append({"operator": "OR", "clauses": [{"type": "term", "value": t} for t in expanded_terms]})
+                    processed_tokens.append(
+                        {
+                            "operator": "OR",
+                            "clauses": [
+                                {"type": "term", "value": t} for t in expanded_terms
+                            ],
+                        }
+                    )
                 else:
-                    processed_tokens.append({"type": "term", "value": expanded_terms[0]})
+                    processed_tokens.append(
+                        {"type": "term", "value": expanded_terms[0]}
+                    )
                 i += 1
 
             # Insert implicit ANDs
-            if i < len(tokens) and \
-               isinstance(processed_tokens[-1], (dict, str)) and \
-               tokens[i] not in ["AND", "OR", "NOT", ")"] and \
-               not (isinstance(tokens[i], dict) and tokens[i].get("operator")): # If next token is not an operator or a parsed sub-query
-                if isinstance(tokens[i], str) and tokens[i] == '(': # Handle ( after a term
-                    pass # Handled by the ( logic above
+            if (
+                i < len(tokens)
+                and isinstance(processed_tokens[-1], dict | str)
+                and tokens[i] not in ["AND", "OR", "NOT", ")"]
+                and not (isinstance(tokens[i], dict) and tokens[i].get("operator"))
+            ):  # If next token is not an operator or a parsed sub-query
+                if (
+                    isinstance(tokens[i], str) and tokens[i] == "("
+                ):  # Handle ( after a term
+                    pass  # Handled by the ( logic above
                 else:
                     processed_tokens.append("AND")
 
@@ -175,7 +200,7 @@ class QueryParser:
                 left = temp_q.pop()
                 if not q:
                     self._logger.warning("AND operator without right operand in query.")
-                    temp_q.append(left) # Put left back
+                    temp_q.append(left)  # Put left back
                     continue
                 right = q.popleft()
                 temp_q.append({"operator": "AND", "clauses": [left, right]})
@@ -194,7 +219,7 @@ class QueryParser:
                 left = temp_q.pop()
                 if not q:
                     self._logger.warning("OR operator without right operand in query.")
-                    temp_q.append(left) # Put left back
+                    temp_q.append(left)  # Put left back
                     continue
                 right = q.popleft()
                 temp_q.append({"operator": "OR", "clauses": [left, right]})
@@ -202,7 +227,7 @@ class QueryParser:
                 temp_q.append(item)
 
         if not temp_q:
-            return {"operator": "AND", "clauses": []} # Empty query or only operators
+            return {"operator": "AND", "clauses": []}  # Empty query or only operators
 
         # If there's only one item left, it's the root of the AST
         if len(temp_q) == 1:
@@ -211,7 +236,9 @@ class QueryParser:
             # If multiple items remain, it implies implicit ANDs at the top level
             # This can happen if the initial parsing didn't insert enough ANDs or if the query is malformed
             # For safety, wrap remaining top-level items in an implicit AND
-            self._logger.warning(f"Multiple top-level clauses after parsing, implicitly combining with AND: {temp_q}")
+            self._logger.warning(
+                f"Multiple top-level clauses after parsing, implicitly combining with AND: {temp_q}"
+            )
             return {"operator": "AND", "clauses": list(temp_q)}
 
     def extract_terms(self, query_dict: dict[str, Any]) -> list[str]:
@@ -230,4 +257,3 @@ class QueryParser:
 
         _extract_recursive(query_dict)
         return list(set(terms))  # Remove duplicates
-

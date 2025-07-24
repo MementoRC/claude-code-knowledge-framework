@@ -14,7 +14,7 @@ from typing import Any
 class PersonalizedRanking:
     """
     Manages personalized ranking of search results based on user behavior.
-    
+
     Features:
     - User interaction tracking (clicks, views, ratings)
     - Technology preference learning
@@ -31,7 +31,7 @@ class PersonalizedRanking:
             "download": 3.0,
             "rate": 4.0,
             "share": 2.5,
-            "bookmark": 3.5
+            "bookmark": 3.5,
         }
 
     def track_interaction(
@@ -40,11 +40,11 @@ class PersonalizedRanking:
         pattern_id: str,
         interaction_type: str,
         pattern_metadata: dict[str, Any] | None = None,
-        rating: float | None = None
+        rating: float | None = None,
     ) -> None:
         """
         Track user interaction with a pattern.
-        
+
         Args:
             user_id: Unique user identifier
             pattern_id: Pattern that was interacted with
@@ -61,7 +61,7 @@ class PersonalizedRanking:
                 "language_preferences": defaultdict(float),
                 "successful_patterns": set(),
                 "bookmarked_patterns": set(),
-                "last_activity": None
+                "last_activity": None,
             }
 
         profile = self.user_profiles[user_id]
@@ -72,7 +72,7 @@ class PersonalizedRanking:
             "type": interaction_type,
             "timestamp": datetime.now(),
             "metadata": pattern_metadata or {},
-            "rating": rating
+            "rating": rating,
         }
         profile["interactions"].append(interaction)
         profile["last_activity"] = datetime.now()
@@ -83,7 +83,7 @@ class PersonalizedRanking:
 
             # Apply rating multiplier
             if rating:
-                weight *= (rating / 5.0)  # Assume 5-star rating scale
+                weight *= rating / 5.0  # Assume 5-star rating scale
 
             # Update technology preferences
             tech_stack = pattern_metadata.get("technology_stack", [])
@@ -93,7 +93,9 @@ class PersonalizedRanking:
                 profile["technology_preferences"][tech.lower()] += weight
 
             # Update pattern type preferences
-            pattern_type = pattern_metadata.get("pattern_type", pattern_metadata.get("type"))
+            pattern_type = pattern_metadata.get(
+                "pattern_type", pattern_metadata.get("type")
+            )
             if pattern_type:
                 profile["pattern_type_preferences"][pattern_type] += weight
 
@@ -103,7 +105,9 @@ class PersonalizedRanking:
                 profile["complexity_preferences"][complexity] += weight
 
             # Update language preferences
-            language = pattern_metadata.get("language", pattern_metadata.get("programming_language"))
+            language = pattern_metadata.get(
+                "language", pattern_metadata.get("programming_language")
+            )
             if language:
                 profile["language_preferences"][language.lower()] += weight
 
@@ -114,17 +118,15 @@ class PersonalizedRanking:
             profile["successful_patterns"].add(pattern_id)
 
     def personalize_ranking(
-        self,
-        user_id: str,
-        search_results: list[dict[str, Any]]
+        self, user_id: str, search_results: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """
         Re-rank search results based on user preferences.
-        
+
         Args:
             user_id: User identifier
             search_results: List of search results to re-rank
-            
+
         Returns:
             Re-ranked search results with personalization scores
         """
@@ -158,9 +160,7 @@ class PersonalizedRanking:
         return personalized_results
 
     def _calculate_personalization_score(
-        self,
-        pattern_metadata: dict[str, Any],
-        user_profile: dict[str, Any]
+        self, pattern_metadata: dict[str, Any], user_profile: dict[str, Any]
     ) -> float:
         """
         Calculate personalization score for a pattern based on user preferences.
@@ -185,10 +185,14 @@ class PersonalizedRanking:
         # Pattern type preference score
         type_prefs = user_profile.get("pattern_type_preferences", {})
         if type_prefs:
-            pattern_type = pattern_metadata.get("pattern_type", pattern_metadata.get("type"))
+            pattern_type = pattern_metadata.get(
+                "pattern_type", pattern_metadata.get("type")
+            )
             if pattern_type:
                 type_score = type_prefs.get(pattern_type, 0.0)
                 type_score = min(type_score / max(type_prefs.values()), 1.0)
                 score_components.append(type_score)
 
-        return sum(score_components) / len(score_components) if score_components else 0.5
+        return (
+            sum(score_components) / len(score_components) if score_components else 0.5
+        )

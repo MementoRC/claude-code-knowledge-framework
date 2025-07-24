@@ -19,6 +19,7 @@ class BatchProcessor:
     - Batches items for embedding or DB ops
     - Supports progress tracking and cancellation
     """
+
     def __init__(self, batch_size=128):
         self.batch_size = batch_size
         self.logger = logging.getLogger(__name__)
@@ -29,13 +30,13 @@ class BatchProcessor:
         for i in range(0, len(items), self.batch_size):
             if self._cancel_event.is_set():
                 break
-            yield items[i:i+self.batch_size]
+            yield items[i : i + self.batch_size]
 
     def process_batches(
         self,
         items: list[Any],
         process_fn: Callable[[list[Any]], Any],
-        progress_callback: Callable[[int, int], None] | None = None
+        progress_callback: Callable[[int, int], None] | None = None,
     ) -> list[Any]:
         """Process items in batches, with optional progress callback."""
         results = []
@@ -59,5 +60,6 @@ class BatchProcessor:
     def reset(self):
         """Reset cancellation state."""
         self._cancel_event.clear()
+
 
 BatchProcessor = BatchProcessor

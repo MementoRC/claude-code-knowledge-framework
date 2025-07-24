@@ -49,7 +49,9 @@ class ProjectDNAFingerprinter:
         self._logger = logging.getLogger(__name__)
         self.tech_detector = TechStackDetector()
 
-    def generate_fingerprint(self, project_path: str, extra_metadata: dict[str, Any] | None = None) -> dict[str, Any]:
+    def generate_fingerprint(
+        self, project_path: str, extra_metadata: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """
         Generate a DNA fingerprint for a project at the given path.
         """
@@ -119,7 +121,7 @@ class ProjectDNAFingerprinter:
             if feature.lower() in key.lower():
                 return weight
         # Default: try to infer from known mappings
-        for (a, b), compat in self.COMPATIBILITY_MATRIX.items():
+        for (a, b), _compat in self.COMPATIBILITY_MATRIX.items():
             if feature in (a, b):
                 return 2.0
         return 1.0
@@ -129,12 +131,33 @@ class ProjectDNAFingerprinter:
         Compute similarity score between two fingerprints using cosine similarity.
         """
         try:
-            features = sorted(set(self._get_global_feature_list(fp1) + self._get_global_feature_list(fp2)))
-            v1 = np.array([self._get_feature_weight(f) if self._feature_present(f, fp1) else 0.0 for f in features])
-            v2 = np.array([self._get_feature_weight(f) if self._feature_present(f, fp2) else 0.0 for f in features])
+            features = sorted(
+                set(
+                    self._get_global_feature_list(fp1)
+                    + self._get_global_feature_list(fp2)
+                )
+            )
+            v1 = np.array(
+                [
+                    self._get_feature_weight(f)
+                    if self._feature_present(f, fp1)
+                    else 0.0
+                    for f in features
+                ]
+            )
+            v2 = np.array(
+                [
+                    self._get_feature_weight(f)
+                    if self._feature_present(f, fp2)
+                    else 0.0
+                    for f in features
+                ]
+            )
             if np.linalg.norm(v1) == 0 or np.linalg.norm(v2) == 0:
                 return 0.0
-            cosine_sim = float(np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
+            cosine_sim = float(
+                np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+            )
             # Adjust with compatibility matrix
             compat_bonus = self._compatibility_bonus(fp1, fp2)
             return min(1.0, cosine_sim + compat_bonus)
@@ -148,12 +171,15 @@ class ProjectDNAFingerprinter:
         """
         bonus = 0.0
         for (a, b), score in self.COMPATIBILITY_MATRIX.items():
-            if (self._feature_present(a, fp1) and self._feature_present(b, fp2)) or \
-               (self._feature_present(b, fp1) and self._feature_present(a, fp2)):
+            if (self._feature_present(a, fp1) and self._feature_present(b, fp2)) or (
+                self._feature_present(b, fp1) and self._feature_present(a, fp2)
+            ):
                 bonus += score * 0.05  # small bonus per compatible pair
         return bonus
 
-    def generate_compatibility_matrix(self, fingerprints: list[dict[str, Any]]) -> list[list[float]]:
+    def generate_compatibility_matrix(
+        self, fingerprints: list[dict[str, Any]]
+    ) -> list[list[float]]:
         """
         Generate a compatibility matrix for a list of project fingerprints.
         """
@@ -164,7 +190,9 @@ class ProjectDNAFingerprinter:
                 if i == j:
                     matrix[i][j] = 1.0
                 else:
-                    matrix[i][j] = self.compute_similarity(fingerprints[i], fingerprints[j])
+                    matrix[i][j] = self.compute_similarity(
+                        fingerprints[i], fingerprints[j]
+                    )
         return matrix
 
     def serialize_fingerprint(self, fingerprint: dict[str, Any]) -> str:

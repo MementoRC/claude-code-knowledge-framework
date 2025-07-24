@@ -14,10 +14,12 @@ def temp_knowledge_dir():
     yield temp_dir
     shutil.rmtree(temp_dir)
 
+
 @pytest.fixture(scope="module")
 def km(temp_knowledge_dir):
     km = KnowledgeManager(knowledge_dir=temp_knowledge_dir)
     yield km
+
 
 def test_basic_end_to_end_workflow(km):
     """Test basic end-to-end workflow: add → retrieve → update → delete"""
@@ -31,8 +33,8 @@ def test_basic_end_to_end_workflow(km):
             "technology_stack": "python",
             "success_rate": 0.85,
             "created_at": "2024-06-28T12:00:00Z",
-            "updated_at": "2024-06-28T12:00:00Z"
-        }
+            "updated_at": "2024-06-28T12:00:00Z",
+        },
     }
     pattern_id = km.add_pattern(pattern)
     assert pattern_id is not None
@@ -52,8 +54,8 @@ def test_basic_end_to_end_workflow(km):
             "resolution_steps": "Check path,reinstall module",
             "avg_resolution_time": 3.0,
             "created_at": "2024-06-28T12:00:00Z",
-            "updated_at": "2024-06-28T12:00:00Z"
-        }
+            "updated_at": "2024-06-28T12:00:00Z",
+        },
     }
     solution_id = km.add_error_solution(solution)
     assert solution_id is not None
@@ -89,6 +91,7 @@ def test_basic_end_to_end_workflow(km):
     deleted_category = km.delete_category(category_id)
     assert deleted_category
 
+
 def test_error_handling_workflow(km):
     """Test error handling in end-to-end workflow"""
 
@@ -99,6 +102,7 @@ def test_error_handling_workflow(km):
     # Test invalid operations
     assert not km.assign_pattern_to_category("invalid", "invalid")
     assert not km.delete_pattern("nonexistent")
+
 
 def test_tech_stack_analysis_workflow(km):
     """Test technology stack analysis workflow"""

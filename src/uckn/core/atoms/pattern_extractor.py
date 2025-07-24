@@ -30,7 +30,9 @@ class PatternExtractor:
                                  the technology stack of projects.
         """
         if not isinstance(tech_stack_detector, TechStackDetector):
-            raise TypeError("tech_stack_detector must be an instance of TechStackDetector")
+            raise TypeError(
+                "tech_stack_detector must be an instance of TechStackDetector"
+            )
         self.tech_stack_detector = tech_stack_detector
         logger.info("PatternExtractor initialized with TechStackDetector.")
 
@@ -41,14 +43,18 @@ class PatternExtractor:
             if not path.is_file():
                 logger.warning(f"File not found: {file_path}")
                 return None
-            return path.read_text(encoding='utf-8')
+            return path.read_text(encoding="utf-8")
         except Exception as e:
             logger.error(f"Error reading file {file_path}: {e}")
             return None
 
-    def generate_pattern_metadata(self, pattern_content: str, project_path: str,
-                                  source_file: str | None = None,
-                                  pattern_type: str = "unknown") -> dict[str, Any]:
+    def generate_pattern_metadata(
+        self,
+        pattern_content: str,
+        project_path: str,
+        source_file: str | None = None,
+        pattern_type: str = "unknown",
+    ) -> dict[str, Any]:
         """
         Generates metadata for an extracted pattern, including technology stack.
 
@@ -66,13 +72,15 @@ class PatternExtractor:
             "timestamp": datetime.now().isoformat(),
             "source_file": source_file,
             "pattern_type": pattern_type,
-            "content_hash": hash(pattern_content), # Simple hash for content identification
+            "content_hash": hash(
+                pattern_content
+            ),  # Simple hash for content identification
             "tech_stack": {},
             "success_metrics": {
                 "success_rate": 0.0,
                 "usage_count": 0,
-                "last_calculated": None
-            }
+                "last_calculated": None,
+            },
         }
         try:
             # Analyze the project's tech stack to associate with the pattern
@@ -82,10 +90,14 @@ class PatternExtractor:
             logger.error(f"Error analyzing tech stack for project {project_path}: {e}")
             metadata["tech_stack"] = {"error": str(e)}
 
-        logger.debug(f"Generated metadata for pattern (type: {pattern_type}, id: {metadata['id']})")
+        logger.debug(
+            f"Generated metadata for pattern (type: {pattern_type}, id: {metadata['id']})"
+        )
         return metadata
 
-    def extract_from_git_changes(self, diff_content: str, project_path: str) -> list[dict[str, Any]]:
+    def extract_from_git_changes(
+        self, diff_content: str, project_path: str
+    ) -> list[dict[str, Any]]:
         """
         Extracts patterns from Git commit diff content.
         This is a simplified parser focusing on added lines.
@@ -110,8 +122,10 @@ class PatternExtractor:
                     current_file = line[6:].strip()
                 elif line.startswith("+") and not line.startswith("+++"):
                     # Consider added lines as potential pattern content
-                    current_block.append(line[1:]) # Remove '+'
-                elif current_block and not line.startswith(("+", "-", " ", "diff", "index", "---", "+++")):
+                    current_block.append(line[1:])  # Remove '+'
+                elif current_block and not line.startswith(
+                    ("+", "-", " ", "diff", "index", "---", "+++")
+                ):
                     # If a block was being built and we hit a non-diff line, finalize the block
                     pattern_content = "\n".join(current_block).strip()
                     if pattern_content:
@@ -119,9 +133,11 @@ class PatternExtractor:
                             pattern_content,
                             project_path,
                             source_file=current_file,
-                            pattern_type="git_change"
+                            pattern_type="git_change",
                         )
-                        patterns.append({"content": pattern_content, "metadata": metadata})
+                        patterns.append(
+                            {"content": pattern_content, "metadata": metadata}
+                        )
                     current_block = []
 
             # Add any remaining block at the end of the diff
@@ -132,7 +148,7 @@ class PatternExtractor:
                         pattern_content,
                         project_path,
                         source_file=current_file,
-                        pattern_type="git_change"
+                        pattern_type="git_change",
                     )
                     patterns.append({"content": pattern_content, "metadata": metadata})
 
@@ -141,7 +157,9 @@ class PatternExtractor:
             logger.error(f"Error extracting patterns from Git changes: {e}")
         return patterns
 
-    def extract_from_ci_changes(self, ci_file_path: str, project_path: str) -> list[dict[str, Any]]:
+    def extract_from_ci_changes(
+        self, ci_file_path: str, project_path: str
+    ) -> list[dict[str, Any]]:
         """
         Extracts patterns from CI/CD workflow configuration files (e.g., YAML).
         This is a basic implementation that extracts the entire file content as a pattern.
@@ -164,7 +182,7 @@ class PatternExtractor:
                     content,
                     project_path,
                     source_file=ci_file_path,
-                    pattern_type="ci_config"
+                    pattern_type="ci_config",
                 )
                 patterns.append({"content": content, "metadata": metadata})
                 logger.info(f"Extracted 1 pattern from CI/CD file: {ci_file_path}")
@@ -172,7 +190,9 @@ class PatternExtractor:
                 logger.error(f"Error processing CI/CD file {ci_file_path}: {e}")
         return patterns
 
-    def extract_from_config_changes(self, config_file_path: str, project_path: str) -> list[dict[str, Any]]:
+    def extract_from_config_changes(
+        self, config_file_path: str, project_path: str
+    ) -> list[dict[str, Any]]:
         """
         Extracts patterns from general configuration files (e.g., .ini, .json, .toml).
         Similar to CI/CD, this extracts the entire file content as a pattern.
@@ -192,7 +212,7 @@ class PatternExtractor:
                     content,
                     project_path,
                     source_file=config_file_path,
-                    pattern_type="config_file"
+                    pattern_type="config_file",
                 )
                 patterns.append({"content": content, "metadata": metadata})
                 logger.info(f"Extracted 1 pattern from config file: {config_file_path}")
@@ -200,7 +220,9 @@ class PatternExtractor:
                 logger.error(f"Error processing config file {config_file_path}: {e}")
         return patterns
 
-    def extract_from_documentation(self, doc_file_path: str, project_path: str) -> list[dict[str, Any]]:
+    def extract_from_documentation(
+        self, doc_file_path: str, project_path: str
+    ) -> list[dict[str, Any]]:
         """
         Extracts patterns from documentation files (e.g., Markdown, reStructuredText).
         This extracts code blocks or specific sections from documentation.
@@ -230,7 +252,9 @@ class PatternExtractor:
                     elif in_code_block:
                         current_block.append(line)
 
-                if not code_blocks and content.strip(): # If no code blocks, consider entire doc as a pattern
+                if (
+                    not code_blocks and content.strip()
+                ):  # If no code blocks, consider entire doc as a pattern
                     code_blocks.append(content.strip())
 
                 for block_content in code_blocks:
@@ -239,16 +263,23 @@ class PatternExtractor:
                             block_content,
                             project_path,
                             source_file=doc_file_path,
-                            pattern_type="documentation"
+                            pattern_type="documentation",
                         )
-                        patterns.append({"content": block_content, "metadata": metadata})
-                logger.info(f"Extracted {len(patterns)} patterns from documentation file: {doc_file_path}")
+                        patterns.append(
+                            {"content": block_content, "metadata": metadata}
+                        )
+                logger.info(
+                    f"Extracted {len(patterns)} patterns from documentation file: {doc_file_path}"
+                )
             except Exception as e:
-                logger.error(f"Error processing documentation file {doc_file_path}: {e}")
+                logger.error(
+                    f"Error processing documentation file {doc_file_path}: {e}"
+                )
         return patterns
 
-    def calculate_success_metrics(self, pattern_data: dict[str, Any],
-                                  usage_data: dict[str, Any]) -> dict[str, Any]:
+    def calculate_success_metrics(
+        self, pattern_data: dict[str, Any], usage_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Calculates and updates success metrics for a given pattern.
 
@@ -260,8 +291,13 @@ class PatternExtractor:
         Returns:
             The updated pattern_data dictionary with 'success_metrics' updated.
         """
-        if "metadata" not in pattern_data or "success_metrics" not in pattern_data["metadata"]:
-            logger.warning("Pattern data missing 'metadata' or 'success_metrics' key. Cannot calculate metrics.")
+        if (
+            "metadata" not in pattern_data
+            or "success_metrics" not in pattern_data["metadata"]
+        ):
+            logger.warning(
+                "Pattern data missing 'metadata' or 'success_metrics' key. Cannot calculate metrics."
+            )
             return pattern_data
 
         metrics = pattern_data["metadata"]["success_metrics"]
@@ -272,12 +308,13 @@ class PatternExtractor:
         if total_apps > 0:
             metrics["success_rate"] = successful_apps / total_apps
         else:
-            metrics["success_rate"] = 0.0 # No applications yet
+            metrics["success_rate"] = 0.0  # No applications yet
 
         metrics["usage_count"] = total_apps
         metrics["last_calculated"] = datetime.now().isoformat()
 
         pattern_data["metadata"]["success_metrics"] = metrics
-        logger.debug(f"Calculated success metrics for pattern ID: {pattern_data['metadata'].get('id', 'N/A')}")
+        logger.debug(
+            f"Calculated success metrics for pattern ID: {pattern_data['metadata'].get('id', 'N/A')}"
+        )
         return pattern_data
-

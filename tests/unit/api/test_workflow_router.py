@@ -37,6 +37,7 @@ def mock_workflow_manager():
     wm.get_patterns_awaiting_review = AsyncMock()
     return wm
 
+
 @pytest.fixture
 def client(mock_workflow_manager):
     # Override dependencies for testing
@@ -46,22 +47,22 @@ def client(mock_workflow_manager):
     app.dependency_overrides[get_current_user_roles] = lambda: ["contributor", "admin"]
     return app
 
+
 @pytest.mark.asyncio
 async def test_initiate_pattern_review_success(client, mock_workflow_manager):
     pattern_id = "pat123"
-    request_payload = {
-        "reviewer_ids": ["reviewer1"],
-        "message": "Initial review"
-    }
+    request_payload = {"reviewer_ids": ["reviewer1"], "message": "Initial review"}
     mock_workflow_manager.initiate_review.return_value = {
         "pattern_id": pattern_id,
         "status": "success",
         "message": "Pattern submitted for review. Current state: in_review",
         "new_state": WorkflowState.IN_REVIEW,
-        "new_version": "0.2.0"
+        "new_version": "0.2.0",
     }
 
-    response = client.post(f"/patterns/{pattern_id}/workflow/initiate_review", json=request_payload)
+    response = client.post(
+        f"/patterns/{pattern_id}/workflow/initiate_review", json=request_payload
+    )
 
     assert response.status_code == 200
     assert response.json()["status"] == "success"
@@ -70,19 +71,22 @@ async def test_initiate_pattern_review_success(client, mock_workflow_manager):
         pattern_id, InitiateReviewRequest(**request_payload), "test_user"
     )
 
+
 @pytest.mark.asyncio
 async def test_initiate_pattern_review_bad_request(client, mock_workflow_manager):
     pattern_id = "pat123"
-    request_payload = {
-        "reviewer_ids": ["reviewer1"],
-        "message": "Initial review"
-    }
-    mock_workflow_manager.initiate_review.side_effect = ValueError("Pattern not in DRAFT state.")
+    request_payload = {"reviewer_ids": ["reviewer1"], "message": "Initial review"}
+    mock_workflow_manager.initiate_review.side_effect = ValueError(
+        "Pattern not in DRAFT state."
+    )
 
-    response = client.post(f"/patterns/{pattern_id}/workflow/initiate_review", json=request_payload)
+    response = client.post(
+        f"/patterns/{pattern_id}/workflow/initiate_review", json=request_payload
+    )
 
     assert response.status_code == 400
     assert "Pattern not in DRAFT state." in response.json()["detail"]
+
 
 @pytest.mark.asyncio
 async def test_submit_pattern_review_feedback_success(client, mock_workflow_manager):
@@ -92,15 +96,17 @@ async def test_submit_pattern_review_feedback_success(client, mock_workflow_mana
         "comments": "Good work!",
         "score": 5.0,
         "status": "approved",
-        "version": "0.2.0"
+        "version": "0.2.0",
     }
     mock_workflow_manager.submit_review_feedback.return_value = {
         "pattern_id": pattern_id,
         "status": "success",
-        "message": "Review feedback submitted successfully."
+        "message": "Review feedback submitted successfully.",
     }
 
-    response = client.post(f"/patterns/{pattern_id}/workflow/submit_feedback", json=request_payload)
+    response = client.post(
+        f"/patterns/{pattern_id}/workflow/submit_feedback", json=request_payload
+    )
 
     assert response.status_code == 200
     assert response.json()["status"] == "success"
@@ -108,19 +114,27 @@ async def test_submit_pattern_review_feedback_success(client, mock_workflow_mana
         pattern_id, SubmitReviewFeedbackRequest(**request_payload)
     )
 
+
 @pytest.mark.asyncio
-async def test_submit_pattern_review_feedback_unauthorized(client, mock_workflow_manager):
+async def test_submit_pattern_review_feedback_unauthorized(
+    client, mock_workflow_manager
+):
     pattern_id = "pat123"
     request_payload = {
-        "reviewer_id": "another_user", # Not test_user and not admin
+        "reviewer_id": "another_user",  # Not test_user and not admin
         "comments": "Good work!",
         "score": 5.0,
         "status": "approved",
-        "version": "0.2.0"
+        "version": "0.2.0",
     }
     # Temporarily override user roles to remove admin for this test
-    with patch('src.uckn.api.routers.workflow.get_current_user_roles', return_value=["contributor"]):
-        response = client.post(f"/patterns/{pattern_id}/workflow/submit_feedback", json=request_payload)
+    with patch(
+        "src.uckn.api.routers.workflow.get_current_user_roles",
+        return_value=["contributor"],
+    ):
+        response = client.post(
+            f"/patterns/{pattern_id}/workflow/submit_feedback", json=request_payload
+        )
 
     assert response.status_code == 400
     assert "User not authorized to submit feedback" in response.json()["detail"]
@@ -134,17 +148,19 @@ async def test_transition_pattern_state_success(client, mock_workflow_manager):
         "target_state": "published",
         "comments": "Ready to go live",
         "user_id": "test_user",
-        "version": "1.0.0"
+        "version": "1.0.0",
     }
     mock_workflow_manager.transition_state.return_value = {
         "pattern_id": pattern_id,
         "status": "success",
         "message": "Pattern state transitioned to published.",
         "new_state": WorkflowState.PUBLISHED,
-        "new_version": "1.0.0"
+        "new_version": "1.0.0",
     }
 
-    response = client.post(f"/patterns/{pattern_id}/workflow/transition", json=request_payload)
+    response = client.post(
+        f"/patterns/{pattern_id}/workflow/transition", json=request_payload
+    )
 
     assert response.status_code == 200
     assert response.json()["status"] == "success"
@@ -153,6 +169,7 @@ async def test_transition_pattern_state_success(client, mock_workflow_manager):
     # Verify user_id is correctly set by the router
     assert mock_workflow_manager.transition_state.call_args[0][1].user_id == "test_user"
 
+
 @pytest.mark.asyncio
 async def test_transition_pattern_state_forbidden(client, mock_workflow_manager):
     pattern_id = "pat123"
@@ -160,15 +177,21 @@ async def test_transition_pattern_state_forbidden(client, mock_workflow_manager)
         "target_state": "published",
         "comments": "Ready to go live",
         "user_id": "test_user",
-        "version": "1.0.0"
+        "version": "1.0.0",
     }
     # Temporarily override user roles to remove admin for this test
-    with patch('src.uckn.api.routers.workflow.get_current_user_roles', return_value=["contributor"]):
-        response = client.post(f"/patterns/{pattern_id}/workflow/transition", json=request_payload)
+    with patch(
+        "src.uckn.api.routers.workflow.get_current_user_roles",
+        return_value=["contributor"],
+    ):
+        response = client.post(
+            f"/patterns/{pattern_id}/workflow/transition", json=request_payload
+        )
 
     assert response.status_code == 403
     assert "Insufficient permissions" in response.json()["detail"]
     mock_workflow_manager.transition_state.assert_not_called()
+
 
 @pytest.mark.asyncio
 async def test_get_pattern_workflow_status_success(client, mock_workflow_manager):
@@ -178,13 +201,29 @@ async def test_get_pattern_workflow_status_success(client, mock_workflow_manager
         current_state=WorkflowState.IN_REVIEW,
         current_version="0.2.0",
         pending_reviews=[
-            ReviewFeedback(reviewer_id="reviewer1", status=ReviewStatus.PENDING, version="0.2.0")
+            ReviewFeedback(
+                reviewer_id="reviewer1", status=ReviewStatus.PENDING, version="0.2.0"
+            )
         ],
         review_history=[],
         version_history=[
-            PatternVersion(version_number="0.1.0", changes="initial", timestamp=datetime.datetime.now(), author_id="a", document_hash="h1", status_at_creation=PatternStatus.DRAFT),
-            PatternVersion(version_number="0.2.0", changes="review", timestamp=datetime.datetime.now(), author_id="a", document_hash="h2", status_at_creation=PatternStatus.IN_REVIEW)
-        ]
+            PatternVersion(
+                version_number="0.1.0",
+                changes="initial",
+                timestamp=datetime.datetime.now(),
+                author_id="a",
+                document_hash="h1",
+                status_at_creation=PatternStatus.DRAFT,
+            ),
+            PatternVersion(
+                version_number="0.2.0",
+                changes="review",
+                timestamp=datetime.datetime.now(),
+                author_id="a",
+                document_hash="h2",
+                status_at_creation=PatternStatus.IN_REVIEW,
+            ),
+        ],
     ).dict(by_alias=True)
 
     response = client.get(f"/patterns/{pattern_id}/workflow/status")
@@ -196,29 +235,38 @@ async def test_get_pattern_workflow_status_success(client, mock_workflow_manager
     assert len(response.json()["pending_reviews"]) == 1
     mock_workflow_manager.get_workflow_status.assert_called_once_with(pattern_id)
 
+
 @pytest.mark.asyncio
 async def test_get_pattern_workflow_status_not_found(client, mock_workflow_manager):
     pattern_id = "pat123"
-    mock_workflow_manager.get_workflow_status.side_effect = ValueError("Pattern not found.")
+    mock_workflow_manager.get_workflow_status.side_effect = ValueError(
+        "Pattern not found."
+    )
 
     response = client.get(f"/patterns/{pattern_id}/workflow/status")
 
     assert response.status_code == 404
     assert "Pattern not found." in response.json()["detail"]
 
+
 @pytest.mark.asyncio
 async def test_get_patterns_awaiting_review_admin(client, mock_workflow_manager):
     mock_workflow_manager.get_patterns_awaiting_review.return_value = [
         {"pattern_id": "pat1", "title": "P1", "assigned_reviewer": "reviewerA"},
-        {"pattern_id": "pat2", "title": "P2", "assigned_reviewer": "reviewerB"}
+        {"pattern_id": "pat2", "title": "P2", "assigned_reviewer": "reviewerB"},
     ]
     # Ensure admin role is present for this test
-    with patch('src.uckn.api.routers.workflow.get_current_user_roles', return_value=["admin"]):
+    with patch(
+        "src.uckn.api.routers.workflow.get_current_user_roles", return_value=["admin"]
+    ):
         response = client.get("/patterns/workflow/pending_reviews")
 
     assert response.status_code == 200
     assert len(response.json()) == 2
-    mock_workflow_manager.get_patterns_awaiting_review.assert_called_once_with(None) # Admin sees all
+    mock_workflow_manager.get_patterns_awaiting_review.assert_called_once_with(
+        None
+    )  # Admin sees all
+
 
 @pytest.mark.asyncio
 async def test_get_patterns_awaiting_review_contributor(client, mock_workflow_manager):
@@ -226,10 +274,15 @@ async def test_get_patterns_awaiting_review_contributor(client, mock_workflow_ma
         {"pattern_id": "pat1", "title": "P1", "assigned_reviewer": "test_user"}
     ]
     # Ensure contributor role is present for this test
-    with patch('src.uckn.api.routers.workflow.get_current_user_roles', return_value=["contributor"]):
+    with patch(
+        "src.uckn.api.routers.workflow.get_current_user_roles",
+        return_value=["contributor"],
+    ):
         response = client.get("/patterns/workflow/pending_reviews")
 
     assert response.status_code == 200
     assert len(response.json()) == 1
     assert response.json()[0]["assigned_reviewer"] == "test_user"
-    mock_workflow_manager.get_patterns_awaiting_review.assert_called_once_with("test_user") # Contributor sees only their own
+    mock_workflow_manager.get_patterns_awaiting_review.assert_called_once_with(
+        "test_user"
+    )  # Contributor sees only their own

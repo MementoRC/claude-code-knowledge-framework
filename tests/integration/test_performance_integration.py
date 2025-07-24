@@ -16,6 +16,7 @@ def test_performance_integration(monkeypatch):
     class DummyChroma:
         def search_documents(self, **kwargs):
             return [{"id": 1, "score": 0.99}]
+
     cache = CacheManager(max_size=10)
     monitor = ResourceMonitor()
     analytics = PerformanceAnalytics()
@@ -44,6 +45,7 @@ def test_performance_integration(monkeypatch):
     summary = engine.get_performance_summary()
     assert "resource_usage" in summary
     assert "analytics" in summary
+
 
 def test_performance_mode_toggle():
     engine = SemanticSearchEngineOptimized(chroma_connector=None)

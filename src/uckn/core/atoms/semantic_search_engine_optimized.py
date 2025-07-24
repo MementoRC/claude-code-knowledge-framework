@@ -34,6 +34,7 @@ class CacheManager:
     def clear(self):
         self.cache.clear()
 
+
 # Dummy resource monitor
 class ResourceMonitor:
     def __init__(self):
@@ -45,6 +46,7 @@ class ResourceMonitor:
     def get_usage(self):
         return self.usage
 
+
 # Dummy analytics
 class PerformanceAnalytics:
     def __init__(self):
@@ -54,7 +56,8 @@ class PerformanceAnalytics:
         self.records.append((event, value))
 
     def summary(self):
-        return {event: value for event, value in self.records}
+        return dict(self.records)
+
 
 class SemanticSearchEngineOptimized:
     """
@@ -81,7 +84,9 @@ class SemanticSearchEngineOptimized:
         self.enable_monitoring = enable_monitoring
         self.enable_analytics = enable_analytics
 
-        self.cache_manager = CacheManager(max_size=cache_size) if performance_mode else None
+        self.cache_manager = (
+            CacheManager(max_size=cache_size) if performance_mode else None
+        )
         self.resource_monitor = ResourceMonitor() if enable_monitoring else None
         self.analytics = PerformanceAnalytics() if enable_analytics else None
 
@@ -113,12 +118,19 @@ class SemanticSearchEngineOptimized:
             if self.analytics:
                 self.analytics.log("cache_miss", key)
             return result
+
         return wrapper
 
     async def _async_search(self, *args, **kwargs):
         return await asyncio.to_thread(self.search, *args, **kwargs)
 
-    def search(self, query: dict[str, str | None], collection_name: str, limit: int = 10, min_similarity: float = 0.7):
+    def search(
+        self,
+        query: dict[str, str | None],
+        collection_name: str,
+        limit: int = 10,
+        min_similarity: float = 0.7,
+    ):
         start = time.time()
         embedding = self.embedding_atom.multi_modal_embed(
             code=query.get("code"),
@@ -142,9 +154,17 @@ class SemanticSearchEngineOptimized:
             self.analytics.log("search_latency", elapsed)
         return results
 
-    def batch_search(self, queries: list[dict[str, str | None]], collection_name: str, limit: int = 10, min_similarity: float = 0.7):
+    def batch_search(
+        self,
+        queries: list[dict[str, str | None]],
+        collection_name: str,
+        limit: int = 10,
+        min_similarity: float = 0.7,
+    ):
         if not self.enable_batch:
-            return [self.search(q, collection_name, limit, min_similarity) for q in queries]
+            return [
+                self.search(q, collection_name, limit, min_similarity) for q in queries
+            ]
         start = time.time()
         embeddings = self.embedding_atom.multi_modal_embed_batch(queries)
         results = []
@@ -171,6 +191,8 @@ class SemanticSearchEngineOptimized:
 
     def get_performance_summary(self):
         return {
-            "resource_usage": self.resource_monitor.get_usage() if self.resource_monitor else None,
+            "resource_usage": self.resource_monitor.get_usage()
+            if self.resource_monitor
+            else None,
             "analytics": self.analytics.summary() if self.analytics else None,
         }

@@ -28,6 +28,7 @@ def atomic_component_suite():
     tech = TechStackDetector()
     # Create unified_db for PatternManager
     from tests.fixtures.database_fixtures import DummyUnifiedDatabase
+
     unified_db = DummyUnifiedDatabase()
     pattern_mgr = PatternManager(unified_db, semantic)
     error_mgr = ErrorSolutionManager(chroma, semantic)
@@ -39,14 +40,16 @@ def atomic_component_suite():
         "tech_detector": tech,
         "pattern_manager": pattern_mgr,
         "error_solution_manager": error_mgr,
-        "pattern_classification": pattern_class
+        "pattern_classification": pattern_class,
     }
+
 
 @pytest.fixture
 def component_health_checker():
     """
     Utility to check health of all atomic components.
     """
+
     def checker(components):
         health = {}
         for name, comp in components.items():
@@ -58,4 +61,5 @@ def component_health_checker():
             else:
                 health[name] = None
         return health
+
     return checker

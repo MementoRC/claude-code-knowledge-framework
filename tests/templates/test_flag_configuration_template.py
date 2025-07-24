@@ -17,9 +17,7 @@ def test_flag_configuration_template():
 
     # Add a component
     component = AtomicComponent(
-        name="test_atom",
-        level=TemplateLevel.ATOM,
-        config={"test": True}
+        name="test_atom", level=TemplateLevel.ATOM, config={"test": True}
     )
     template.add_component(component)
 
@@ -62,7 +60,7 @@ def test_dependency_validation():
         name="dependent",
         level=TemplateLevel.MOLECULE,
         config={},
-        dependencies=["missing_component"]
+        dependencies=["missing_component"],
     )
     template.add_component(component)
 

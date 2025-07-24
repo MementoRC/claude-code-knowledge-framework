@@ -32,7 +32,9 @@ def init_database(db_url: str = None):
         print("Example: postgresql://uckn:password@localhost:5432/shared_uckn")
         return False
 
-    print(f"🔌 Connecting to database: {db_url.split('@')[1] if '@' in db_url else db_url}")
+    print(
+        f"🔌 Connecting to database: {db_url.split('@')[1] if '@' in db_url else db_url}"
+    )
 
     try:
         # Initialize PostgreSQL connector
@@ -56,9 +58,9 @@ def init_database(db_url: str = None):
 
             # Verify tables were created
             tables_query = text("""
-                SELECT table_name 
-                FROM information_schema.tables 
-                WHERE table_schema = 'public' 
+                SELECT table_name
+                FROM information_schema.tables
+                WHERE table_schema = 'public'
                 AND table_type = 'BASE TABLE'
                 ORDER BY table_name;
             """)
@@ -67,13 +69,13 @@ def init_database(db_url: str = None):
             tables = [row[0] for row in result.fetchall()]
 
             expected_tables = [
-                'compatibility_matrix',
-                'error_solutions',
-                'pattern_categories',
-                'pattern_category_links',
-                'patterns',
-                'projects',
-                'team_access'
+                "compatibility_matrix",
+                "error_solutions",
+                "pattern_categories",
+                "pattern_category_links",
+                "patterns",
+                "projects",
+                "team_access",
             ]
 
             missing_tables = set(expected_tables) - set(tables)
@@ -94,14 +96,14 @@ def init_database(db_url: str = None):
                 ("testing", "Testing strategies and patterns"),
                 ("deployment", "Deployment and CI/CD patterns"),
                 ("security", "Security implementation patterns"),
-                ("best_practice", "Best practices and coding standards")
+                ("best_practice", "Best practices and coding standards"),
             ]
 
             for cat_name, cat_desc in default_categories:
                 # Check if category exists
                 existing = session.execute(
                     text("SELECT id FROM pattern_categories WHERE name = :name"),
-                    {"name": cat_name}
+                    {"name": cat_name},
                 ).fetchone()
 
                 if not existing:
@@ -110,7 +112,7 @@ def init_database(db_url: str = None):
                             INSERT INTO pattern_categories (id, name, description, created_at, updated_at)
                             VALUES (gen_random_uuid()::text, :name, :description, NOW(), NOW())
                         """),
-                        {"name": cat_name, "description": cat_desc}
+                        {"name": cat_name, "description": cat_desc},
                     )
 
             session.commit()
@@ -118,11 +120,11 @@ def init_database(db_url: str = None):
 
             # Show database info
             info_query = text("""
-                SELECT 
+                SELECT
                     'projects' as table_name, COUNT(*) as count FROM projects
                 UNION ALL
                 SELECT 'patterns', COUNT(*) FROM patterns
-                UNION ALL  
+                UNION ALL
                 SELECT 'error_solutions', COUNT(*) FROM error_solutions
                 UNION ALL
                 SELECT 'pattern_categories', COUNT(*) FROM pattern_categories
@@ -138,7 +140,9 @@ def init_database(db_url: str = None):
         print("\n📝 Next steps:")
         print("1. Test the connection:")
         print(f"   export UCKN_DATABASE_URL='{db_url}'")
-        print("   pixi run --project /path/to/uckn python -c \"from uckn.core.organisms.knowledge_manager import KnowledgeManager; km = KnowledgeManager(); print('✅ UCKN ready!')\"")
+        print(
+            "   pixi run --project /path/to/uckn python -c \"from uckn.core.organisms.knowledge_manager import KnowledgeManager; km = KnowledgeManager(); print('✅ UCKN ready!')\""
+        )
         print("\n2. Start using UCKN with Claude Code!")
 
         return True
@@ -157,12 +161,10 @@ def main():
     parser.add_argument(
         "--db-url",
         help="Database URL (default: from UCKN_DATABASE_URL env var)",
-        default=None
+        default=None,
     )
     parser.add_argument(
-        "--verbose", "-v",
-        action="store_true",
-        help="Enable verbose logging"
+        "--verbose", "-v", action="store_true", help="Enable verbose logging"
     )
 
     args = parser.parse_args()

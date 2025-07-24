@@ -49,10 +49,12 @@ def get_predictive_issue_detector() -> PredictiveIssueDetector:
                 issue_detection_rules=issue_detection_rules,
                 issue_prediction_models=issue_prediction_models,
                 error_solution_manager=km.error_solution_manager,
-                pattern_analytics=km.pattern_analytics
+                pattern_analytics=km.pattern_analytics,
             )
         except Exception as e:
-            raise HTTPException(status_code=503, detail=f"Predictive issue detector not available: {e}")
+            raise HTTPException(
+                status_code=503, detail=f"Predictive issue detector not available: {e}"
+            )
 
     return _predictive_issue_detector
 

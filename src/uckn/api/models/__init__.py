@@ -68,7 +68,6 @@ __all__ = [
     "UpdateFilter",
     "SetupRecommendation",
     "IssueWarning",
-
     # Pattern models
     "PatternType",
     "PatternPriority",
@@ -85,7 +84,6 @@ __all__ = [
     "PatternUpdateRequest",
     "PatternBulkOperationRequest",
     "PatternAnalytics",
-
     # Project models
     "ProjectStatus",
     "ProjectType",
@@ -102,5 +100,5 @@ __all__ = [
     "ProjectMemberInvite",
     "ProjectMemberUpdate",
     "ProjectCreateResponse",
-    "ProjectStatsResponse"
+    "ProjectStatsResponse",
 ]

@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 class CommentRequest(BaseModel):
     """Request model for adding a comment."""
+
     content: str = Field(..., min_length=1, max_length=2000)
     parent_id: str | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
@@ -17,6 +18,7 @@ class CommentRequest(BaseModel):
 
 class CommentResponse(BaseModel):
     """Response model for comments."""
+
     id: str
     pattern_id: str
     user_id: str
@@ -30,6 +32,7 @@ class CommentResponse(BaseModel):
 
 class ActivityFeedRequest(BaseModel):
     """Request model for activity feed."""
+
     team_id: str | None = None
     limit: int = Field(default=50, ge=1, le=100)
     offset: int = Field(default=0, ge=0)
@@ -38,6 +41,7 @@ class ActivityFeedRequest(BaseModel):
 
 class ActivityEventResponse(BaseModel):
     """Response model for activity events."""
+
     id: str
     type: str
     user_id: str
@@ -51,6 +55,7 @@ class ActivityEventResponse(BaseModel):
 
 class NotificationPreferenceRequest(BaseModel):
     """Request model for notification preferences."""
+
     notification_type: str = Field(..., pattern="^(email|in_app|webhook)$")
     event_types: list[str] = Field(..., min_length=1)
     settings: dict[str, Any] = Field(default_factory=dict)
@@ -59,6 +64,7 @@ class NotificationPreferenceRequest(BaseModel):
 
 class NotificationPreferenceResponse(BaseModel):
     """Response model for notification preferences."""
+
     user_id: str
     notification_type: str
     event_types: list[str]
@@ -68,6 +74,7 @@ class NotificationPreferenceResponse(BaseModel):
 
 class WebhookConfigRequest(BaseModel):
     """Request model for webhook configuration."""
+
     name: str = Field(..., min_length=1, max_length=100)
     url: str = Field(..., pattern="^https?://")
     secret: str | None = None
@@ -78,6 +85,7 @@ class WebhookConfigRequest(BaseModel):
 
 class WebhookConfigResponse(BaseModel):
     """Response model for webhook configuration."""
+
     id: str
     team_id: str
     name: str
@@ -90,6 +98,7 @@ class WebhookConfigResponse(BaseModel):
 
 class PatternLibraryRequest(BaseModel):
     """Request model for team-scoped pattern library."""
+
     name: str = Field(..., min_length=1, max_length=100)
     description: str | None = None
     pattern_ids: list[str] = Field(default_factory=list)
@@ -98,6 +107,7 @@ class PatternLibraryRequest(BaseModel):
 
 class PatternLibraryResponse(BaseModel):
     """Response model for pattern library."""
+
     id: str
     team_id: str
     name: str
@@ -110,6 +120,7 @@ class PatternLibraryResponse(BaseModel):
 
 class CollaborativeEditRequest(BaseModel):
     """Request model for collaborative editing operations."""
+
     operation_type: str = Field(..., pattern="^(insert|delete|retain)$")
     position: int = Field(..., ge=0)
     content: str | None = None
@@ -119,6 +130,7 @@ class CollaborativeEditRequest(BaseModel):
 
 class CollaborativeEditResponse(BaseModel):
     """Response model for collaborative editing."""
+
     operation_id: str
     pattern_id: str
     user_id: str
