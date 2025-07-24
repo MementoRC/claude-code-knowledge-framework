@@ -241,8 +241,13 @@ class DatabaseManager:
 
     def _get_connection_url(self) -> str:
         """Get the database connection URL."""
+        # Check for explicit database URL first
         if self.database_url:
             return self.database_url
+        
+        # For CI environments without Docker, use SQLite fallback
+        if os.environ.get("ENVIRONMENT") == "ci":
+            return "sqlite:///uckn_test.db"
 
         config = self.default_db_config
         return f"postgresql://{config['user']}:{config['password']}@{config['host']}:{config['port']}/{config['database']}"
