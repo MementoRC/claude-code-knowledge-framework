@@ -40,6 +40,8 @@ jobs:
         run: pixi run -e dev dev
 
       - name: Run database migrations
+        env:
+          ENVIRONMENT: ci
         run: |
           echo "🗄️ Setting up database tables for tests..."
           pixi run db-migrate || echo "Migration completed or no migrations needed"
@@ -52,6 +54,8 @@ jobs:
           echo "Running all tests for ${{ matrix.test-type }} (markers not implemented yet)"
 
       - name: Run selected tests
+        env:
+          ENVIRONMENT: ci
         run: |
           # Run all tests since markers aren't implemented
           pixi run -e quality test --json-report --json-report-file=pytest-${{ matrix.test-type }}.json

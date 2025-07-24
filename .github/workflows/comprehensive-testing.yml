@@ -67,7 +67,11 @@ jobs:
         run: pixi run typecheck
 
       - name: Run unit tests
-        run: pixi run -e quality test --json-report --json-report-file=pytest-unit.json
+        env:
+          ENVIRONMENT: ci
+        run: |
+          pixi run db-migrate || echo "Migration completed or no migrations needed"
+          pixi run -e quality test --json-report --json-report-file=pytest-unit.json
 
       - name: Run integration tests  
         run: echo "Integration tests - running all tests (markers not implemented yet)"
@@ -76,6 +80,8 @@ jobs:
         run: echo "E2E tests - running all tests (markers not implemented yet)"
 
       - name: Run all tests with coverage
+        env:
+          ENVIRONMENT: ci
         run: pixi run -e quality test-cov
 
       - name: Upload coverage and test artifacts
