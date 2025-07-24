@@ -210,8 +210,13 @@ def test_knowledge_manager_full_lifecycle_error_solution(knowledge_manager_insta
 def test_compatibility_matrix_crud(knowledge_manager_instance):
     km = knowledge_manager_instance
 
+    # Check system health before proceeding
+    health = km.get_health_status()
+    print(f"Health status: {health}")
+    assert health["unified_db_available"] is True, f"Unified DB not available: {health}"
+
     entry_id = km.add_compatibility_entry("React", "Node.js", 0.95, "Excellent compatibility")
-    assert entry_id is not None
+    assert entry_id is not None, f"Failed to add compatibility entry. Health: {health}"
 
     retrieved = km.get_compatibility_entry(entry_id)
     assert retrieved["source_tech"] == "React"

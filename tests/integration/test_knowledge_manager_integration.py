@@ -55,9 +55,15 @@ def valid_error_solution_data(solution_id="solution1"):
 # --- Integration Tests ---
 
 def test_add_and_search_pattern(km):
+    # Check system health before proceeding
+    health = km.get_health_status()
+    print(f"Health status: {health}")
+    assert health["unified_db_available"] is True, f"Unified DB not available: {health}"
+    assert health["semantic_search_available"] is True, f"Semantic search not available: {health}"
+    
     pattern = valid_pattern_data()
     pattern_id = km.add_pattern(pattern)
-    assert pattern_id is not None
+    assert pattern_id is not None, f"Failed to add pattern. Health: {health}"
 
     # Search for the pattern
     results = km.search_patterns("singleton", limit=5)
@@ -65,9 +71,15 @@ def test_add_and_search_pattern(km):
     assert any(r.get("id") == pattern_id for r in results)
 
 def test_pattern_classification_workflow(km):
+    # Check system health before proceeding
+    health = km.get_health_status()
+    print(f"Health status: {health}")
+    assert health["unified_db_available"] is True, f"Unified DB not available: {health}"
+    assert health["semantic_search_available"] is True, f"Semantic search not available: {health}"
+    
     pattern = valid_pattern_data("pattern2")
     pattern_id = km.add_pattern(pattern)
-    assert pattern_id is not None
+    assert pattern_id is not None, f"Failed to add pattern. Health: {health}"
 
     # Create a category
     cat_id = km.create_category("Design Patterns", "Classic design patterns")
