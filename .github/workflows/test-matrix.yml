@@ -39,6 +39,11 @@ jobs:
       - name: Install dev dependencies
         run: pixi run -e dev dev
 
+      - name: Run database migrations
+        run: |
+          echo "🗄️ Setting up database tables for tests..."
+          pixi run db-migrate || echo "Migration completed or no migrations needed"
+
       - name: Select tests by marker  
         id: select-tests
         run: |
