@@ -8,6 +8,13 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from ...api.models.patterns import Pattern
+from ...api.models.workflow import (
+    InitiateReviewRequest,
+    SubmitReviewFeedbackRequest,
+    WorkflowState,
+    WorkflowTransitionRequest,
+)
 from ..organisms.knowledge_manager import KnowledgeManager
 
 logger = logging.getLogger(__name__)
