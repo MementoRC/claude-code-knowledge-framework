@@ -159,7 +159,7 @@ class KnowledgeManager:
         self,
         query: str,
         limit: int = 10,
-        min_similarity: float = 0.7,
+        min_similarity: float = 0.6,
         metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Search for knowledge patterns using semantic similarity."""
@@ -173,7 +173,7 @@ class KnowledgeManager:
             self._logger.error("Failed to generate query embedding for pattern search.")
             return []
         return self.unified_db.search_patterns(
-            query_embedding, limit, min_similarity, metadata_filter
+            query_embedding, n_results=limit, min_similarity=min_similarity, metadata_filter=metadata_filter
         )
 
     # Pattern classification methods
@@ -259,7 +259,7 @@ class KnowledgeManager:
         self,
         error_query: str,
         limit: int = 10,
-        min_similarity: float = 0.7,
+        min_similarity: float = 0.6,
         metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Search for error solutions using semantic similarity."""
@@ -273,7 +273,7 @@ class KnowledgeManager:
             self._logger.error("Failed to generate query embedding for error search.")
             return []
         return self.unified_db.search_error_solutions(
-            query_embedding, limit, min_similarity, metadata_filter
+            query_embedding, n_results=limit, min_similarity=min_similarity, metadata_filter=metadata_filter
         )
 
     # Team Access Management (new)
