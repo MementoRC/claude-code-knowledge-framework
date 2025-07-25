@@ -2,7 +2,6 @@ import logging
 from contextlib import contextmanager
 from datetime import datetime
 from typing import Any
-import os
 
 from sqlalchemy import (
     Column,
@@ -202,7 +201,7 @@ class PostgreSQLConnector:
             # Handle different database types
             db_url = self.db_url
             engine_kwargs = {"echo": False}  # Set to True for SQL logging
-            
+
             if db_url.startswith("sqlite://"):
                 # SQLite configuration for CI environments
                 engine_kwargs.update({
@@ -226,6 +225,10 @@ class PostgreSQLConnector:
             self._logger.info(
                 f"PostgreSQL engine initialized for {self.db_url.split('@')[-1]}"
             )
+            
+            # Auto-create schema for test/CI environments
+            self._ensure_schema_exists()
+            
             # Base.metadata.create_all(self.engine) # This should be handled by Alembic migrations
             # self._logger.info("PostgreSQL tables checked/created (if not using Alembic).")
         except SQLAlchemyError as e:
@@ -259,11 +262,34 @@ class PostgreSQLConnector:
             self._logger.error(f"PostgreSQL connection check failed: {e}")
             return False
 
+    def _ensure_schema_exists(self) -> None:
+        """Ensure database schema exists for test/CI environments."""
+        if self.engine is None:
+            return
+            
+        try:
+            # Check if tables exist
+            with self.get_db_session() as session:
+                result = session.execute(text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'patterns')"))
+                table_exists = result.scalar()
+                
+                if not table_exists:
+                    self._logger.info("Database tables not found, creating schema...")
+                    # Create all tables defined in the models
+                    Base.metadata.create_all(self.engine)
+                    self._logger.info("✅ Database schema created successfully")
+                else:
+                    self._logger.debug("Database schema already exists")
+                    
+        except SQLAlchemyError as e:
+            self._logger.warning(f"Failed to check/create schema: {e}")
+            # Continue anyway - let the application handle missing tables as needed
+
     def _convert_datetime_strings(self, data: dict[str, Any]) -> dict[str, Any]:
         """Convert ISO datetime strings to datetime objects for SQLite compatibility."""
         if not self.db_url.startswith("sqlite://"):
             return data  # No conversion needed for PostgreSQL
-        
+
         converted_data = data.copy()
         for key, value in data.items():
             if key in ("created_at", "updated_at") and isinstance(value, str):
@@ -283,7 +309,7 @@ class PostgreSQLConnector:
         try:
             # Convert datetime strings to datetime objects for SQLite
             converted_data = self._convert_datetime_strings(data)
-            
+
             with self.get_db_session() as session:
                 instance = model(**converted_data)
                 session.add(instance)
