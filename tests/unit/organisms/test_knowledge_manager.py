@@ -122,7 +122,7 @@ def test_initialization_unavailable(monkeypatch):
         unified_db_patch.return_value.is_available.return_value = False
         search_patch.return_value.is_available.return_value = False
         km = KnowledgeManager()
-        assert not km.chroma_connector.is_available()
+        assert not km.unified_db.is_available()
         assert not km.semantic_search.is_available()
 
 
