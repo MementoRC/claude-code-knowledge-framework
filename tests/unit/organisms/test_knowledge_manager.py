@@ -40,9 +40,16 @@ def mock_tech_detector():
 
 
 @pytest.fixture
+def mock_unified_db():
+    unified_db = MagicMock()
+    unified_db.is_available.return_value = True
+    return unified_db
+
+
+@pytest.fixture
 def manager(
     monkeypatch,
-    mock_chroma,
+    mock_unified_db,
     mock_semantic_search,
     mock_pattern_manager,
     mock_error_solution_manager,
@@ -51,8 +58,8 @@ def manager(
 ):
     # Patch all dependencies
     monkeypatch.setattr(
-        "src.uckn.core.organisms.knowledge_manager.ChromaDBConnector",
-        lambda *a, **kw: mock_chroma,
+        "src.uckn.core.organisms.knowledge_manager.UnifiedDatabase",
+        lambda *a, **kw: mock_unified_db,
     )
     monkeypatch.setattr(
         "src.uckn.core.organisms.knowledge_manager.SemanticSearch",
@@ -81,8 +88,8 @@ def test_initialization_default(monkeypatch):
     # Patch dependencies to avoid real file system or DB
     with (
         patch(
-            "src.uckn.core.organisms.knowledge_manager.ChromaDBConnector"
-        ) as chroma_patch,
+            "src.uckn.core.organisms.knowledge_manager.UnifiedDatabase"
+        ) as unified_db_patch,
         patch(
             "src.uckn.core.organisms.knowledge_manager.SemanticSearch"
         ) as search_patch,
@@ -91,19 +98,19 @@ def test_initialization_default(monkeypatch):
         patch("src.uckn.core.organisms.knowledge_manager.PatternClassification"),
         patch("src.uckn.core.organisms.knowledge_manager.TechStackDetector"),
     ):
-        chroma_patch.return_value.is_available.return_value = True
+        unified_db_patch.return_value.is_available.return_value = True
         search_patch.return_value.is_available.return_value = True
         km = KnowledgeManager()
         assert km.knowledge_dir.exists()
-        assert km.chroma_connector.is_available()
+        assert km.unified_db.is_available()
         assert km.semantic_search.is_available()
 
 
 def test_initialization_unavailable(monkeypatch):
     with (
         patch(
-            "src.uckn.core.organisms.knowledge_manager.ChromaDBConnector"
-        ) as chroma_patch,
+            "src.uckn.core.organisms.knowledge_manager.UnifiedDatabase"
+        ) as unified_db_patch,
         patch(
             "src.uckn.core.organisms.knowledge_manager.SemanticSearch"
         ) as search_patch,
@@ -112,7 +119,7 @@ def test_initialization_unavailable(monkeypatch):
         patch("src.uckn.core.organisms.knowledge_manager.PatternClassification"),
         patch("src.uckn.core.organisms.knowledge_manager.TechStackDetector"),
     ):
-        chroma_patch.return_value.is_available.return_value = False
+        unified_db_patch.return_value.is_available.return_value = False
         search_patch.return_value.is_available.return_value = False
         km = KnowledgeManager()
         assert not km.chroma_connector.is_available()
@@ -248,11 +255,11 @@ def test_analyze_project_stack(manager, mock_tech_detector):
     mock_tech_detector.analyze_project.assert_called_once_with("/tmp/project")
 
 
-def test_get_health_status(manager, mock_chroma, mock_semantic_search):
-    mock_chroma.is_available.return_value = True
+def test_get_health_status(manager, mock_unified_db, mock_semantic_search):
+    mock_unified_db.is_available.return_value = True
     mock_semantic_search.is_available.return_value = True
     result = manager.get_health_status()
-    assert result["chromadb_available"] is True
+    assert result["unified_db_available"] is True
     assert result["semantic_search_available"] is True
     assert "pattern_manager" in result["components"]
 
@@ -260,8 +267,8 @@ def test_get_health_status(manager, mock_chroma, mock_semantic_search):
 def test_health_status_unavailable(monkeypatch):
     with (
         patch(
-            "src.uckn.core.organisms.knowledge_manager.ChromaDBConnector"
-        ) as chroma_patch,
+            "src.uckn.core.organisms.knowledge_manager.UnifiedDatabase"
+        ) as unified_db_patch,
         patch(
             "src.uckn.core.organisms.knowledge_manager.SemanticSearch"
         ) as search_patch,
@@ -270,7 +277,7 @@ def test_health_status_unavailable(monkeypatch):
         patch("src.uckn.core.organisms.knowledge_manager.PatternClassification"),
         patch("src.uckn.core.organisms.knowledge_manager.TechStackDetector"),
     ):
-        chroma_patch.return_value.is_available.return_value = False
+        unified_db_patch.return_value.is_available.return_value = False
         search_patch.return_value.is_available.return_value = False
         km = KnowledgeManager()
         status = km.get_health_status()
@@ -302,14 +309,14 @@ def test_error_handling_pattern_manager(monkeypatch):
             FailingPatternManager,
         ),
         patch(
-            "src.uckn.core.organisms.knowledge_manager.ChromaDBConnector"
-        ) as chroma_patch,
+            "src.uckn.core.organisms.knowledge_manager.UnifiedDatabase"
+        ) as unified_db_patch,
         patch("src.uckn.core.organisms.knowledge_manager.SemanticSearch"),
         patch("src.uckn.core.organisms.knowledge_manager.ErrorSolutionManager"),
         patch("src.uckn.core.organisms.knowledge_manager.PatternClassification"),
         patch("src.uckn.core.organisms.knowledge_manager.TechStackDetector"),
     ):
-        chroma_patch.return_value.is_available.return_value = True
+        unified_db_patch.return_value.is_available.return_value = True
         km = KnowledgeManager()
         with pytest.raises(Exception):
             km.add_pattern({})
@@ -340,14 +347,14 @@ def test_error_handling_error_solution_manager(monkeypatch):
             FailingErrorSolutionManager,
         ),
         patch(
-            "src.uckn.core.organisms.knowledge_manager.ChromaDBConnector"
-        ) as chroma_patch,
+            "src.uckn.core.organisms.knowledge_manager.UnifiedDatabase"
+        ) as unified_db_patch,
         patch("src.uckn.core.organisms.knowledge_manager.SemanticSearch"),
         patch("src.uckn.core.organisms.knowledge_manager.PatternManager"),
         patch("src.uckn.core.organisms.knowledge_manager.PatternClassification"),
         patch("src.uckn.core.organisms.knowledge_manager.TechStackDetector"),
     ):
-        chroma_patch.return_value.is_available.return_value = True
+        unified_db_patch.return_value.is_available.return_value = True
         km = KnowledgeManager()
         with pytest.raises(Exception):
             km.add_error_solution({})
