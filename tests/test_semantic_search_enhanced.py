@@ -87,8 +87,7 @@ class TestEnhancedSemanticSearchEngine:
 
         assert not engine.is_available()
         assert engine.sentence_model is None
-        assert engine.chroma_client is None
-        assert engine.collection is None
+        assert engine.chroma_connector is None
 
     @patch("uckn.core.semantic_search_enhanced.ChromaDBConnector")
     @patch("uckn.core.semantic_search_enhanced.SentenceTransformer")
