@@ -20673,7 +20673,7 @@ packages:
 - pypi: ./
   name: uckn-framework
   version: 1.0.0
-  sha256: 987c5a2ced025966769cf129b3f76fcc98c69666c35bd73f5d534277343a2dcc
+  sha256: 1b9553dbede434fd7581c60f38b253904a4fc78446b1876f57375b9e6b2fa512
   requires_dist:
   - sentence-transformers>=2.2.0
   - chromadb>=0.4.0
