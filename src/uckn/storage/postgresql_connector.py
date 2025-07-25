@@ -204,19 +204,23 @@ class PostgreSQLConnector:
 
             if db_url.startswith("sqlite://"):
                 # SQLite configuration for CI environments
-                engine_kwargs.update({
-                    "poolclass": StaticPool,
-                    "connect_args": {"check_same_thread": False},
-                })
+                engine_kwargs.update(
+                    {
+                        "poolclass": StaticPool,
+                        "connect_args": {"check_same_thread": False},
+                    }
+                )
             elif db_url.startswith("postgresql://"):
                 # Ensure we use psycopg (version 3) driver instead of psycopg2
                 db_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
-                engine_kwargs.update({
-                    "poolclass": QueuePool,
-                    "pool_size": self.pool_size,
-                    "max_overflow": self.max_overflow,
-                    "pool_recycle": 3600,  # Recycle connections after 1 hour
-                })
+                engine_kwargs.update(
+                    {
+                        "poolclass": QueuePool,
+                        "pool_size": self.pool_size,
+                        "max_overflow": self.max_overflow,
+                        "pool_recycle": 3600,  # Recycle connections after 1 hour
+                    }
+                )
 
             self.engine = create_engine(db_url, **engine_kwargs)
             self.SessionLocal = sessionmaker(
@@ -225,10 +229,10 @@ class PostgreSQLConnector:
             self._logger.info(
                 f"PostgreSQL engine initialized for {self.db_url.split('@')[-1]}"
             )
-            
+
             # Auto-create schema for test/CI environments
             self._ensure_schema_exists()
-            
+
             # Base.metadata.create_all(self.engine) # This should be handled by Alembic migrations
             # self._logger.info("PostgreSQL tables checked/created (if not using Alembic).")
         except SQLAlchemyError as e:
@@ -266,13 +270,17 @@ class PostgreSQLConnector:
         """Ensure database schema exists for test/CI environments."""
         if self.engine is None:
             return
-            
+
         try:
             # Check if tables exist
             with self.get_db_session() as session:
-                result = session.execute(text("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'patterns')"))
+                result = session.execute(
+                    text(
+                        "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'patterns')"
+                    )
+                )
                 table_exists = result.scalar()
-                
+
                 if not table_exists:
                     self._logger.info("Database tables not found, creating schema...")
                     # Create all tables defined in the models
@@ -280,7 +288,7 @@ class PostgreSQLConnector:
                     self._logger.info("✅ Database schema created successfully")
                 else:
                     self._logger.debug("Database schema already exists")
-                    
+
         except SQLAlchemyError as e:
             self._logger.warning(f"Failed to check/create schema: {e}")
             # Continue anyway - let the application handle missing tables as needed
@@ -295,7 +303,7 @@ class PostgreSQLConnector:
             if key in ("created_at", "updated_at") and isinstance(value, str):
                 try:
                     # Handle both formats: with and without 'Z' suffix
-                    if value.endswith('Z'):
+                    if value.endswith("Z"):
                         converted_data[key] = datetime.fromisoformat(value[:-1])
                     else:
                         converted_data[key] = datetime.fromisoformat(value)

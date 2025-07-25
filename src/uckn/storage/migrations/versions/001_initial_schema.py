@@ -22,7 +22,7 @@ def get_jsonb_type():
     """Get appropriate JSON type based on database dialect."""
     # Check if we're using PostgreSQL
     bind = op.get_bind()
-    if bind.dialect.name == 'postgresql':
+    if bind.dialect.name == "postgresql":
         return postgresql.JSONB(astext_type=sa.Text())
     else:
         # Use JSON for SQLite and other databases
@@ -74,9 +74,7 @@ def upgrade():
         sa.Column("id", sa.String(), nullable=False),
         sa.Column("project_id", sa.String(), nullable=True),
         sa.Column("document_text", sa.Text(), nullable=False),
-        sa.Column(
-            "metadata_json", get_jsonb_type(), nullable=False
-        ),
+        sa.Column("metadata_json", get_jsonb_type(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.Column("error_category", sa.String(), nullable=True),
@@ -96,9 +94,7 @@ def upgrade():
         sa.Column("id", sa.String(), nullable=False),
         sa.Column("project_id", sa.String(), nullable=True),
         sa.Column("document_text", sa.Text(), nullable=False),
-        sa.Column(
-            "metadata_json", get_jsonb_type(), nullable=False
-        ),
+        sa.Column("metadata_json", get_jsonb_type(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.Column("technology_stack", sa.String(), nullable=True),
