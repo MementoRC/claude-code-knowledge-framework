@@ -464,13 +464,37 @@ class ChromaDBConnector:
             self._logger.warning("ChromaDB not available, cannot reset.")
             return False
         try:
+            # Try the standard reset first
             self.client.reset()
             self._logger.info("ChromaDB reset successfully.")
             # Re-initialize collections after reset
             self._connect_to_chromadb()
             return True
         except Exception as e:
-            self._logger.error(f"Failed to reset ChromaDB: {e}")
+            # If standard reset fails, try collection-by-collection deletion
+            self._logger.warning(f"Standard reset failed ({e}), trying collection deletion...")
+            return self._reset_by_collection_deletion()
+
+    def _reset_by_collection_deletion(self) -> bool:
+        """
+        Alternative reset method that deletes and recreates collections individually.
+        Used when client.reset() is disabled.
+        """
+        try:
+            # Delete all existing collections
+            for collection_name in self._get_collection_names():
+                try:
+                    self.client.delete_collection(collection_name)
+                    self._logger.debug(f"Deleted collection: {collection_name}")
+                except Exception as e:
+                    self._logger.debug(f"Collection {collection_name} may not exist: {e}")
+            
+            # Re-initialize collections after deletion
+            self._connect_to_chromadb()
+            self._logger.info("ChromaDB reset by collection deletion successful.")
+            return True
+        except Exception as e:
+            self._logger.error(f"Failed to reset ChromaDB by collection deletion: {e}")
             return False
 
     def _get_collection_names(self) -> list[str]:

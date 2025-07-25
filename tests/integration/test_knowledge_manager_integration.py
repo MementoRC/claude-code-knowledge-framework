@@ -78,11 +78,27 @@ def test_add_and_search_pattern(km):
     )
 
     pattern = valid_pattern_data()
+    print(f"Pattern data: {pattern}")
     pattern_id = km.add_pattern(pattern)
     assert pattern_id is not None, f"Failed to add pattern. Health: {health}"
 
+    # Add delay for search indexing
+    import time
+    time.sleep(1.0)
+
     # Search for the pattern
     results = km.search_patterns("singleton", limit=5)
+    print(f"Search results: {results}")
+    print(f"Pattern ID: {pattern_id}")
+    print(f"Result IDs: {[r.get('id') for r in results]}")
+    
+    # Try alternative search terms
+    results2 = km.search_patterns("instance", limit=5)
+    print(f"Search 'instance' results: {results2}")
+    
+    results3 = km.search_patterns("class", limit=5)
+    print(f"Search 'class' results: {results3}")
+    
     assert isinstance(results, list)
     assert any(r.get("id") == pattern_id for r in results)
 
