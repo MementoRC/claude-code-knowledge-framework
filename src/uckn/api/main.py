@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from ..core.organisms.knowledge_manager import KnowledgeManager
-from .dependencies import set_knowledge_manager
+from .dependencies import set_knowledge_manager, get_knowledge_manager
 from .routers import (
     auth,
     collaboration,
