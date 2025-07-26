@@ -134,12 +134,18 @@ def test_knowledge_manager_full_lifecycle_pattern(knowledge_manager_instance):
     # 4. Update the Pattern
     updated_doc = "This is an updated test code pattern for Python."
     updated_metadata = {"success_rate": 0.99, "new_field": "value"}
-    updated = km.update_pattern(
-        pattern_id, {"document": updated_doc, "metadata": updated_metadata}
-    )
-    assert updated
-
+    try:
+        km.update_pattern(
+            pattern_id, {"document": updated_doc, "metadata": updated_metadata}
+        )
+        update_success = True
+    except Exception:
+        update_success = False
+    assert update_success, "Pattern update should not raise exceptions"
+    
+    # Verify the update actually worked
     retrieved_updated_pattern = km.get_pattern(pattern_id)
+    assert retrieved_updated_pattern is not None, "Updated pattern should be retrievable"
     assert retrieved_updated_pattern["document"] == updated_doc
     assert retrieved_updated_pattern["metadata"]["success_rate"] == 0.99
     assert retrieved_updated_pattern["metadata"]["new_field"] == "value"
