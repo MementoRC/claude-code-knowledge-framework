@@ -205,11 +205,19 @@ def test_knowledge_manager_full_lifecycle_error_solution(knowledge_manager_insta
             "avg_resolution_time": 30.5,
         },
     }
-    solution_id = km.add_error_solution(solution_data)
-    assert solution_id is not None
+    try:
+        solution_id = km.add_error_solution(solution_data)
+        add_success = solution_id is not None
+    except Exception:
+        add_success = False
+        solution_id = None
+    assert add_success, "Error solution addition should succeed"
 
     # 2. Retrieve the Error Solution
-    retrieved_solution = km.get_error_solution(solution_id)
+    if solution_id:
+        retrieved_solution = km.get_error_solution(solution_id)
+    else:
+        retrieved_solution = None
     assert retrieved_solution is not None
     assert retrieved_solution["id"] == solution_id
     assert (
