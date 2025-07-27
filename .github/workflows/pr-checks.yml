@@ -25,7 +25,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pixi install --locked
+        pixi install
+        pixi run -e ci install-editable
 
     - name: Quick lint check (changed files only)
       run: |
@@ -56,7 +57,7 @@ jobs:
         # For now, always run tests to avoid git diff issues in CI
         echo "Running all tests (git diff detection disabled due to CI environment issues)"
         pixi run db-migrate || echo "Migration completed or no migrations needed"
-        pixi run -e quality pytest tests/ -v --tb=short
+        pixi run -e ci test
         echo "✅ Tests passed"
 
     - name: Validate atomic design on changes
@@ -163,7 +164,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pixi install --locked
+        pixi install
+        pixi run -e ci install-editable
 
     - name: Generate coverage report
       run: |

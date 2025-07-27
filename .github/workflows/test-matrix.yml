@@ -34,10 +34,10 @@ jobs:
           cache: true
 
       - name: Install dependencies (pixi)
-        run: pixi install --locked
+        run: pixi install
 
-      - name: Install dev dependencies
-        run: pixi run -e dev dev
+      - name: Install package in editable mode
+        run: pixi run -e ci install-editable
 
       - name: Run database migrations
         env:
@@ -58,7 +58,7 @@ jobs:
           ENVIRONMENT: ci
         run: |
           # Run all tests since markers aren't implemented
-          pixi run -e quality test --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+          pixi run -e ci test --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
