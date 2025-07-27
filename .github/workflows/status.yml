@@ -22,7 +22,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pixi install --locked
+        pixi install
 
     - name: Quick smoke test
       run: |

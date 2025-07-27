@@ -31,7 +31,7 @@ jobs:
         cache: true
         
     - name: Install dependencies
-      run: pixi install --locked
+      run: pixi install
       
     - name: Run tests
       run: pixi run ci-test
@@ -59,7 +59,7 @@ jobs:
         cache: true
       
     - name: Install dependencies
-      run: pixi install --locked
+      run: pixi install
       
     - name: Run linting
       run: pixi run ci-lint
@@ -151,7 +151,7 @@ jobs:
         
     - name: Install build tools
       run: |
-        pixi install --locked
+        pixi install
         pixi run pip install build twine
         
     - name: Build package

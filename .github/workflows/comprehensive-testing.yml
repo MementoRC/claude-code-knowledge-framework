@@ -55,7 +55,7 @@ jobs:
           cache: true
 
       - name: Install dependencies (pixi)
-        run: pixi install --locked
+        run: pixi install
 
       - name: Install dev dependencies
         run: pixi run -e dev dev
