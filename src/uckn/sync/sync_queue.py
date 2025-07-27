@@ -45,7 +45,7 @@ class SyncQueue:
         self.logger = logging.getLogger(__name__)
 
         # Priority queues for different operation types
-        self.queues: dict[QueuePriority, deque] = {
+        self.queues: dict[QueuePriority, deque[Any]] = {
             priority: deque() for priority in QueuePriority
         }
 
@@ -124,7 +124,7 @@ class SyncQueue:
         Returns:
             List of queue items to process
         """
-        batch = []
+        batch: list[Any] = []
 
         # Process queues in priority order (highest first)
         for priority in sorted(QueuePriority, key=lambda p: p.value, reverse=True):
@@ -145,7 +145,7 @@ class SyncQueue:
         Returns:
             List of pattern IDs pending sync
         """
-        pattern_ids = []
+        pattern_ids: list[str] = []
 
         # Collect from all queues
         for priority in QueuePriority:

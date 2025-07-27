@@ -19,72 +19,10 @@ classifiers = [
     "Topic :: Software Development :: Quality Assurance",
 ]
 
-dependencies = [
-    "sentence-transformers>=2.2.0",
-    "chromadb>=0.4.0",
-    "fastapi>=0.100.0",
-    "uvicorn>=0.20.0",
-    "pydantic>=2.0.0",
-    "numpy>=1.21.0",
-    "pandas>=1.5.0",
-    "httpx>=0.24.0",
-    "toml>=0.10.0",
-    "click>=8.0.0",
-    "rich>=13.0.0",
-    "gitpython>=3.1.0",
-    "jinja2>=3.0.0",
-    "redis>=4.0.0",
-    "psutil>=5.9.0",
-    "SQLAlchemy>=2.0.0", # Added for PostgreSQL ORM
-    "psycopg>=3.1.0", # Added for PostgreSQL driver
-    "alembic>=1.12.0", # Added for database migrations
-]
+dependencies = []
 
+# All dependencies now managed through pixi features - see [tool.pixi.feature.*] sections
 [project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-benchmark>=4.0.0",
-    "pytest-html>=4.0.0",
-    "pytest-json-report>=1.5.0",
-    "pytest-xdist>=3.3.1",
-    "pytest-metadata>=3.0.0",
-    "pytest-github-actions-annotate-failures>=0.2.0",
-    "pytest-timeout>=2.1.0",  # Added for test timeout management
-    "diff-cover>=7.5.0",
-    "coverage>=7.4.0",
-    "coverage-badge>=1.1.0",
-    "pytest-md>=0.2.0",
-    "memory-profiler>=0.61.0",
-    "ruff>=0.1.0",
-    "black>=23.0.0",
-    "mypy>=1.0.0",
-    "pre-commit>=3.0.0",
-    "alembic>=1.12.0", # Added for database migrations
-]
-loadtest = [
-    "locust>=2.22.0",
-    "psutil>=5.9.0",
-    "requests>=2.31.0",
-]
-mcp = [
-    "mcp>=1.9.0",
-    "websockets>=11.0.0",
-    "anyio>=3.6.0",
-]
-ml = [
-    "torch>=2.0.0",
-    "transformers>=4.20.0",
-    "scikit-learn>=1.3.0",
-    "matplotlib>=3.5.0",
-    "seaborn>=0.11.0",
-]
-docs = [
-    "mkdocs>=1.5.0",
-    "mkdocs-material>=9.0.0",
-    "mkdocstrings[python]>=0.20.0",
-]
 
 [project.urls]
 Homepage = "https://github.com/MementoRC/claude-code-knowledge-framework"
@@ -143,6 +81,28 @@ pytest-timeout = ">=2.1.0"
 pytest-asyncio = ">=0.21.0"
 ruff = ">=0.7.3"
 mypy = ">=1.0.0"
+types-psutil = "*"
+
+# Core Runtime Dependencies (migrated from [project] dependencies)
+[tool.pixi.feature.core.dependencies]
+sentence-transformers = ">=2.2.0"
+chromadb = ">=0.4.0"
+fastapi = ">=0.100.0"
+uvicorn = ">=0.20.0"
+pydantic = ">=2.0.0"
+numpy = ">=1.21.0"
+pandas = ">=1.5.0"
+httpx = ">=0.24.0"
+toml = ">=0.10.0"
+click = ">=8.0.0"
+rich = ">=13.0.0"
+gitpython = ">=3.1.0"
+jinja2 = ">=3.0.0"
+redis-py = ">=4.0.0"
+psutil = ">=5.9.0"
+sqlalchemy = ">=2.0.0"
+psycopg = ">=3.1.0"
+alembic = ">=1.12.0"
 
 # TIER 2: Extended Quality & Security
 [tool.pixi.feature.quality-extended.dependencies]
@@ -160,38 +120,65 @@ coverage = ">=7.0.0"
 
 # Development Tools (specialized)
 [tool.pixi.feature.dev.dependencies]
-pytest = "*"
-pytest-cov = "*"
-pytest-asyncio = "*"
-pytest-benchmark = "*"
-memory_profiler = "*"
-locust = "*"
-psutil = "*"
-redis-py = "*"
-ruff = "*"
-black = "*"
-mypy = "*"
-pre-commit = "*"
-alembic = "*" # Added for database migrations
+pytest = ">=7.0.0"
+pytest-cov = ">=4.0.0"
+pytest-asyncio = ">=0.21.0"
+pytest-benchmark = ">=4.0.0"
+pytest-html = ">=4.0.0"
+pytest-json-report = ">=1.5.0"
+pytest-xdist = ">=3.3.1"
+pytest-metadata = ">=3.0.0"
+pytest-github-actions-annotate-failures = ">=0.2.0"
+pytest-timeout = ">=2.1.0"
+diff-cover = ">=7.5.0"
+coverage = ">=7.4.0"
+coverage-badge = ">=1.1.0"
+pytest-md = ">=0.2.0"
+memory_profiler = ">=0.61.0"
+ruff = ">=0.1.0"
+black = ">=23.0.0"
+mypy = ">=1.0.0"
+pre-commit = ">=3.0.0"
+alembic = ">=1.12.0"
+
+# Load Testing Dependencies (specialized)
+[tool.pixi.feature.loadtest.dependencies]
+locust = ">=2.22.0"
+psutil = ">=5.9.0"
+requests = ">=2.31.0"
 
 [tool.pixi.feature.mcp.dependencies]
 nodejs = ">=18"
 pnpm = "*"
+mcp = ">=1.9.0"
+websockets = ">=11.0.0"
+anyio = ">=3.6.0"
 
 [tool.pixi.feature.ml.dependencies]
 pytorch = "*"
 sentence-transformers = "*"
 chromadb = "*"
-SQLAlchemy = "*" # Added for PostgreSQL ORM
-psycopg = "*" # Added for PostgreSQL driver
+sqlalchemy = "*"
+psycopg = "*"
+transformers = ">=4.20.0"
+scikit-learn = ">=1.3.0"
+matplotlib = ">=3.5.0"
+seaborn = ">=0.11.0"
+
+# Documentation Dependencies
+[tool.pixi.feature.docs.dependencies]
+mkdocs = ">=1.5.0"
+mkdocs-material = ">=9.0.0"
+mkdocstrings = ">=0.20.0"
 
 [tool.pixi.environments]
-default = {features = ["ml", "mcp"], solve-group = "default"}
-dev = {features = ["dev", "ml", "mcp"], solve-group = "default"}
-ci = {features = ["dev", "mcp", "quality-ci"], solve-group = "default"}
-docs = {features = ["docs"], solve-group = "default"}
-quality = {features = ["quality", "dev"], solve-group = "default"}
-quality-extended = {features = ["quality-extended", "dev"], solve-group = "default"}
+default = {features = ["core", "ml", "mcp"], solve-group = "default"}
+dev = {features = ["core", "dev", "ml", "mcp"], solve-group = "default"}
+ci = {features = ["core", "dev", "mcp", "quality-ci"], solve-group = "default"}
+docs = {features = ["core", "docs"], solve-group = "default"}
+quality = {features = ["core", "quality", "dev"], solve-group = "default"}
+quality-extended = {features = ["core", "quality-extended", "dev"], solve-group = "default"}
+loadtest = {features = ["core", "loadtest"], solve-group = "default"}
 
 [tool.pixi.tasks]
 # Development tasks (STRICT COMPLIANCE: Use pip module with python)
@@ -200,8 +187,9 @@ install-editable = "python -m pip install -e ."
 dev-setup = "python -m pip install -e ."
 
 # TIER 1: Core Quality Gates (ZERO-TOLERANCE)
-test = { cmd = "pytest tests/ -v", env = { CLAUDECODE = "0" } }
-test-cov = { cmd = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term --cov-report=xml --cov-report=json", env = { CLAUDECODE = "0" } }
+test = { cmd = "pytest tests/ -v --timeout=30 -x", env = { CLAUDECODE = "0" } }
+test-fast = { cmd = "pytest tests/unit/ -v --timeout=30 --maxfail=5 -n auto", env = { CLAUDECODE = "0" } }
+test-cov = { cmd = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term --cov-report=xml --cov-report=json --timeout=60", env = { CLAUDECODE = "0" } }
 lint = "ruff check src/ tests/ --select=F,E9"
 lint-fix = "ruff check --fix src/ tests/"
 format = "ruff format src/ tests/"

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 # Assuming TechStackDetector is in the same 'atoms' directory or accessible via relative import
-from src.uckn.core.atoms.tech_stack_detector import TechStackDetector
+from .tech_stack_detector import TechStackDetector
 
 logger = logging.getLogger(__name__)
 
