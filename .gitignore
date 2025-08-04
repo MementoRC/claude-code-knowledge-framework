@@ -131,3 +131,14 @@ CONTEXT_LIVE_TEST.md
 FINAL_PROJECT_SUMMARY.md
 TASK*.md
 mcp-*.log
+
+# Dependency directories
+# Environment variables
+# Editor directories and files
+.idea
+.vscode
+# OS specific
+
+# Task files
+# tasks.json
+# tasks/ 
