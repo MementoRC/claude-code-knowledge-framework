@@ -318,15 +318,15 @@ def test_error_handling_pattern_manager(monkeypatch):
     ):
         unified_db_patch.return_value.is_available.return_value = True
         km = KnowledgeManager()
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, RuntimeError, TypeError)):
             km.add_pattern({})
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, RuntimeError, TypeError)):
             km.get_pattern("id")
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, RuntimeError, TypeError)):
             km.update_pattern("id", {})
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, RuntimeError, TypeError)):
             km.delete_pattern("id")
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, RuntimeError, TypeError)):
             km.search_patterns("q")
 
 
@@ -356,9 +356,9 @@ def test_error_handling_error_solution_manager(monkeypatch):
     ):
         unified_db_patch.return_value.is_available.return_value = True
         km = KnowledgeManager()
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, RuntimeError, TypeError)):
             km.add_error_solution({})
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, RuntimeError, TypeError)):
             km.get_error_solution("id")
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, RuntimeError, TypeError)):
             km.search_error_solutions("q")

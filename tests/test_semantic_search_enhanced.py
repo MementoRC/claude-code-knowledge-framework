@@ -70,7 +70,7 @@ class TestEnhancedSemanticSearchEngine:
         assert engine.is_available()
         assert engine.sentence_model is not None
         assert engine.chroma_connector is not None
-        mock_st.assert_called_once_with("all-MiniLM-L6-v2", device='cpu')
+        mock_st.assert_called_once_with("all-MiniLM-L6-v2", device="cpu")
 
     @patch(
         "uckn.core.semantic_search_enhanced.SENTENCE_TRANSFORMER_AVAILABLE",
@@ -143,7 +143,9 @@ class TestEnhancedSemanticSearchEngine:
 
     @patch("uckn.core.semantic_search_enhanced.ChromaDBConnector")
     @patch("uckn.core.semantic_search_enhanced.SentenceTransformer")
-    @pytest.mark.skip(reason="Enhanced semantic search encode method has type handling issues - removing complexity")
+    @pytest.mark.skip(
+        reason="Enhanced semantic search encode method has type handling issues - removing complexity"
+    )
     def test_encode_invalid_inputs(self, mock_st, mock_chromadb):
         """Test encoding with invalid inputs"""
         mock_st.return_value = MagicMock()
@@ -190,7 +192,9 @@ class TestEnhancedSemanticSearchEngine:
 
     @patch("uckn.core.semantic_search_enhanced.ChromaDBConnector")
     @patch("uckn.core.semantic_search_enhanced.SentenceTransformer")
-    @pytest.mark.skip(reason="Enhanced semantic search methods not implemented - removing complexity")
+    @pytest.mark.skip(
+        reason="Enhanced semantic search methods not implemented - removing complexity"
+    )
     def test_session_embedding_generation(self, mock_st, mock_chromadb):
         """Test session data embedding generation"""
         mock_model = MagicMock()
@@ -236,7 +240,9 @@ class TestEnhancedSemanticSearchEngine:
 
     @patch("uckn.core.semantic_search_enhanced.ChromaDBConnector")
     @patch("uckn.core.semantic_search_enhanced.SentenceTransformer")
-    @pytest.mark.skip(reason="Enhanced semantic search methods not implemented - removing complexity")
+    @pytest.mark.skip(
+        reason="Enhanced semantic search methods not implemented - removing complexity"
+    )
     def test_text_extraction_comprehensive(self, mock_st, mock_chromadb):
         """Test comprehensive text extraction from session data"""
         mock_st.return_value = MagicMock()
@@ -282,7 +288,9 @@ class TestEnhancedSemanticSearchEngine:
 
     @patch("uckn.core.semantic_search_enhanced.ChromaDBConnector")
     @patch("uckn.core.semantic_search_enhanced.SentenceTransformer")
-    @pytest.mark.skip(reason="Enhanced semantic search stats not implemented - removing complexity")
+    @pytest.mark.skip(
+        reason="Enhanced semantic search stats not implemented - removing complexity"
+    )
     def test_get_embedding_stats(self, mock_st, mock_chromadb):
         """Test embedding statistics functionality"""
         # Setup mocks
@@ -309,7 +317,9 @@ class TestEnhancedSemanticSearchEngine:
         assert stats["storage_type"] == "chromadb"
         assert stats["model_available"] is True
 
-    @pytest.mark.skip(reason="Enhanced semantic search import errors - removing complexity")
+    @pytest.mark.skip(
+        reason="Enhanced semantic search import errors - removing complexity"
+    )
     def test_get_embedding_stats_numpy_fallback(self):
         """Test embedding statistics with numpy fallback"""
         # Create test embeddings file
@@ -334,7 +344,7 @@ class TestEnhancedSemanticSearchEngine:
                 "uckn.core.semantic_search_enhanced.CHROMADB_CONNECTOR_AVAILABLE", False
             ),
         ):
-            from uckn.core.enhanced_semantic_search_engine import (
+            from uckn.core.semantic_search_enhanced import (
                 EnhancedSemanticSearchEngine,
             )
 
@@ -389,7 +399,9 @@ class TestSemanticSearchAtomIntegration:
 
     @patch("uckn.core.semantic_search_enhanced.ChromaDBConnector")
     @patch("uckn.core.semantic_search_enhanced.SentenceTransformer")
-    @pytest.mark.skip(reason="Enhanced semantic search encode delegation not implemented - removing complexity")
+    @pytest.mark.skip(
+        reason="Enhanced semantic search encode delegation not implemented - removing complexity"
+    )
     def test_semantic_search_atom_encode_delegation(self, mock_st, mock_chromadb):
         """Test that SemanticSearch atom properly delegates to enhanced engine"""
         mock_model = MagicMock()

@@ -57,13 +57,15 @@ def init_database(db_url: str = None):
             Base.metadata.create_all(pg_connector.engine)
 
             # Verify tables were created
-            tables_query = text("""
+            tables_query = text(
+                """
                 SELECT table_name
                 FROM information_schema.tables
                 WHERE table_schema = 'public'
                 AND table_type = 'BASE TABLE'
                 ORDER BY table_name;
-            """)
+            """
+            )
 
             result = session.execute(tables_query)
             tables = [row[0] for row in result.fetchall()]
@@ -108,10 +110,12 @@ def init_database(db_url: str = None):
 
                 if not existing:
                     session.execute(
-                        text("""
+                        text(
+                            """
                             INSERT INTO pattern_categories (id, name, description, created_at, updated_at)
                             VALUES (gen_random_uuid()::text, :name, :description, NOW(), NOW())
-                        """),
+                        """
+                        ),
                         {"name": cat_name, "description": cat_desc},
                     )
 
@@ -119,7 +123,8 @@ def init_database(db_url: str = None):
             print("✅ Default categories created")
 
             # Show database info
-            info_query = text("""
+            info_query = text(
+                """
                 SELECT
                     'projects' as table_name, COUNT(*) as count FROM projects
                 UNION ALL
@@ -129,7 +134,8 @@ def init_database(db_url: str = None):
                 UNION ALL
                 SELECT 'pattern_categories', COUNT(*) FROM pattern_categories
                 ORDER BY table_name;
-            """)
+            """
+            )
 
             result = session.execute(info_query)
             print("\n📊 Database Status:")

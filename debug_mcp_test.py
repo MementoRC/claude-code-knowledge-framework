@@ -2,26 +2,28 @@
 """
 Debug MCP Server responses
 """
+
 import asyncio
 import json
 import subprocess
 import sys
 
+
 async def debug_mcp_server():
     """Debug what the server is actually returning"""
-    
+
     process = subprocess.Popen(
         [sys.executable, "-m", "uckn.server"],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        bufsize=0
+        bufsize=0,
     )
-    
+
     try:
         await asyncio.sleep(1)
-        
+
         # First initialize the server
         print("🔍 Initializing server first...")
         init_request = {
@@ -31,39 +33,35 @@ async def debug_mcp_server():
             "params": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
-                "clientInfo": {"name": "test-client", "version": "1.0.0"}
-            }
+                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+            },
         }
-        
+
         process.stdin.write(json.dumps(init_request) + "\n")
         process.stdin.flush()
-        
+
         response_line = process.stdout.readline()
         if response_line:
             init_response = json.loads(response_line.strip())
-            print("Init response received")
-        
+            print(f"Init response received: {init_response}")
+
         # Send initialized notification
         initialized_notification = {
             "jsonrpc": "2.0",
             "method": "initialized",
-            "params": {}
+            "params": {},
         }
-        
+
         process.stdin.write(json.dumps(initialized_notification) + "\n")
         process.stdin.flush()
-        
+
         # Test list resources debug
         print("🔍 DEBUGGING List Resources...")
-        list_resources_request = {
-            "jsonrpc": "2.0",
-            "id": 2,
-            "method": "resources/list"
-        }
-        
+        list_resources_request = {"jsonrpc": "2.0", "id": 2, "method": "resources/list"}
+
         process.stdin.write(json.dumps(list_resources_request) + "\n")
         process.stdin.flush()
-        
+
         response_line = process.stdout.readline()
         if response_line:
             response = json.loads(response_line.strip())
@@ -71,7 +69,7 @@ async def debug_mcp_server():
             print(json.dumps(response, indent=2))
         else:
             print("No response received")
-        
+
     except Exception as e:
         print(f"Debug failed: {e}")
     finally:
@@ -81,6 +79,7 @@ async def debug_mcp_server():
         except subprocess.TimeoutExpired:
             process.kill()
             process.wait()
+
 
 if __name__ == "__main__":
     asyncio.run(debug_mcp_server())

@@ -9,7 +9,7 @@ jobs:
   quick-check:
     name: Quick Status Check
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -27,7 +27,7 @@ jobs:
     - name: Quick smoke test
       run: |
         echo "🚀 UCKN Framework Quick Check"
-        
+
         # Check basic structure
         echo "📁 Checking project structure..."
         test -d "src/uckn" || (echo "❌ Missing src/uckn" && exit 1)
@@ -36,7 +36,7 @@ jobs:
         test -d "src/uckn/core/molecules" || (echo "❌ Missing molecules" && exit 1)
         test -d "src/uckn/core/organisms" || (echo "❌ Missing organisms" && exit 1)
         echo "✅ Structure valid"
-        
+
         # Quick import test
         echo "🔍 Testing imports..."
         pixi run python -c "
@@ -49,10 +49,10 @@ jobs:
             print(f'❌ Import failed: {e}')
             exit(1)
         "
-        
+
         # Basic lint check
         echo "🔍 Quick lint check..."
         pixi run ruff check src/ --select=F,E9 --quiet || echo "⚠️ Some lint issues found"
         echo "✅ Critical lint check completed"
-        
+
         echo "🎉 Quick check passed!"

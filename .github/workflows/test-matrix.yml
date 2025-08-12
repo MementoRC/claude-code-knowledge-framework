@@ -46,7 +46,7 @@ jobs:
           echo "🗄️ Setting up database tables for tests..."
           pixi run db-migrate || echo "Migration completed or no migrations needed"
 
-      - name: Select tests by marker  
+      - name: Select tests by marker
         id: select-tests
         run: |
           # Since tests don't have unit/integration/e2e markers yet, run all tests for now

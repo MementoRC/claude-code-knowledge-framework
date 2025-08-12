@@ -18,8 +18,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Topic :: Software Development :: Quality Assurance",
 ]
-
-dependencies = []
+dependencies = ["pytest", "pytest-timeout", "black", "isort>=6.0.1,<7"]
 
 # All dependencies now managed through pixi features - see [tool.pixi.feature.*] sections
 [project.optional-dependencies]
@@ -45,7 +44,7 @@ packages = ["src/uckn"]
 exclude = [
     ".claude",
     ".claude/**",
-    ".cursor", 
+    ".cursor",
     ".cursor/**",
     "*.tmp",
     "*.temp"
@@ -56,7 +55,7 @@ exclude = [
     ".claude",
     ".claude/**",
     ".cursor",
-    ".cursor/**", 
+    ".cursor/**",
     "*.tmp",
     "*.temp",
     ".uckn"
@@ -64,11 +63,12 @@ exclude = [
 
 [tool.pixi.project]
 channels = ["conda-forge", "pytorch"]
-platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+platforms = ["linux-64"]
 
 [tool.pixi.dependencies]
 python = ">=3.12"
 pip = "*"
+pytest-benchmark = ">=5.1.0,<6"
 
 [tool.pixi.pypi-dependencies]
 uckn-framework = {path = ".", editable = true}
@@ -85,6 +85,9 @@ types-psutil = "*"
 
 # Core Runtime Dependencies (migrated from [project] dependencies)
 [tool.pixi.feature.core.dependencies]
+# ML/Data dependencies with compatible versions
+pyarrow = ">=14.0.0,<21.0.0"  # Ensure PyExtensionType compatibility
+datasets = ">=2.12.0,<3.0.0"
 sentence-transformers = ">=2.2.0"
 chromadb = ">=0.4.0"
 fastapi = ">=0.100.0"
@@ -111,6 +114,7 @@ safety = ">=2.3.0,<3.0.0"
 pre-commit = ">=3.0.0"
 hypothesis = ">=6.0.0"
 diff-cover = ">=7.5.0"
+pytest-benchmark = ">=5.1.0,<6"
 
 # TIER 3: CI/CD & Build Tools
 [tool.pixi.feature.quality-ci.dependencies]
@@ -155,9 +159,10 @@ websockets = ">=11.0.0"
 anyio = ">=3.6.0"
 
 [tool.pixi.feature.ml.dependencies]
+# ML dependencies - inherits from core for compatibility
 pytorch = "*"
-sentence-transformers = "*"
-chromadb = "*"
+# sentence-transformers and chromadb inherited from core feature
+# pyarrow constraint ensures PyExtensionType compatibility
 sqlalchemy = "*"
 psycopg = "*"
 transformers = ">=4.20.0"
@@ -196,7 +201,7 @@ format = "ruff format src/ tests/"
 typecheck = { cmd = "cd src && mypy uckn", env = { MYPYPATH = "." } }
 
 # Pre-commit Integration (CRITICAL for AG commands)
-pre-commit = { cmd = "pre-commit run --all-files", env = { CLAUDECODE = "0" } }
+pre-commit = { cmd = "pre-commit run --all-files", env = { CLAUDECODE = "0", PRE_COMMIT = "1" } }
 install-pre-commit = { cmd = "pre-commit install --install-hooks", env = { CLAUDECODE = "0" } }
 
 # Combined Quality Check (MANDATORY BEFORE COMMIT)
@@ -233,7 +238,7 @@ ci-format-check = { cmd = "pixi run -e quality ruff format --check src/ tests/",
 # Framework tasks
 start-server = "python -m uckn.server"
 analyze-project = "uckn analyze ."
-migrate-patterns = "uckn migrate --source .claude/knowledge" 
+migrate-patterns = "uckn migrate --source .claude/knowledge"
 init-project = "uckn init --template python-ml"
 db-migrate = "alembic -c src/uckn/storage/migrations/alembic.ini upgrade head" # Added for DB migrations
 
@@ -303,6 +308,7 @@ markers = [
     "e2e: End-to-end tests (slow, <300s timeout)",
     "slow: Slow tests (extended timeout)",
     "benchmark: Performance benchmark tests (no timeout)",
+    "asyncio: Async tests using pytest-asyncio plugin",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",

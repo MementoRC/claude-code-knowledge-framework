@@ -22,21 +22,21 @@ check_postgres() {
         echo "   Docker: See setup instructions in the script"
         exit 1
     fi
-    
+
     if ! pg_isready -h $DB_HOST -p $DB_PORT &> /dev/null; then
         echo "❌ PostgreSQL is not running on $DB_HOST:$DB_PORT"
         echo "   Start it with: sudo systemctl start postgresql (Linux)"
         echo "   Or: brew services start postgresql (macOS)"
         exit 1
     fi
-    
+
     echo "✅ PostgreSQL is running"
 }
 
 # Function to create database and user
 setup_database() {
     echo "📊 Creating database and user..."
-    
+
     # Connect as postgres superuser to create database and user
     sudo -u postgres psql << EOF
 -- Create user if it doesn't exist
@@ -76,11 +76,11 @@ EOF
 # Function to test connection
 test_connection() {
     echo "🔌 Testing database connection..."
-    
+
     export PGPASSWORD="$DB_PASSWORD"
     if psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "SELECT version();" &> /dev/null; then
         echo "✅ Connection successful!"
-        
+
         # Show connection string
         echo ""
         echo "📝 Use this connection string:"
@@ -88,7 +88,7 @@ test_connection() {
         echo ""
         echo "🔧 Environment variables:"
         echo "   export UCKN_DATABASE_URL=\"postgresql://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME\""
-        
+
     else
         echo "❌ Connection failed"
         exit 1
@@ -99,17 +99,17 @@ test_connection() {
 # Function to setup with Docker (alternative)
 setup_docker() {
     echo "🐳 Setting up PostgreSQL with Docker..."
-    
+
     # Check if Docker is available
     if ! command -v docker &> /dev/null; then
         echo "❌ Docker is not installed. Please install Docker first."
         exit 1
     fi
-    
+
     # Stop existing container if running
     docker stop uckn-postgres 2>/dev/null || true
     docker rm uckn-postgres 2>/dev/null || true
-    
+
     # Create and start PostgreSQL container
     docker run --name uckn-postgres \
       -e POSTGRES_USER=$DB_USER \
@@ -118,14 +118,14 @@ setup_docker() {
       -p $DB_PORT:5432 \
       -v uckn_postgres_data:/var/lib/postgresql/data \
       -d postgres:15
-    
+
     echo "⏳ Waiting for PostgreSQL to start..."
     sleep 10
-    
+
     # Create extensions
     docker exec uckn-postgres psql -U $DB_USER -d $DB_NAME -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
     docker exec uckn-postgres psql -U $DB_USER -d $DB_NAME -c "CREATE EXTENSION IF NOT EXISTS \"btree_gin\";"
-    
+
     echo "✅ PostgreSQL Docker container created successfully"
     echo "📝 Connection string: postgresql://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME"
 }

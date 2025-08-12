@@ -139,17 +139,21 @@ class ProjectDNAFingerprinter:
             )
             v1 = np.array(
                 [
-                    self._get_feature_weight(f)
-                    if self._feature_present(f, fp1)
-                    else 0.0
+                    (
+                        self._get_feature_weight(f)
+                        if self._feature_present(f, fp1)
+                        else 0.0
+                    )
                     for f in features
                 ]
             )
             v2 = np.array(
                 [
-                    self._get_feature_weight(f)
-                    if self._feature_present(f, fp2)
-                    else 0.0
+                    (
+                        self._get_feature_weight(f)
+                        if self._feature_present(f, fp2)
+                        else 0.0
+                    )
                     for f in features
                 ]
             )

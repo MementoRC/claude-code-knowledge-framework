@@ -309,9 +309,11 @@ def analytics_trends(pattern_id, days, json_flag):
                 table.add_row(
                     str(entry.get("date", "")),
                     str(entry.get("count", "")),
-                    f"{entry.get('success_rate', 0):.2f}"
-                    if entry.get("success_rate") is not None
-                    else "N/A",
+                    (
+                        f"{entry.get('success_rate', 0):.2f}"
+                        if entry.get("success_rate") is not None
+                        else "N/A"
+                    ),
                 )
             console.print(table)
     except Exception as e:

@@ -73,9 +73,9 @@ def test_add_and_search_pattern(km):
     health = km.get_health_status()
     print(f"Health status: {health}")
     assert health["unified_db_available"] is True, f"Unified DB not available: {health}"
-    assert health["semantic_search_available"] is True, (
-        f"Semantic search not available: {health}"
-    )
+    assert (
+        health["semantic_search_available"] is True
+    ), f"Semantic search not available: {health}"
 
     pattern = valid_pattern_data()
     print(f"Pattern data: {pattern}")
@@ -84,6 +84,7 @@ def test_add_and_search_pattern(km):
 
     # Add delay for search indexing
     import time
+
     time.sleep(1.0)
 
     # Debug search flow step by step
@@ -92,7 +93,9 @@ def test_add_and_search_pattern(km):
     # Test encoding
     query = "singleton"
     query_embedding = km.semantic_search.encode(query)
-    print(f"Query embedding for '{query}': {query_embedding is not None} (length: {len(query_embedding) if query_embedding else 0})")
+    print(
+        f"Query embedding for '{query}': {query_embedding is not None} (length: {len(query_embedding) if query_embedding else 0})"
+    )
 
     # Search for the pattern with default threshold (0.7)
     print(f"Calling search_patterns with query: '{query}' (default threshold 0.7)")
@@ -110,13 +113,17 @@ def test_add_and_search_pattern(km):
     # Test direct unified_db search
     if query_embedding:
         print("Testing direct unified_db search...")
-        direct_results = km.unified_db.search_patterns(query_embedding, n_results=5, min_similarity=0.1)
+        direct_results = km.unified_db.search_patterns(
+            query_embedding, n_results=5, min_similarity=0.1
+        )
         print(f"Direct unified_db results: {direct_results}")
 
     # Use the working results with appropriate threshold
     working_results = results_low if results_low else results
     assert isinstance(working_results, list)
-    assert any(r.get("id") == pattern_id for r in working_results), f"Pattern {pattern_id} not found in search results. Available IDs: {[r.get('id') for r in working_results]}"
+    assert any(
+        r.get("id") == pattern_id for r in working_results
+    ), f"Pattern {pattern_id} not found in search results. Available IDs: {[r.get('id') for r in working_results]}"
 
 
 def test_pattern_classification_workflow(km):
@@ -124,9 +131,9 @@ def test_pattern_classification_workflow(km):
     health = km.get_health_status()
     print(f"Health status: {health}")
     assert health["unified_db_available"] is True, f"Unified DB not available: {health}"
-    assert health["semantic_search_available"] is True, (
-        f"Semantic search not available: {health}"
-    )
+    assert (
+        health["semantic_search_available"] is True
+    ), f"Semantic search not available: {health}"
 
     pattern = valid_pattern_data("pattern2")
     pattern_id = km.add_pattern(pattern)

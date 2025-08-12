@@ -191,8 +191,8 @@ class SemanticSearchEngineOptimized:
 
     def get_performance_summary(self):
         return {
-            "resource_usage": self.resource_monitor.get_usage()
-            if self.resource_monitor
-            else None,
+            "resource_usage": (
+                self.resource_monitor.get_usage() if self.resource_monitor else None
+            ),
             "analytics": self.analytics.summary() if self.analytics else None,
         }

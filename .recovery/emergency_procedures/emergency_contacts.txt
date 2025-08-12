@@ -1,0 +1,16 @@
+=== EMERGENCY RECOVERY CONTACTS ===
+Session: MementoRC/claude-code-knowledge-framework
+Project: claude-code-knowledge-framework
+Recovery System: /home/memento/ClaudeCode/Servers/claude-code-knowledge-framework/worktrees/feat-ci-integration/.recovery
+Escalation Protocol: escalate_to_main_context
+
+=== CRITICAL THRESHOLDS ===
+MCP Usage Target: 95%
+Strategic Bash Limit: 5%
+Quality Gate Tolerance: 0
+
+=== RECOVERY COMMANDS ===
+Restore Latest Checkpoint: restore_from_checkpoint
+Emergency Recovery: emergency_recovery
+Quality Recovery: handle_quality_failure
+MCP Fallback: handle_mcp_failure

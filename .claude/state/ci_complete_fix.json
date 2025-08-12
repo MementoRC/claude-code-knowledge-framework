@@ -46,7 +46,7 @@
       "fix_description": "Missing module attribute after refactoring"
     },
     {
-      "job_name": "PR Quality Gate", 
+      "job_name": "PR Quality Gate",
       "test_name": "GitHub Actions Cache Service",
       "error_type": "Cache service responded with 400",
       "file_path": ".github/workflows/pr-checks.yml",
@@ -69,7 +69,7 @@
       "job_name": "test-matrix (3.12, unit)",
       "test_name": "test_add_and_search_pattern",
       "error_type": "assert False",
-      "file_path": "tests/integration/test_knowledge_manager_integration.py", 
+      "file_path": "tests/integration/test_knowledge_manager_integration.py",
       "line": 87,
       "status": "DUPLICATE",
       "fix_attempt": 0,
@@ -77,7 +77,7 @@
     },
     {
       "job_name": "test-matrix (3.12, e2e)",
-      "test_name": "test_add_and_search_pattern", 
+      "test_name": "test_add_and_search_pattern",
       "error_type": "assert False",
       "file_path": "tests/integration/test_knowledge_manager_integration.py",
       "line": 87,
@@ -106,7 +106,7 @@
     "evolution_cause": "Pixi fix revealed underlying test logic issues masked by infrastructure problems",
     "priority_order": [
       "IMPORT_ERROR - missing module attributes (blocking)",
-      "NEW_PATTERN - integration test assertion failures (critical)", 
+      "NEW_PATTERN - integration test assertion failures (critical)",
       "WARNING - Pydantic serialization warnings (medium)",
       "INFRASTRUCTURE - GitHub cache service (external)"
     ]

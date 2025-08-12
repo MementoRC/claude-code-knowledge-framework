@@ -48,7 +48,7 @@ try:
         PatternRecommendationEngine,
     )
     from uckn.core.semantic_search_enhanced import (
-        EnhancedSemanticSearchEngine as SemanticSearchEngine,
+        SemanticSearchEnhanced as SemanticSearchEngine,
     )
     from uckn.storage.chromadb_connector import ChromaDBConnector
     from uckn.storage.unified_database import UnifiedDatabase
@@ -582,9 +582,9 @@ class UniversalKnowledgeServer:
                     "title": pattern_title,
                     "description": pattern_description,
                     "pattern_type": pattern_type,
-                    "technology_stack": ",".join(technologies)
-                    if technologies
-                    else "",  # Required: comma-separated string
+                    "technology_stack": (
+                        ",".join(technologies) if technologies else ""
+                    ),  # Required: comma-separated string
                     "success_rate": 0.8,  # Required: default success rate for contributed patterns
                     "technologies": technologies,  # Keep for backward compatibility
                     "code": pattern_code,

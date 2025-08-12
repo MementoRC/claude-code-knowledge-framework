@@ -173,7 +173,10 @@ class KnowledgeManager:
             self._logger.error("Failed to generate query embedding for pattern search.")
             return []
         return self.unified_db.search_patterns(
-            query_embedding, n_results=limit, min_similarity=min_similarity, metadata_filter=metadata_filter
+            query_embedding,
+            n_results=limit,
+            min_similarity=min_similarity,
+            metadata_filter=metadata_filter,
         )
 
     # Pattern classification methods
@@ -273,7 +276,10 @@ class KnowledgeManager:
             self._logger.error("Failed to generate query embedding for error search.")
             return []
         return self.unified_db.search_error_solutions(
-            query_embedding, n_results=limit, min_similarity=min_similarity, metadata_filter=metadata_filter
+            query_embedding,
+            n_results=limit,
+            min_similarity=min_similarity,
+            metadata_filter=metadata_filter,
         )
 
     # Team Access Management (new)
@@ -367,15 +373,19 @@ class KnowledgeManager:
                 "container_running": db_manager_status["container_running"],
             },
             "components": {
-                "pattern_manager": "healthy"
-                if unified_db_status and self.semantic_search.is_available()
-                else "degraded",
-                "error_solution_manager": "healthy"
-                if unified_db_status and self.semantic_search.is_available()
-                else "degraded",
-                "pattern_classification": "healthy"
-                if unified_db_status
-                else "degraded",
+                "pattern_manager": (
+                    "healthy"
+                    if unified_db_status and self.semantic_search.is_available()
+                    else "degraded"
+                ),
+                "error_solution_manager": (
+                    "healthy"
+                    if unified_db_status and self.semantic_search.is_available()
+                    else "degraded"
+                ),
+                "pattern_classification": (
+                    "healthy" if unified_db_status else "degraded"
+                ),
                 "tech_detector": "healthy",
                 "database_manager": "healthy",
             },

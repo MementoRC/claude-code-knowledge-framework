@@ -94,7 +94,7 @@ async def login_with_api_key(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Login failed: {str(e)}",
-        )
+        ) from e
 
 
 @router.post("/auth/oauth/{provider}", response_model=TokenResponse)
@@ -128,7 +128,7 @@ async def oauth_login(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"OAuth login failed: {str(e)}",
-        )
+        ) from e
 
 
 @router.post("/auth/token/refresh", response_model=TokenResponse)
@@ -148,7 +148,7 @@ async def refresh_token(km: KnowledgeManager = Depends(get_knowledge_manager)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Token refresh failed: {str(e)}",
-        )
+        ) from e
 
 
 # User Management
@@ -174,7 +174,7 @@ async def get_current_user(km: KnowledgeManager = Depends(get_knowledge_manager)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get user info: {str(e)}",
-        )
+        ) from e
 
 
 @router.get("/auth/permissions", response_model=list[PermissionResponse])
@@ -194,7 +194,7 @@ async def get_user_permissions(km: KnowledgeManager = Depends(get_knowledge_mana
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get permissions: {str(e)}",
-        )
+        ) from e
 
 
 # API Key Management
@@ -223,7 +223,7 @@ async def create_api_key(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to create API key: {str(e)}",
-        )
+        ) from e
 
 
 @router.get("/auth/api-keys", response_model=list[APIKeyResponse])
@@ -249,7 +249,7 @@ async def list_api_keys(km: KnowledgeManager = Depends(get_knowledge_manager)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to list API keys: {str(e)}",
-        )
+        ) from e
 
 
 @router.delete("/auth/api-keys/{key_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -265,4 +265,4 @@ async def revoke_api_key(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to revoke API key: {str(e)}",
-        )
+        ) from e

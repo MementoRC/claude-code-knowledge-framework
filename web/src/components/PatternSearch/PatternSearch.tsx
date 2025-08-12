@@ -158,7 +158,7 @@ export default function PatternSearch() {
       };
 
       const response: PatternSearchResponse = await apiService.searchPatterns(request);
-      
+
       setPatterns(response.patterns);
       setTotalCount(response.total_count);
       setQueryTime(response.query_time_ms);
@@ -205,7 +205,7 @@ export default function PatternSearch() {
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           {pattern.metadata.description || pattern.document.slice(0, 150) + '...'}
         </Typography>
-        
+
         {/* Technologies */}
         <Box sx={{ mb: 2 }}>
           {pattern.metadata.technologies?.slice(0, 3).map((tech) => (
@@ -441,14 +441,14 @@ export default function PatternSearch() {
                   <Tab label="Code" icon={<CodeIcon />} />
                 </Tabs>
               </Box>
-              
+
               <TabPanel value={tabValue} index={0}>
                 <Typography variant="body1" sx={{ mb: 2 }}>
                   {selectedPattern.metadata.description || selectedPattern.document}
                 </Typography>
-                
+
                 <Divider sx={{ my: 2 }} />
-                
+
                 <Typography variant="h6" gutterBottom>
                   Technologies
                 </Typography>
@@ -484,7 +484,7 @@ export default function PatternSearch() {
                   </>
                 )}
               </TabPanel>
-              
+
               <TabPanel value={tabValue} index={1}>
                 <Paper elevation={1} sx={{ p: 2, bgcolor: 'grey.50' }}>
                   <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>

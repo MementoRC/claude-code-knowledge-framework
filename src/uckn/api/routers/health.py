@@ -47,9 +47,9 @@ async def system_status(
         health_status = knowledge_manager.get_health_status()
 
         return SystemStatusResponse(
-            status="healthy"
-            if health_status.get("unified_db_available")
-            else "degraded",
+            status=(
+                "healthy" if health_status.get("unified_db_available") else "degraded"
+            ),
             components=health_status.get("components", {}),
             uptime="Unknown",  # Could implement actual uptime tracking
             version="1.0.0",

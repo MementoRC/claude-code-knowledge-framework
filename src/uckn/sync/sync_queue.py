@@ -243,9 +243,9 @@ class SyncQueue:
         return {
             **self.stats,
             "priority_breakdown": priority_counts,
-            "queue_utilization": self.size() / self.max_size
-            if self.max_size > 0
-            else 0,
+            "queue_utilization": (
+                self.size() / self.max_size if self.max_size > 0 else 0
+            ),
         }
 
     def get_failed_items(self) -> list[dict[str, Any]]:

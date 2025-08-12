@@ -142,10 +142,12 @@ def test_knowledge_manager_full_lifecycle_pattern(knowledge_manager_instance):
     except Exception:
         update_success = False
     assert update_success, "Pattern update should not raise exceptions"
-    
+
     # Verify the update actually worked
     retrieved_updated_pattern = km.get_pattern(pattern_id)
-    assert retrieved_updated_pattern is not None, "Updated pattern should be retrievable"
+    assert (
+        retrieved_updated_pattern is not None
+    ), "Updated pattern should be retrievable"
     assert retrieved_updated_pattern["document"] == updated_doc
     assert retrieved_updated_pattern["metadata"]["success_rate"] == 0.99
     assert retrieved_updated_pattern["metadata"]["new_field"] == "value"
@@ -193,7 +195,9 @@ def test_knowledge_manager_full_lifecycle_pattern(knowledge_manager_instance):
 
 
 @pytest.mark.integration
-@pytest.mark.skip(reason="Database configuration mismatch - PostgreSQL queries with SQLite, ChromaDB metadata validation issues")
+@pytest.mark.skip(
+    reason="Database configuration mismatch - PostgreSQL queries with SQLite, ChromaDB metadata validation issues"
+)
 def test_knowledge_manager_full_lifecycle_error_solution(knowledge_manager_instance):
     km = knowledge_manager_instance
 

@@ -159,9 +159,9 @@ class UnifiedDatabase:
         combined_data = {
             "id": pg_data["id"],
             "project_id": pg_data.get("project_id"),
-            "document": chroma_data["document"]
-            if chroma_data
-            else pg_data["document_text"],
+            "document": (
+                chroma_data["document"] if chroma_data else pg_data["document_text"]
+            ),
             "embedding": chroma_data["embedding"] if chroma_data else None,
             "metadata": pg_data["metadata_json"],  # Use metadata from PG
             "created_at": pg_data["created_at"],
@@ -400,9 +400,9 @@ class UnifiedDatabase:
         combined_data = {
             "id": pg_data["id"],
             "project_id": pg_data.get("project_id"),
-            "document": chroma_data["document"]
-            if chroma_data
-            else pg_data["document_text"],
+            "document": (
+                chroma_data["document"] if chroma_data else pg_data["document_text"]
+            ),
             "embedding": chroma_data["embedding"] if chroma_data else None,
             "metadata": pg_data["metadata_json"],
             "created_at": pg_data["created_at"],

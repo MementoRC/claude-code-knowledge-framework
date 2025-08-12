@@ -117,7 +117,9 @@ async def search_patterns(
 
     except Exception as e:
         logger.error(f"Error searching patterns: {e}")
-        raise HTTPException(status_code=500, detail=f"Pattern search failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Pattern search failed: {str(e)}"
+        ) from e
 
 
 @router.post("/patterns/contribute", response_model=PatternContributionResponse)
@@ -168,7 +170,7 @@ async def contribute_pattern(
         logger.error(f"Error contributing pattern: {e}")
         raise HTTPException(
             status_code=500, detail=f"Pattern contribution failed: {str(e)}"
-        )
+        ) from e
 
 
 @router.put("/patterns/{pattern_id}/validate", response_model=ValidationResponse)

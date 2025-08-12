@@ -25,7 +25,9 @@ def test_health_check(client):
     assert "message" in data
 
 
-@pytest.mark.skip(reason="Dependency injection mocking complex - requires service architecture fixes")
+@pytest.mark.skip(
+    reason="Dependency injection mocking complex - requires service architecture fixes"
+)
 @patch("src.uckn.api.dependencies.get_knowledge_manager")
 def test_system_status_healthy(mock_get_km, client):
     """Test system status endpoint when healthy."""
@@ -48,7 +50,9 @@ def test_system_status_healthy(mock_get_km, client):
     assert data["version"] == "1.0.0"
 
 
-@pytest.mark.skip(reason="Dependency injection mocking complex - requires service architecture fixes")
+@pytest.mark.skip(
+    reason="Dependency injection mocking complex - requires service architecture fixes"
+)
 @patch("src.uckn.api.dependencies.get_knowledge_manager")
 def test_system_status_degraded(mock_get_km, client):
     """Test system status endpoint when degraded."""

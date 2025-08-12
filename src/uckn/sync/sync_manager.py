@@ -470,9 +470,9 @@ class SyncManager:
         return {
             "status": self.status.value,
             "progress": self.sync_progress,
-            "last_sync": self.last_sync_time.isoformat()
-            if self.last_sync_time
-            else None,
+            "last_sync": (
+                self.last_sync_time.isoformat() if self.last_sync_time else None
+            ),
             "is_online": self.is_online,
             "queue_size": self.sync_queue.size(),
             "vector_clock": self.vector_clock.copy(),
