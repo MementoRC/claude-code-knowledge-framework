@@ -39,8 +39,8 @@ def _tech_stack_match(
     if not query_stack or not doc_stack:
         return 0.0
 
-    query_set = set(stack.lower() for stack in query_stack)
-    doc_set = set(stack.lower() for stack in doc_stack)
+    query_set = {stack.lower() for stack in query_stack}
+    doc_set = {stack.lower() for stack in doc_stack}
 
     if not query_set or not doc_set:
         return 0.0

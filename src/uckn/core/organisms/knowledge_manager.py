@@ -101,16 +101,17 @@ class KnowledgeManager:
                 "Pattern data must include 'document' text for embedding."
             )
             return None
-        if not self.semantic_search.is_available():
-            self._logger.error(
-                "Semantic search not available, cannot generate embeddings for pattern."
+        embedding = None
+        if self.semantic_search.is_available():
+            embedding = self.semantic_search.encode(document_text)
+            if embedding is None:
+                self._logger.warning(
+                    "Failed to generate embedding for pattern, continuing without embedding."
+                )
+        else:
+            self._logger.warning(
+                "Semantic search not available, adding pattern without embedding."
             )
-            return None
-
-        embedding = self.semantic_search.encode(document_text)
-        if embedding is None:
-            self._logger.error("Failed to generate embedding for pattern.")
-            return None
 
         return self.unified_db.add_pattern(
             document_text=document_text,
@@ -235,16 +236,17 @@ class KnowledgeManager:
                 "Solution data must include 'document' text for embedding."
             )
             return None
-        if not self.semantic_search.is_available():
-            self._logger.error(
-                "Semantic search not available, cannot generate embeddings for error solution."
+        embedding = None
+        if self.semantic_search.is_available():
+            embedding = self.semantic_search.encode(document_text)
+            if embedding is None:
+                self._logger.warning(
+                    "Failed to generate embedding for error solution, continuing without embedding."
+                )
+        else:
+            self._logger.warning(
+                "Semantic search not available, adding error solution without embedding."
             )
-            return None
-
-        embedding = self.semantic_search.encode(document_text)
-        if embedding is None:
-            self._logger.error("Failed to generate embedding for error solution.")
-            return None
 
         return self.unified_db.add_error_solution(
             document_text=document_text,

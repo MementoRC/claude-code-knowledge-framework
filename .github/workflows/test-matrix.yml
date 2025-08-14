@@ -24,6 +24,9 @@ jobs:
       ENVIRONMENT: ci
       PYTHONUNBUFFERED: 1
       PIXI_ENV: ci
+      UCKN_DISABLE_TORCH: "1"
+      HF_HUB_DISABLE_PROGRESS_BARS: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
     steps:
       - uses: actions/checkout@v4
 
@@ -56,6 +59,9 @@ jobs:
       - name: Run selected tests
         env:
           ENVIRONMENT: ci
+          UCKN_DISABLE_TORCH: "1"
+          HF_HUB_DISABLE_PROGRESS_BARS: "1"
+          HF_HUB_DISABLE_TELEMETRY: "1"
         run: |
           # Run all tests since markers aren't implemented
           pixi run -e ci test --json-report --json-report-file=pytest-${{ matrix.test-type }}.json

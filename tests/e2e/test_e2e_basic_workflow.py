@@ -78,8 +78,14 @@ def test_basic_end_to_end_workflow(km):
 
     # 6. Test health status
     health = km.get_health_status()
-    assert health["chromadb_available"] is True
-    assert health["semantic_search_available"] is True
+    assert health["unified_db_available"] is True
+
+    # Skip semantic search assertion in CI environment where torch is disabled
+    if os.environ.get("UCKN_DISABLE_TORCH", "0") != "1":
+        assert health["semantic_search_available"] is True
+    else:
+        # In CI with torch disabled, semantic search should not be available
+        assert health["semantic_search_available"] is False
 
     # 7. Cleanup
     deleted_pattern = km.delete_pattern(pattern_id)

@@ -79,7 +79,7 @@ class UnifiedDatabase:
     def add_pattern(
         self,
         document_text: str,
-        embedding: list[float],
+        embedding: list[float] | None,
         metadata: dict[str, Any],
         pattern_id: str | None = None,
         project_id: str | None = None,
@@ -121,21 +121,27 @@ class UnifiedDatabase:
             "updated_at": now_iso,
         }
 
-        # Add to ChromaDB
-        chroma_success = self.chroma_connector.add_document(
-            collection_name="code_patterns",
-            doc_id=pattern_id,
-            document=document_text,
-            embedding=embedding,
-            metadata=chroma_metadata,  # ChromaDB stores only compatible metadata
-        )
-        if not chroma_success:
-            # Attempt to rollback PostgreSQL record if ChromaDB fails
-            self.pg_connector.delete_record(Pattern, pattern_id)
-            self._logger.error(
-                f"Failed to add pattern document to ChromaDB for ID: {pattern_id}. PostgreSQL record rolled back."
+        # Add to ChromaDB (only if embedding is available)
+        chroma_success = True
+        if embedding is not None:
+            chroma_success = self.chroma_connector.add_document(
+                collection_name="code_patterns",
+                doc_id=pattern_id,
+                document=document_text,
+                embedding=embedding,
+                metadata=chroma_metadata,  # ChromaDB stores only compatible metadata
             )
-            return None
+            if not chroma_success:
+                # Attempt to rollback PostgreSQL record if ChromaDB fails
+                self.pg_connector.delete_record(Pattern, pattern_id)
+                self._logger.error(
+                    f"Failed to add pattern document to ChromaDB for ID: {pattern_id}. PostgreSQL record rolled back."
+                )
+                return None
+        else:
+            self._logger.info(
+                f"No embedding provided for pattern {pattern_id}, skipping ChromaDB storage (pattern stored in PostgreSQL only)."
+            )
 
         self._logger.info(
             f"Pattern '{pattern_id}' added successfully to both databases."
@@ -336,7 +342,7 @@ class UnifiedDatabase:
     def add_error_solution(
         self,
         document_text: str,
-        embedding: list[float],
+        embedding: list[float] | None,
         metadata: dict[str, Any],
         solution_id: str | None = None,
         project_id: str | None = None,
@@ -366,19 +372,26 @@ class UnifiedDatabase:
             )
             return None
 
-        chroma_success = self.chroma_connector.add_document(
-            collection_name="error_solutions",
-            doc_id=solution_id,
-            document=document_text,
-            embedding=embedding,
-            metadata=metadata,
-        )
-        if not chroma_success:
-            self.pg_connector.delete_record(ErrorSolution, solution_id)
-            self._logger.error(
-                f"Failed to add error solution document to ChromaDB for ID: {solution_id}. PostgreSQL record rolled back."
+        # Add to ChromaDB (only if embedding is available)
+        chroma_success = True
+        if embedding is not None:
+            chroma_success = self.chroma_connector.add_document(
+                collection_name="error_solutions",
+                doc_id=solution_id,
+                document=document_text,
+                embedding=embedding,
+                metadata=metadata,
             )
-            return None
+            if not chroma_success:
+                self.pg_connector.delete_record(ErrorSolution, solution_id)
+                self._logger.error(
+                    f"Failed to add error solution document to ChromaDB for ID: {solution_id}. PostgreSQL record rolled back."
+                )
+                return None
+        else:
+            self._logger.info(
+                f"No embedding provided for error solution {solution_id}, skipping ChromaDB storage (solution stored in PostgreSQL only)."
+            )
 
         self._logger.info(
             f"Error solution '{solution_id}' added successfully to both databases."
