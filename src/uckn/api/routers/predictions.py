@@ -141,7 +141,7 @@ async def detect_issues_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to detect issues: {e}",
-        )
+        ) from e
 
 
 @router.post(
@@ -183,4 +183,4 @@ async def submit_feedback_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to submit feedback: {e}",
-        )
+        ) from e

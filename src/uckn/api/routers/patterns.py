@@ -215,4 +215,4 @@ async def validate_pattern(
         logger.error(f"Error validating pattern: {e}")
         raise HTTPException(
             status_code=500, detail=f"Pattern validation failed: {str(e)}"
-        )
+        ) from e

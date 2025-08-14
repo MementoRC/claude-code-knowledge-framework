@@ -10,7 +10,7 @@ import argparse
 import json
 import os
 import sys
-from typing import Any, Dict
+from typing import Any
 
 from tests.quality_metrics.coverage_analysis import (
     extract_coverage_metrics,

@@ -9,7 +9,7 @@ Coverage analysis utilities for UCKN quality metrics.
 import json
 import os
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 COVERAGE_JSON = os.environ.get("UCKN_COVERAGE_JSON", "coverage.json")
 COVERAGE_MD = os.environ.get("UCKN_COVERAGE_MD", "coverage.md")
