@@ -28,16 +28,22 @@ class KnowledgeManager:
         self.knowledge_dir.mkdir(parents=True, exist_ok=True)
         self._logger = logging.getLogger(__name__)
 
-        # Initialize Database Manager for auto-start capability
+        # Initialize Database Manager for auto-start capability (skip for SQLite)
         self.database_manager = DatabaseManager()
-        db_status = self.database_manager.ensure_database_available()
 
-        if db_status["available"]:
-            if db_status["auto_started"]:
-                self._logger.info("✅ PostgreSQL auto-started successfully")
-            pg_db_url = db_status["database_url"]
+        # Skip database manager when using SQLite (for tests)
+        if not pg_db_url.startswith("sqlite://"):
+            db_status = self.database_manager.ensure_database_available()
+            if db_status["available"]:
+                if db_status["auto_started"]:
+                    self._logger.info("✅ PostgreSQL auto-started successfully")
+                pg_db_url = db_status["database_url"]
+            else:
+                self._logger.warning(
+                    f"⚠️ PostgreSQL not available: {db_status['message']}"
+                )
         else:
-            self._logger.warning(f"⚠️ PostgreSQL not available: {db_status['message']}")
+            self._logger.info(f"✅ Using SQLite database: {pg_db_url}")
 
         # Initialize Unified Database connector
         self.unified_db = UnifiedDatabase(

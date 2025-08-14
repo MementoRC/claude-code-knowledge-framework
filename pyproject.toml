@@ -231,7 +231,8 @@ diff-cover = { cmd = "diff-cover coverage.xml", env = { CLAUDECODE = "0" } }
 check-all = { depends-on = ["quality", "static-analysis"] }
 
 # CI-specific tasks (optimized for CI environments)
-ci-test = { cmd = "pytest tests/ --cov=src/uckn --cov-report=xml --timeout=90", env = { CLAUDECODE = "0", ENVIRONMENT = "ci" } }
+ci-test = { cmd = "pytest tests/ --cov=src/uckn --cov-report=xml --timeout=30 -m 'not slow and not benchmark' --maxfail=3 -x --tb=short", env = { CLAUDECODE = "0", ENVIRONMENT = "ci", CI = "1" } }
+ci-test-coverage = { cmd = "pytest tests/unit tests/integration --cov=src/uckn --cov-report=json --cov-report=term --timeout=30 --maxfail=3 --tb=short", env = { CLAUDECODE = "0", ENVIRONMENT = "ci", CI = "1" } }
 ci-lint = { cmd = "pixi run -e quality ruff check src/ tests/ --output-format=github --select=F,E9", env = { CLAUDECODE = "0" } }
 ci-format-check = { cmd = "pixi run -e quality ruff format --check src/ tests/", env = { CLAUDECODE = "0" } }
 
@@ -300,15 +301,18 @@ addopts = [
     "--timeout=120",  # 2 minutes per test (optimized for CI)
     "--timeout-method=thread",  # More robust for async/code with subprocesses
 ]
+# CI-specific configuration removed - using standard configuration with runtime environment detection
 timeout = 120  # 2 minutes default timeout for all tests (pytest-timeout)
 timeout_method = "thread"
 markers = [
     "unit: Unit tests (fast, <30s timeout)",
     "integration: Integration tests (medium, <120s timeout)",
     "e2e: End-to-end tests (slow, <300s timeout)",
-    "slow: Slow tests (extended timeout)",
-    "benchmark: Performance benchmark tests (no timeout)",
+    "slow: Slow tests (extended timeout) - skipped in CI",
+    "benchmark: Performance benchmark tests (no timeout) - skipped in CI",
     "asyncio: Async tests using pytest-asyncio plugin",
+    "memory_intensive: Memory-intensive tests - reduced scope in CI",
+    "external_deps: Tests requiring external dependencies - may be skipped",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",

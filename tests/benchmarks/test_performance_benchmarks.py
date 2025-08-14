@@ -20,7 +20,40 @@ from uckn.core.atoms.semantic_search_engine import SemanticSearchEngine
 from uckn.core.organisms.knowledge_manager import KnowledgeManager
 from uckn.storage.chromadb_connector import ChromaDBConnector
 
+# CI detection
+IS_CI = os.getenv("CI") == "1" or os.getenv("ENVIRONMENT") == "ci"
 
+
+# CI-optimized fixture for reduced test scope
+@pytest.fixture
+def ci_optimized_patterns():
+    """Reduced pattern set for CI to avoid timeouts."""
+    return [
+        {
+            "id": "ci_test_1",
+            "content": "def test(): pass",
+            "metadata": {"type": "function"},
+        },
+        {
+            "id": "ci_test_2",
+            "content": "class Test: pass",
+            "metadata": {"type": "class"},
+        },
+    ]
+
+
+@pytest.fixture
+def ci_optimized_texts():
+    """Smaller text samples for CI."""
+    return {
+        "small": "def hello(): return 'world'",
+        "medium": "class Test:\n    def method(self): pass",
+        "large": "# CI optimized large text\n"
+        + "line\n" * 10,  # Much smaller than original
+    }
+
+
+@pytest.mark.benchmark
 class TestEmbeddingPerformance:
     """Benchmark tests for embedding generation performance."""
 
@@ -116,6 +149,7 @@ class TestEmbeddingPerformance:
         benchmark(cached_embed)
 
 
+@pytest.mark.benchmark
 class TestSearchPerformance:
     """Benchmark tests for semantic search performance."""
 
@@ -189,6 +223,7 @@ class TestSearchPerformance:
         assert isinstance(result, list)
 
 
+@pytest.mark.benchmark
 class TestStoragePerformance:
     """Benchmark tests for ChromaDB storage performance."""
 
@@ -305,6 +340,7 @@ class TestStoragePerformance:
         assert isinstance(result, list)
 
 
+@pytest.mark.benchmark
 class TestEndToEndPerformance:
     """Benchmark tests for end-to-end workflow performance."""
 
@@ -379,7 +415,11 @@ class TestEndToEndPerformance:
 class TestMemoryPerformance:
     """Memory usage benchmark tests."""
 
-    def test_embedding_memory_usage(self, temp_knowledge_dir, large_text_sample):
+    @pytest.mark.memory_intensive
+    @pytest.mark.skipif(IS_CI, reason="Memory intensive test skipped in CI")
+    def test_embedding_memory_usage(
+        self, temp_knowledge_dir, large_text_sample, ci_optimized_texts
+    ):
         """Test memory usage during embedding generation."""
         embeddings = MultiModalEmbeddings()
         if not embeddings.is_available():
@@ -388,18 +428,24 @@ class TestMemoryPerformance:
         # Force garbage collection before measurement
         gc.collect()
 
-        # Generate embeddings for large text
-        result = embeddings.embed(large_text_sample, "text")
+        # Use smaller sample in CI
+        text_sample = ci_optimized_texts["large"] if IS_CI else large_text_sample
+
+        # Generate embeddings for text
+        result = embeddings.embed(text_sample, "text")
         assert result is not None
 
-        # Test batch processing memory
-        batch_texts = [
-            large_text_sample[: len(large_text_sample) // 4] for _ in range(10)
-        ]
+        # Test batch processing memory with reduced batch size in CI
+        batch_size = 3 if IS_CI else 10
+        batch_texts = [text_sample[: len(text_sample) // 4] for _ in range(batch_size)]
         batch_result = embeddings.embed_batch(batch_texts, ["text"] * len(batch_texts))
         assert len(batch_result) == len(batch_texts)
 
-    def test_storage_memory_scaling(self, temp_knowledge_dir, sample_patterns):
+    @pytest.mark.memory_intensive
+    @pytest.mark.skipif(IS_CI, reason="Memory intensive test skipped in CI")
+    def test_storage_memory_scaling(
+        self, temp_knowledge_dir, sample_patterns, ci_optimized_patterns
+    ):
         """Test memory usage scaling with database size."""
         storage = ChromaDBConnector(
             db_path=str(Path(temp_knowledge_dir) / "memory_test")
@@ -407,9 +453,13 @@ class TestMemoryPerformance:
         if not storage.is_available():
             pytest.skip("ChromaDB not available")
 
-        # Add many documents and measure memory impact
-        for i in range(100):
-            for j, pattern in enumerate(sample_patterns):
+        # Use reduced dataset in CI
+        patterns = ci_optimized_patterns if IS_CI else sample_patterns
+        iterations = 2 if IS_CI else 100
+
+        # Add documents and measure memory impact
+        for i in range(iterations):
+            for j, pattern in enumerate(patterns):
                 # Use proper metadata for code_patterns collection
                 metadata = {
                     "technology_stack": "python,memory",
@@ -428,10 +478,11 @@ class TestMemoryPerformance:
                 )
 
         # Perform searches to test memory during operations
+        result_count = 5 if IS_CI else 50
         results = storage.search_documents(
             collection_name="code_patterns",
             query_embedding=[0.1] * 768,  # Use same embedding for matches
-            n_results=50,
+            n_results=result_count,
         )
         # Test passes if storage operations work - empty results are acceptable for memory test
         assert (
@@ -439,28 +490,32 @@ class TestMemoryPerformance:
         )  # Changed from > 0 to >= 0 to handle empty results gracefully
 
 
-@pytest.mark.benchmark(group="embeddings")
+@pytest.mark.benchmark
+@pytest.mark.skipif(IS_CI, reason="Benchmark tests skipped in CI")
 class TestEmbeddingBenchmarkGroup:
     """Grouped benchmark tests for embeddings."""
 
     pass
 
 
-@pytest.mark.benchmark(group="search")
+@pytest.mark.benchmark
+@pytest.mark.skipif(IS_CI, reason="Benchmark tests skipped in CI")
 class TestSearchBenchmarkGroup:
     """Grouped benchmark tests for search operations."""
 
     pass
 
 
-@pytest.mark.benchmark(group="storage")
+@pytest.mark.benchmark
+@pytest.mark.skipif(IS_CI, reason="Benchmark tests skipped in CI")
 class TestStorageBenchmarkGroup:
     """Grouped benchmark tests for storage operations."""
 
     pass
 
 
-@pytest.mark.benchmark(group="end_to_end")
+@pytest.mark.benchmark
+@pytest.mark.skipif(IS_CI, reason="Benchmark tests skipped in CI")
 class TestEndToEndBenchmarkGroup:
     """Grouped benchmark tests for complete workflows."""
 

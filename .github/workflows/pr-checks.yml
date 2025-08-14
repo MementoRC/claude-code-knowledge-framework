@@ -50,14 +50,15 @@ jobs:
 
     - name: Run tests on changed modules
       env:
+        CI: "1"
         ENVIRONMENT: ci
       run: |
-        echo "🧪 Running tests for changed modules..."
+        echo "🧪 Running tests for changed modules (CI optimized)..."
 
         # For now, always run tests to avoid git diff issues in CI
-        echo "Running all tests (git diff detection disabled due to CI environment issues)"
+        echo "Running all tests with CI optimizations"
         pixi run db-migrate || echo "Migration completed or no migrations needed"
-        pixi run -e ci test
+        pixi run ci-test
         echo "✅ Tests passed"
 
     - name: Validate atomic design on changes
@@ -168,25 +169,33 @@ jobs:
         pixi run -e ci install-editable
 
     - name: Generate coverage report
+      env:
+        CI: "1"
+        ENVIRONMENT: "ci"
       run: |
-        echo "📊 Generating coverage report..."
-        pixi run -e quality pytest tests/ --cov=src/uckn --cov-report=json --cov-report=term
+        echo "📊 Generating coverage report (CI optimized)..."
+        pixi run ci-test-coverage
 
         # Check coverage threshold
         python << 'EOF'
         import json
+        import os
 
-        with open('coverage.json', 'r') as f:
-            coverage_data = json.load(f)
+        if os.path.exists('coverage.json'):
+            with open('coverage.json', 'r') as f:
+                coverage_data = json.load(f)
 
-        total_coverage = coverage_data['totals']['percent_covered']
-        print(f"Total coverage: {total_coverage:.1f}%")
+            total_coverage = coverage_data['totals']['percent_covered']
+            print(f"Total coverage: {total_coverage:.1f}%")
 
-        if total_coverage < 70:
-            print(f"❌ Coverage below threshold: {total_coverage:.1f}% < 70%")
-            exit(1)
+            if total_coverage < 70:
+                print(f"❌ Coverage below threshold: {total_coverage:.1f}% < 70%")
+                exit(1)
+            else:
+                print(f"✅ Coverage meets threshold: {total_coverage:.1f}% >= 70%")
         else:
-            print(f"✅ Coverage meets threshold: {total_coverage:.1f}% >= 70%")
+            print("⚠️ Coverage file not found - coverage may have failed")
+            exit(1)
         EOF
 
   pr-docs:

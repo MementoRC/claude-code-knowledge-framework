@@ -17,7 +17,10 @@ def temp_knowledge_dir():
 
 @pytest.fixture(scope="module")
 def km(temp_knowledge_dir):
-    km = KnowledgeManager(knowledge_dir=temp_knowledge_dir)
+    # Use SQLite in-memory database for E2E test isolation
+    km = KnowledgeManager(
+        knowledge_dir=temp_knowledge_dir, pg_db_url="sqlite:///:memory:"
+    )
     yield km
 
 
