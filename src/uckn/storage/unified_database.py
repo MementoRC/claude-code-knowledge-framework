@@ -197,8 +197,18 @@ class UnifiedDatabase:
         if embedding is not None:
             chroma_updates["embedding"] = embedding
         if metadata is not None:
-            pg_updates["metadata_json"] = metadata
-            chroma_updates["metadata"] = metadata
+            # Merge with existing metadata to preserve fields not being updated
+            existing_pattern = self.get_pattern(pattern_id)
+            if existing_pattern and existing_pattern.get("metadata"):
+                merged_metadata = existing_pattern["metadata"].copy()
+                merged_metadata.update(metadata)
+                pg_updates["metadata_json"] = merged_metadata
+                chroma_updates["metadata"] = merged_metadata
+                metadata = merged_metadata  # Use merged metadata for field updates
+            else:
+                pg_updates["metadata_json"] = metadata
+                chroma_updates["metadata"] = metadata
+
             # Also update specific fields in PG if they are in metadata
             if "technology_stack" in metadata:
                 pg_updates["technology_stack"] = metadata["technology_stack"]

@@ -140,8 +140,8 @@ class KnowledgeManager:
                 )
                 return False
         elif document_text:
-            self._logger.warning(
-                "Semantic search not available, cannot re-generate embedding for updated document text."
+            self._logger.info(
+                "Semantic search not available, updating document text without re-generating embedding."
             )
 
         return self.unified_db.update_pattern(

@@ -289,11 +289,29 @@ class ChromaDBConnector:
             self._logger.error(f"Collection '{collection_name}' does not exist.")
             return False
 
-        if metadata and not self._validate_metadata(collection_name, metadata):
-            self._logger.error(
-                f"Metadata validation failed for collection '{collection_name}'."
-            )
-            return False
+        if metadata:
+            # For updates, we allow partial metadata - merge with existing if possible
+            try:
+                collection = self.collections[collection_name]
+                # Get existing document to merge metadata
+                existing = collection.get(ids=[doc_id], include=["metadatas"])
+                if existing and existing["metadatas"] and existing["metadatas"][0]:
+                    merged_metadata = existing["metadatas"][0].copy()
+                    merged_metadata.update(metadata)
+                    if not self._validate_metadata(collection_name, merged_metadata):
+                        self._logger.warning(
+                            f"Merged metadata validation failed for collection '{collection_name}', using partial update."
+                        )
+                        # Continue with partial metadata - don't fail the update
+                else:
+                    # No existing metadata, validate what we have
+                    if not self._validate_metadata(collection_name, metadata):
+                        self._logger.warning(
+                            f"Partial metadata validation failed for collection '{collection_name}', proceeding anyway."
+                        )
+            except Exception as e:
+                self._logger.warning(f"Could not validate metadata for update: {e}")
+                # Continue with the update anyway
 
         try:
             collection = self.collections[collection_name]

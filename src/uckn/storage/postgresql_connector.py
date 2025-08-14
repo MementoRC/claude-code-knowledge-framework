@@ -272,14 +272,28 @@ class PostgreSQLConnector:
             return
 
         try:
-            # Check if tables exist
+            # Check if tables exist - SQLite compatible query
             with self.get_db_session() as session:
-                result = session.execute(
-                    text(
-                        "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'patterns')"
+                try:
+                    # Try PostgreSQL syntax first
+                    result = session.execute(
+                        text(
+                            "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'patterns')"
+                        )
                     )
-                )
-                table_exists = result.scalar()
+                    table_exists = result.scalar()
+                except Exception:
+                    # Fall back to SQLite syntax
+                    try:
+                        result = session.execute(
+                            text(
+                                "SELECT name FROM sqlite_master WHERE type='table' AND name='patterns'"
+                            )
+                        )
+                        table_exists = result.scalar() is not None
+                    except Exception:
+                        # If both fail, assume we need to create tables
+                        table_exists = False
 
                 if not table_exists:
                     self._logger.info("Database tables not found, creating schema...")
