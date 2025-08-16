@@ -67,11 +67,12 @@ platforms = ["linux-64"]
 
 [tool.pixi.dependencies]
 python = ">=3.12"
-pip = "*"
+# pip removed to avoid conda/PyPI conflicts - using pure conda packages
 pytest-benchmark = ">=5.1.0,<6"
 
 [tool.pixi.pypi-dependencies]
 uckn-framework = {path = ".", editable = true}
+# All other dependencies moved to conda features to avoid conflicts
 
 # TIER 1: Essential Quality Gates (ZERO-TOLERANCE)
 [tool.pixi.feature.quality.dependencies]
@@ -83,29 +84,24 @@ ruff = ">=0.7.3"
 mypy = ">=1.0.0"
 types-psutil = "*"
 
-# Core Runtime Dependencies (migrated from [project] dependencies)
+# Core Runtime Dependencies (CI-optimized minimal set)
 [tool.pixi.feature.core.dependencies]
-# ML/Data dependencies with compatible versions
-pyarrow = ">=14.0.0,<21.0.0"  # Ensure PyExtensionType compatibility
-datasets = ">=2.12.0,<3.0.0"
-sentence-transformers = ">=2.2.0"
-chromadb = ">=0.4.0"
-fastapi = ">=0.100.0"
-uvicorn = ">=0.20.0"
-pydantic = ">=2.0.0"
-numpy = ">=1.21.0"
-pandas = ">=1.5.0"
-httpx = ">=0.24.0"
+# Essential dependencies only - minimal for CI performance
+fastapi = ">=0.100.0,<1.0.0"
+uvicorn = ">=0.20.0,<1.0.0"
+pydantic = ">=2.0.0,<3.0.0"
+numpy = ">=1.21.0,<2.0.0"
+pandas = ">=1.5.0,<3.0.0"
+httpx = ">=0.24.0,<1.0.0"
 toml = ">=0.10.0"
-click = ">=8.0.0"
-rich = ">=13.0.0"
-gitpython = ">=3.1.0"
-jinja2 = ">=3.0.0"
-redis-py = ">=4.0.0"
-psutil = ">=5.9.0"
-sqlalchemy = ">=2.0.0"
-psycopg = ">=3.1.0"
-alembic = ">=1.12.0"
+click = ">=8.0.0,<9.0.0"
+rich = ">=13.0.0,<14.0.0"
+jinja2 = ">=3.0.0,<4.0.0"
+psutil = ">=5.9.0,<6.0.0"
+sqlalchemy = ">=2.0.0,<3.0.0"
+psycopg = ">=3.1.0,<4.0.0"
+alembic = ">=1.12.0,<2.0.0"
+# gitpython moved to dev feature to reduce core dependencies
 
 # TIER 2: Extended Quality & Security
 [tool.pixi.feature.quality-extended.dependencies]
@@ -144,6 +140,7 @@ black = ">=23.0.0"
 mypy = ">=1.0.0"
 pre-commit = ">=3.0.0"
 alembic = ">=1.12.0"
+gitpython = ">=3.1.0,<4.0.0"  # Moved from core for CI optimization
 
 # Load Testing Dependencies (specialized)
 [tool.pixi.feature.loadtest.dependencies]
@@ -159,16 +156,21 @@ websockets = ">=11.0.0"
 anyio = ">=3.6.0"
 
 [tool.pixi.feature.ml.dependencies]
-# ML dependencies - inherits from core for compatibility
-pytorch = "*"
-# sentence-transformers and chromadb inherited from core feature
-# pyarrow constraint ensures PyExtensionType compatibility
-sqlalchemy = "*"
-psycopg = "*"
-transformers = ">=4.20.0"
-scikit-learn = ">=1.3.0"
-matplotlib = ">=3.5.0"
-seaborn = ">=0.11.0"
+# ML dependencies - lightweight for CI compatibility
+scikit-learn = ">=1.3.0,<2.0.0"
+matplotlib = ">=3.5.0,<4.0.0"
+seaborn = ">=0.11.0,<1.0.0"
+
+# Heavy ML/Data dependencies - separate feature for optional loading
+[tool.pixi.feature.ml-heavy.dependencies]
+# Heavy ML/Data dependencies (only load when needed)
+pyarrow = ">=14.0.0,<21.0.0"  # Ensure PyExtensionType compatibility
+datasets = ">=2.12.0,<3.0.0"
+sentence-transformers = ">=2.2.0,<3.0.0"
+chromadb = ">=0.4.0,<1.0.0"
+redis-py = ">=4.0.0,<5.0.0"
+pytorch = "*"  # Moved here for optional use
+transformers = ">=4.20.0,<5.0.0"  # Moved here for optional use
 
 # Documentation Dependencies
 [tool.pixi.feature.docs.dependencies]
@@ -177,13 +179,18 @@ mkdocs-material = ">=9.0.0"
 mkdocstrings = ">=0.20.0"
 
 [tool.pixi.environments]
-default = {features = ["core", "ml", "mcp"], solve-group = "default"}
-dev = {features = ["core", "dev", "ml", "mcp"], solve-group = "default"}
-ci = {features = ["core", "dev", "mcp", "quality-ci"], solve-group = "default"}
+# CI-optimized environments (reduced package counts for faster installs)
+default = {features = ["core"], solve-group = "default"}
+dev = {features = ["core", "quality", "dev"], solve-group = "default"}
+ci = {features = ["core", "quality-ci"], solve-group = "default"}  # Streamlined for CI
 docs = {features = ["core", "docs"], solve-group = "default"}
-quality = {features = ["core", "quality", "dev"], solve-group = "default"}
-quality-extended = {features = ["core", "quality-extended", "dev"], solve-group = "default"}
+quality = {features = ["core", "quality"], solve-group = "default"}
+quality-extended = {features = ["core", "quality", "quality-extended"], solve-group = "default"}
 loadtest = {features = ["core", "loadtest"], solve-group = "default"}
+# Full environments (use only when needed - heavy dependencies)
+dev-full = {features = ["core", "dev", "ml", "ml-heavy", "mcp"], solve-group = "default"}  # All features
+ci-full = {features = ["core", "dev", "mcp", "quality-ci"], solve-group = "default"}  # CI with MCP
+ml-full = {features = ["core", "ml", "ml-heavy"], solve-group = "default"}  # All ML dependencies
 
 [tool.pixi.tasks]
 # Development tasks (STRICT COMPLIANCE: Use pip module with python)

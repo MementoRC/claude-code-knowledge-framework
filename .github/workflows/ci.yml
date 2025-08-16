@@ -27,11 +27,11 @@ jobs:
     - name: Setup Pixi
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
-        pixi-version: v0.49.0
+        pixi-version: v0.50.2
         cache: true
 
-    - name: Install dependencies
-      run: pixi install
+    - name: Install dependencies (CI environment)
+      run: pixi install --environment ci
 
     - name: Run tests
       run: pixi run ci-test
@@ -55,11 +55,11 @@ jobs:
     - name: Setup Pixi
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
-        pixi-version: v0.49.0
+        pixi-version: v0.50.2
         cache: true
 
-    - name: Install dependencies
-      run: pixi install
+    - name: Install dependencies (CI environment)
+      run: pixi install --environment ci
 
     - name: Run linting
       run: pixi run ci-lint
@@ -77,6 +77,15 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Setup Pixi for Security
+      uses: prefix-dev/setup-pixi@v0.8.1
+      with:
+        pixi-version: v0.50.2
+        cache: true
+
+    - name: Install security dependencies
+      run: pixi install --environment quality-extended
 
     - name: Run Bandit Security Scan
       run: |
@@ -107,7 +116,7 @@ jobs:
     - name: Setup Pixi
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
-        pixi-version: v0.49.0
+        pixi-version: v0.50.2
         cache: true
         manifest-path: pyproject.toml
 
@@ -146,7 +155,7 @@ jobs:
     - name: Setup Pixi
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
-        pixi-version: v0.49.0
+        pixi-version: v0.50.2
         cache: true
 
     - name: Install build tools
