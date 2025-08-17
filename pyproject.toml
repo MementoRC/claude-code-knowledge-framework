@@ -182,7 +182,7 @@ mkdocstrings = ">=0.20.0"
 # CI-optimized environments (reduced package counts for faster installs)
 default = {features = ["core"], solve-group = "default"}
 dev = {features = ["core", "quality", "dev"], solve-group = "default"}
-ci = {features = ["core", "quality-ci"], solve-group = "default"}  # Streamlined for CI
+ci = {features = ["core", "quality", "quality-ci"], solve-group = "default"}  # Enhanced with full testing support
 docs = {features = ["core", "docs"], solve-group = "default"}
 quality = {features = ["core", "quality"], solve-group = "default"}
 quality-extended = {features = ["core", "quality", "quality-extended"], solve-group = "default"}

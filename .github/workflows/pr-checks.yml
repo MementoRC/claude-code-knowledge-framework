@@ -25,8 +25,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pixi install --environment ci
-        pixi run -e ci install-editable
+        pixi install --environment quality
+        pixi run -e quality install-editable
 
     - name: Quick lint check (changed files only)
       run: |
@@ -41,8 +41,8 @@ jobs:
         if [ -n "$CHANGED_FILES" ]; then
           echo "Python files changed: $CHANGED_FILES"
           echo "Running lint check on all src/ and tests/ directories..."
-          pixi run ci-lint
-          pixi run ci-format-check
+          pixi run -e quality lint
+          pixi run -e quality format --check
           echo "✅ Lint check passed"
         else
           echo "No Python files changed, skipping lint check"
@@ -58,7 +58,7 @@ jobs:
         # For now, always run tests to avoid git diff issues in CI
         echo "Running all tests with CI optimizations"
         pixi run db-migrate || echo "Migration completed or no migrations needed"
-        pixi run ci-test
+        pixi run -e quality test
         echo "✅ Tests passed"
 
     - name: Validate atomic design on changes
@@ -165,8 +165,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pixi install --environment ci
-        pixi run -e ci install-editable
+        pixi install --environment quality
+        pixi run -e quality install-editable
 
     - name: Generate coverage report
       env:
@@ -174,7 +174,7 @@ jobs:
         ENVIRONMENT: "ci"
       run: |
         echo "📊 Generating coverage report (CI optimized)..."
-        pixi run ci-test-coverage
+        pixi run -e quality test-cov
 
         # Check coverage threshold
         python << 'EOF'
