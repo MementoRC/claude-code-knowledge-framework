@@ -24,14 +24,30 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup Pixi
+    - name: Setup Pixi with retry mechanism
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
         pixi-version: v0.50.2
         cache: true
+        cache-write: ${{ github.event_name != 'pull_request' }}
 
-    - name: Install dependencies (CI environment)
-      run: pixi install --environment ci
+    - name: Install dependencies with retry (CI environment)
+      run: |
+        # Retry mechanism for PIXI installation
+        for i in {1..3}; do
+          echo "Attempt $i: Installing PIXI CI environment..."
+          if pixi install --environment ci; then
+            echo "✅ PIXI CI environment installed successfully"
+            break
+          else
+            echo "⚠️ PIXI installation attempt $i failed"
+            if [ $i -eq 3 ]; then
+              echo "❌ All PIXI installation attempts failed"
+              exit 1
+            fi
+            sleep 10
+          fi
+        done
 
     - name: Run tests
       run: pixi run ci-test
@@ -52,14 +68,30 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup Pixi
+    - name: Setup Pixi with retry mechanism
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
         pixi-version: v0.50.2
         cache: true
+        cache-write: ${{ github.event_name != 'pull_request' }}
 
-    - name: Install dependencies (CI environment)
-      run: pixi install --environment ci
+    - name: Install dependencies with retry (CI environment)
+      run: |
+        # Retry mechanism for PIXI installation
+        for i in {1..3}; do
+          echo "Attempt $i: Installing PIXI CI environment..."
+          if pixi install --environment ci; then
+            echo "✅ PIXI CI environment installed successfully"
+            break
+          else
+            echo "⚠️ PIXI installation attempt $i failed"
+            if [ $i -eq 3 ]; then
+              echo "❌ All PIXI installation attempts failed"
+              exit 1
+            fi
+            sleep 10
+          fi
+        done
 
     - name: Run linting
       run: pixi run ci-lint
@@ -78,14 +110,30 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup Pixi for Security
+    - name: Setup Pixi for Security with retry
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
         pixi-version: v0.50.2
         cache: true
+        cache-write: ${{ github.event_name != 'pull_request' }}
 
-    - name: Install security dependencies
-      run: pixi install --environment quality-extended
+    - name: Install security dependencies with retry
+      run: |
+        # Retry mechanism for PIXI installation
+        for i in {1..3}; do
+          echo "Attempt $i: Installing PIXI quality-extended environment..."
+          if pixi install --environment quality-extended; then
+            echo "✅ PIXI quality-extended environment installed successfully"
+            break
+          else
+            echo "⚠️ PIXI installation attempt $i failed"
+            if [ $i -eq 3 ]; then
+              echo "❌ All PIXI installation attempts failed"
+              exit 1
+            fi
+            sleep 10
+          fi
+        done
 
     - name: Run Bandit Security Scan
       run: |
@@ -113,15 +161,31 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup Pixi
+    - name: Setup Pixi with retry mechanism
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
         pixi-version: v0.50.2
         cache: true
+        cache-write: ${{ github.event_name != 'pull_request' }}
         manifest-path: pyproject.toml
 
-    - name: Install framework
-      run: pixi install --environment dev
+    - name: Install framework with retry
+      run: |
+        # Retry mechanism for PIXI installation
+        for i in {1..3}; do
+          echo "Attempt $i: Installing PIXI dev environment..."
+          if pixi install --environment dev; then
+            echo "✅ PIXI dev environment installed successfully"
+            break
+          else
+            echo "⚠️ PIXI installation attempt $i failed"
+            if [ $i -eq 3 ]; then
+              echo "❌ All PIXI installation attempts failed"
+              exit 1
+            fi
+            sleep 10
+          fi
+        done
 
     - name: Install package in editable mode
       run: pixi run -e dev dev-setup
@@ -152,15 +216,30 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup Pixi
+    - name: Setup Pixi with retry mechanism
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
         pixi-version: v0.50.2
         cache: true
+        cache-write: ${{ github.event_name != 'pull_request' }}
 
-    - name: Install build tools
+    - name: Install build tools with retry
       run: |
-        pixi install --environment ci
+        # Retry mechanism for PIXI installation
+        for i in {1..3}; do
+          echo "Attempt $i: Installing PIXI CI environment for build..."
+          if pixi install --environment ci; then
+            echo "✅ PIXI CI environment installed successfully"
+            break
+          else
+            echo "⚠️ PIXI installation attempt $i failed"
+            if [ $i -eq 3 ]; then
+              echo "❌ All PIXI installation attempts failed"
+              exit 1
+            fi
+            sleep 10
+          fi
+        done
 
     - name: Build package
       run: pixi run --environment ci python -m build
