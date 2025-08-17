@@ -36,6 +36,15 @@ class DummyChromaDBConnector:
                     "metadata": {"technology_stack": ["java"], "success_rate": 0.7},
                     "similarity_score": 0.8,
                 },
+                {
+                    "id": "es1",
+                    "document": "solution1",
+                    "metadata": {
+                        "technology_stack": ["python"],
+                        "avg_resolution_time": 10,
+                    },
+                    "similarity_score": 0.92,
+                },
             ],
             "error_solutions": [
                 {
@@ -69,6 +78,27 @@ class DummyChromaDBConnector:
             for d in self.docs.get(collection_name, [])
             if d["similarity_score"] >= min_similarity
         ][:n_results]
+
+    def query_collection(self, collection_name, query_embeddings, n_results, **kwargs):
+        """ChromaDB-style query interface for the new API."""
+        self.last_query = (collection_name, query_embeddings, n_results, kwargs)
+
+        # Get documents from collection
+        docs = self.docs.get(collection_name, [])
+
+        # Simulate distance calculation (lower distance = higher similarity)
+        results = {"ids": [[]], "distances": [[]], "documents": [[]], "metadatas": [[]]}
+
+        for doc in docs[:n_results]:
+            # Convert similarity to distance (distance = 1 - similarity)
+            distance = 1.0 - doc["similarity_score"]
+
+            results["ids"][0].append(doc["id"])
+            results["distances"][0].append(distance)
+            results["documents"][0].append(doc["document"])
+            results["metadatas"][0].append(doc["metadata"])
+
+        return results
 
 
 @pytest.fixture
@@ -159,6 +189,6 @@ def test_error_handling(engine):
     def fail_search(*a, **kw):
         raise Exception("fail")
 
-    engine.chroma_connector.search_documents = fail_search
+    engine.chroma_connector.query_collection = fail_search
     results = engine.search_by_text("foo", tech_stack="python", limit=5)
     assert results == []

@@ -63,6 +63,9 @@ class SemanticSearchEngine:
         self,
         collection_name: str = "code_patterns",
         embedding_model: str = "sentence-transformers/all-mpnet-base-v2",
+        chroma_connector=None,
+        embedding_atom=None,
+        cache_size: int = 128,
         **chromadb_kwargs: Any,
     ):
         """
@@ -77,7 +80,10 @@ class SemanticSearchEngine:
         self.collection_name = collection_name
 
         # Initialize ChromaDB connector
-        if ChromaDBConnector:
+        if chroma_connector is not None:
+            self.vector_store = chroma_connector
+            self._logger.info("ChromaDB connector provided via parameter")
+        elif ChromaDBConnector:
             try:
                 self.vector_store = ChromaDBConnector(**chromadb_kwargs)
                 self._logger.info("ChromaDB connector initialized successfully")
@@ -89,24 +95,39 @@ class SemanticSearchEngine:
             self._logger.warning("ChromaDB not available")
 
         # Initialize multi-modal embeddings atom
-        try:
-            self.embeddings = MultiModalEmbeddings(model_name=embedding_model)
-            self._logger.info("MultiModalEmbeddings initialized successfully")
-        except Exception as e:
-            self.embeddings = None
-            self._logger.error(f"Failed to initialize MultiModalEmbeddings: {e}")
+        if embedding_atom is not None:
+            self.embeddings = embedding_atom
+            self._logger.info("MultiModalEmbeddings provided via parameter")
+        else:
+            try:
+                self.embeddings = MultiModalEmbeddings()
+                self._logger.info("MultiModalEmbeddings initialized successfully")
+            except Exception as e:
+                self.embeddings = None
+                self._logger.error(f"Failed to initialize MultiModalEmbeddings: {e}")
 
         # Simple instance cache for embeddings to avoid memory leaks from lru_cache
+        self._cache_size = cache_size
         self._embedding_cache: dict[tuple[str, str], list[float] | None] = {}
+
+        # For backward compatibility, also set embedding_atom alias
+        self.embedding_atom = self.embeddings
+
+        # For backward compatibility, also set chroma_connector alias
+        self.chroma_connector = self.vector_store
 
     def is_available(self) -> bool:
         """Check if the engine and its underlying components are available."""
-        return bool(
+        vector_available = (
             self.vector_store
+            and hasattr(self.vector_store, "is_available")
             and self.vector_store.is_available()
-            and self.embeddings
-            and self.embeddings.is_available()
         )
+        embeddings_available = self.embeddings and (
+            not hasattr(self.embeddings, "is_available")
+            or self.embeddings.is_available()
+        )
+        return bool(vector_available and embeddings_available)
 
     def store_pattern(
         self,
@@ -228,17 +249,27 @@ class SemanticSearchEngine:
                     "metadata": metadata or {},
                 }
 
-                # Tech stack filtering if specified
-                if tech_stack:
-                    doc_tech_stack = metadata.get("tech_stack", []) if metadata else []
-                    compatibility = _tech_stack_match(tech_stack, doc_tech_stack)
-                    if (
-                        compatibility > 0.0
-                    ):  # Only include if there's some compatibility
-                        result["tech_compatibility"] = compatibility
-                        processed_results.append(result)
-                else:
-                    processed_results.append(result)
+                # Add additional scoring fields for compatibility
+                if metadata:
+                    # Add success rate if available
+                    if "success_rate" in metadata:
+                        result["_success_score"] = metadata["success_rate"]
+
+                    # Add tech stack compatibility score
+                    doc_tech_stack = metadata.get(
+                        "technology_stack", []
+                    ) or metadata.get("tech_stack", [])
+                    if tech_stack:
+                        compatibility = _tech_stack_match(tech_stack, doc_tech_stack)
+                        result["_tech_stack_score"] = compatibility
+                        if compatibility == 0.0:
+                            continue  # Skip if no tech stack compatibility
+                    elif doc_tech_stack:
+                        result["_tech_stack_score"] = (
+                            1.0  # No filter means all are compatible
+                        )
+
+                processed_results.append(result)
 
                 if len(processed_results) >= limit:
                     break
@@ -345,17 +376,7 @@ class SemanticSearchEngine:
         # Generate new embedding
         embedding = None
         try:
-            if data_type == "text":
-                embedding = self.embeddings.embed_text(data)
-            elif data_type == "code":
-                embedding = self.embeddings.embed_code(data)
-            elif data_type == "error":
-                embedding = self.embeddings.embed_error(data)
-            elif data_type == "multi_modal":
-                embedding = self.embeddings.embed_multi_modal(data)
-            else:
-                self._logger.warning(f"Unknown data type: {data_type}")
-                return None
+            embedding = self.embeddings.embed(data, data_type)
         except Exception as e:
             self._logger.error(f"Error generating {data_type} embedding: {e}")
             return None
@@ -417,3 +438,123 @@ class SemanticSearchEngine:
         except Exception as e:
             self._logger.error(f"Error deleting pattern {pattern_id}: {e}")
             return False
+
+    # Convenience methods for backward compatibility with tests
+    def search_by_text(
+        self,
+        query: str,
+        tech_stack: str | list[str] | None = None,
+        limit: int = 10,
+        **kwargs,
+    ) -> list[dict]:
+        """Search for patterns using text query."""
+        if isinstance(tech_stack, str):
+            tech_stack = [tech_stack]
+        return self.search_similar(
+            query=query, limit=limit, query_type="text", tech_stack=tech_stack, **kwargs
+        )
+
+    def search_by_code(
+        self,
+        query: str,
+        tech_stack: str | list[str] | None = None,
+        limit: int = 10,
+        **kwargs,
+    ) -> list[dict]:
+        """Search for patterns using code query."""
+        if isinstance(tech_stack, str):
+            tech_stack = [tech_stack]
+        return self.search_similar(
+            query=query, limit=limit, query_type="code", tech_stack=tech_stack, **kwargs
+        )
+
+    def search_by_error(
+        self,
+        query: str,
+        tech_stack: str | list[str] | None = None,
+        limit: int = 10,
+        **kwargs,
+    ) -> list[dict]:
+        """Search for patterns using error query."""
+        if isinstance(tech_stack, str):
+            tech_stack = [tech_stack]
+        return self.search_similar(
+            query=query,
+            limit=limit,
+            query_type="error",
+            tech_stack=tech_stack,
+            **kwargs,
+        )
+
+    def search_multi_modal(
+        self,
+        text: str = None,
+        code: str = None,
+        error: str = None,
+        tech_stack: str | list[str] | None = None,
+        limit: int = 10,
+        **kwargs,
+    ) -> list[dict]:
+        """Search for patterns using multi-modal query."""
+        if isinstance(tech_stack, str):
+            tech_stack = [tech_stack]
+
+        # For multi-modal search, we need to call the embeddings directly
+        if not self.embeddings:
+            return []
+
+        try:
+            # Generate multi-modal embedding
+            embedding = self.embeddings.multi_modal_embed(
+                text=text, code=code, error=error
+            )
+            if embedding is None:
+                return []
+
+            # Perform vector search with the embedding
+            if not self.vector_store:
+                return []
+
+            results = self.vector_store.query_collection(
+                collection_name=self.collection_name,
+                query_embeddings=[embedding],
+                n_results=limit * 2,
+                **kwargs,
+            )
+
+            # Process results similar to search_similar
+            processed_results = []
+            for _, (doc_id, distance, doc_content, metadata) in enumerate(
+                zip(
+                    results.get("ids", [[]])[0],
+                    results.get("distances", [[]])[0],
+                    results.get("documents", [[]])[0],
+                    results.get("metadatas", [[]])[0],
+                )
+            ):
+                # Convert distance to similarity score
+                similarity_score = 1.0 - distance if distance is not None else 0.0
+
+                # Apply technology stack filtering
+                if tech_stack:
+                    doc_tech_stack = metadata.get(
+                        "technology_stack", []
+                    ) or metadata.get("tech_stack", [])
+                    tech_compatibility = _tech_stack_match(tech_stack, doc_tech_stack)
+                    if tech_compatibility == 0.0:
+                        continue
+
+                processed_results.append(
+                    {
+                        "id": doc_id,
+                        "content": doc_content,
+                        "metadata": metadata or {},
+                        "similarity_score": similarity_score,
+                    }
+                )
+
+            return processed_results[:limit]
+
+        except Exception as e:
+            self._logger.error(f"Error in multi-modal search: {e}")
+            return []
