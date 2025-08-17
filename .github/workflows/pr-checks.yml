@@ -25,7 +25,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pixi install
+        pixi install --environment ci
         pixi run -e ci install-editable
 
     - name: Quick lint check (changed files only)
@@ -165,7 +165,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pixi install
+        pixi install --environment ci
         pixi run -e ci install-editable
 
     - name: Generate coverage report

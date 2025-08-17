@@ -177,7 +177,7 @@ jobs:
   deploy:
     name: Deploy to PyPI
     runs-on: ubuntu-latest
-    needs: [build, framework-integration]
+    needs: [build]
     if: github.event_name == 'release'
     environment: production
 
