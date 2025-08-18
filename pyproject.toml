@@ -18,7 +18,8 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Topic :: Software Development :: Quality Assurance",
 ]
-dependencies = ["pytest", "pytest-timeout", "black", "isort>=6.0.1,<7"]
+# 🚨 CRITICAL: All dependencies managed through pixi features to avoid conda/PyPI conflicts
+dependencies = []
 
 # All dependencies now managed through pixi features - see [tool.pixi.feature.*] sections
 [project.optional-dependencies]
@@ -63,7 +64,12 @@ exclude = [
 
 [tool.pixi.project]
 channels = ["conda-forge", "pytorch"]
-platforms = ["linux-64"]
+platforms = ["linux-64"]  # 🚨 CRITICAL: Linux-only for fastest dependency resolution
+channel-priority = "disabled"  # Faster dependency resolution (unified template pattern)
+
+# Ensure proper environment isolation (CI Framework pattern)
+[tool.pixi.activation]
+env = { PYTHONNOUSERSITE = "1" }
 
 [tool.pixi.dependencies]
 python = ">=3.12"
@@ -72,7 +78,7 @@ pytest-benchmark = ">=5.1.0,<6"
 
 [tool.pixi.pypi-dependencies]
 uckn-framework = {path = ".", editable = true}
-# All other dependencies moved to conda features to avoid conflicts
+# 🚨 CRITICAL: Only framework itself as PyPI dependency to avoid conda/PyPI conflicts
 
 # TIER 1: Essential Quality Gates (ZERO-TOLERANCE)
 [tool.pixi.feature.quality.dependencies]
@@ -83,6 +89,9 @@ pytest-asyncio = ">=0.21.0"
 ruff = ">=0.7.3"
 mypy = ">=1.0.0"
 types-psutil = "*"
+# Essential formatting tools (moved from project dependencies to avoid conflicts)
+black = ">=23.0.0"
+isort = ">=5.12.0"
 
 # Core Runtime Dependencies (CI-optimized minimal set)
 [tool.pixi.feature.core.dependencies]
