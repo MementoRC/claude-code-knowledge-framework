@@ -2,6 +2,7 @@ import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from src.uckn.api.models.patterns import PatternStatus
@@ -41,11 +42,12 @@ def mock_workflow_manager():
 @pytest.fixture
 def client(mock_workflow_manager):
     # Override dependencies for testing
-    app = TestClient(router)
+    app = FastAPI()
+    app.include_router(router)
     app.dependency_overrides[get_workflow_manager] = lambda: mock_workflow_manager
     app.dependency_overrides[get_current_user_id] = lambda: "test_user"
     app.dependency_overrides[get_current_user_roles] = lambda: ["contributor", "admin"]
-    return app
+    return TestClient(app)
 
 
 @pytest.mark.asyncio

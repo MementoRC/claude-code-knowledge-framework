@@ -175,7 +175,7 @@ class MultiModalEmbeddings:
         word_features = word_features[:half_dim]
 
         # Create hash-based features for second half
-        hash_obj = hashlib.md5(text.encode())
+        hash_obj = hashlib.md5(text.encode(), usedforsecurity=False)
         hash_bytes = hash_obj.digest()
         hash_features = []
 

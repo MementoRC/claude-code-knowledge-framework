@@ -2,14 +2,17 @@ from datetime import datetime
 from unittest.mock import Mock, patch
 
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from src.uckn.api.dependencies import get_predictive_issue_detector
 from src.uckn.api.routers.predictions import router
 from src.uckn.core.organisms.predictive_issue_detector import PredictiveIssueDetector
 
-# Create a TestClient for the router
-client = TestClient(router)
+# Create a FastAPI app for testing (routers don't have dependency_overrides)
+app = FastAPI()
+app.include_router(router)
+client = TestClient(app)
 
 
 @pytest.fixture
@@ -33,11 +36,11 @@ def override_dependency(mock_predictive_issue_detector):
     """
     Overrides the get_predictive_issue_detector dependency for testing.
     """
-    router.dependency_overrides[get_predictive_issue_detector] = (
+    app.dependency_overrides[get_predictive_issue_detector] = (
         lambda: mock_predictive_issue_detector
     )
     yield
-    router.dependency_overrides = {}  # Clean up after test
+    app.dependency_overrides = {}  # Clean up after test
 
 
 def test_detect_issues_endpoint_success(mock_predictive_issue_detector):

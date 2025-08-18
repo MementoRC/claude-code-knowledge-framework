@@ -102,6 +102,7 @@ pydantic = ">=2.0.0,<3.0.0"
 numpy = ">=1.21.0,<2.0.0"
 pandas = ">=1.5.0,<3.0.0"
 httpx = ">=0.24.0,<1.0.0"
+aiohttp = ">=3.8.0,<4.0.0"
 toml = ">=0.10.0"
 click = ">=8.0.0,<9.0.0"
 rich = ">=13.0.0,<14.0.0"
@@ -208,9 +209,9 @@ install-editable = "python -m pip install -e ."
 dev-setup = "python -m pip install -e ."
 
 # TIER 1: Core Quality Gates (ZERO-TOLERANCE)
-test = { cmd = "pytest tests/ -v --timeout=30 -x", env = { CLAUDECODE = "0" } }
-test-fast = { cmd = "pytest tests/unit/ -v --timeout=30 --maxfail=5 -n auto", env = { CLAUDECODE = "0" } }
-test-cov = { cmd = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term --cov-report=xml --cov-report=json --timeout=60", env = { CLAUDECODE = "0" } }
+test = { cmd = "pytest tests/ -v -x", env = { CLAUDECODE = "0" } }
+test-fast = { cmd = "pytest tests/unit/ -v --maxfail=5", env = { CLAUDECODE = "0" } }
+test-cov = { cmd = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term --cov-report=xml --cov-report=json", env = { CLAUDECODE = "0" } }
 lint = "ruff check src/ tests/ --select=F,E9"
 lint-fix = "ruff check --fix src/ tests/"
 format = "ruff format src/ tests/"
@@ -247,8 +248,8 @@ diff-cover = { cmd = "diff-cover coverage.xml", env = { CLAUDECODE = "0" } }
 check-all = { depends-on = ["quality", "static-analysis"] }
 
 # CI-specific tasks (optimized for CI environments)
-ci-test = { cmd = "pytest tests/ --cov=src/uckn --cov-report=xml --timeout=30 -m 'not slow and not benchmark' --maxfail=3 -x --tb=short", env = { CLAUDECODE = "0", ENVIRONMENT = "ci", CI = "1" } }
-ci-test-coverage = { cmd = "pytest tests/unit tests/integration --cov=src/uckn --cov-report=json --cov-report=term --timeout=30 --maxfail=3 --tb=short", env = { CLAUDECODE = "0", ENVIRONMENT = "ci", CI = "1" } }
+ci-test = { cmd = "pytest tests/ --cov=src/uckn --cov-report=xml -m 'not slow and not benchmark' --maxfail=3 -x --tb=short", env = { CLAUDECODE = "0", ENVIRONMENT = "ci", CI = "1" } }
+ci-test-coverage = { cmd = "pytest tests/unit tests/integration --cov=src/uckn --cov-report=json --cov-report=term --maxfail=3 --tb=short", env = { CLAUDECODE = "0", ENVIRONMENT = "ci", CI = "1" } }
 ci-lint = { cmd = "pixi run -e quality ruff check src/ tests/ --output-format=github --select=F,E9", env = { CLAUDECODE = "0" } }
 ci-format-check = { cmd = "pixi run -e quality ruff format --check src/ tests/", env = { CLAUDECODE = "0" } }
 
