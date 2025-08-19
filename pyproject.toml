@@ -111,6 +111,7 @@ psutil = ">=5.9.0,<6.0.0"
 sqlalchemy = ">=2.0.0,<3.0.0"
 psycopg = ">=3.1.0,<4.0.0"
 alembic = ">=1.12.0,<2.0.0"
+pytest-timeout = ">=2.1.0"  # 🚨 CRITICAL FIX: Required for CI timeout support
 # gitpython moved to dev feature to reduce core dependencies
 
 # TIER 2: Extended Quality & Security
@@ -127,6 +128,7 @@ pytest-benchmark = ">=5.1.0,<6"
 python-build = ">=1.0.0"
 twine = ">=4.0.0"
 coverage = ">=7.0.0"
+pytest-timeout = ">=2.1.0"  # 🚨 CRITICAL FIX: Required for CI timeout support
 
 # Development Tools (specialized)
 [tool.pixi.feature.dev.dependencies]
