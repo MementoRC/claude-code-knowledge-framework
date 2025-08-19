@@ -11,6 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
+      ENVIRONMENT: ci
+      PYTHONUNBUFFERED: 1
+      PIXI_ENV: ci
+      UCKN_DISABLE_TORCH: "1"
+      HF_HUB_DISABLE_PROGRESS_BARS: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
       PYTHON_VERSION: "3.12"
     steps:
       - uses: actions/checkout@v4
@@ -24,8 +30,8 @@ jobs:
       - name: Install dependencies (pixi)
         run: pixi install
 
-      - name: Install quality environment
-        run: pixi run -e quality install-editable
+      - name: Install dev dependencies
+        run: pixi run -e dev dev
       - name: Run tests with coverage (HTML, XML, JSON, Markdown)
         run: |
           pixi run -e quality test-cov

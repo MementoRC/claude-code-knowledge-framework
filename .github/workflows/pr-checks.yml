@@ -9,6 +9,13 @@ jobs:
   pr-quality-gate:
     name: PR Quality Gate
     runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: ci
+      PYTHONUNBUFFERED: 1
+      PIXI_ENV: ci
+      UCKN_DISABLE_TORCH: "1"
+      HF_HUB_DISABLE_PROGRESS_BARS: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
     if: github.event.pull_request.draft == false
 
     steps:
@@ -26,8 +33,8 @@ jobs:
     - name: Install dependencies (pixi)
       run: pixi install
 
-    - name: Install quality environment
-      run: pixi run -e quality install-editable
+    - name: Install dev dependencies
+      run: pixi run -e dev dev
 
     - name: Quick lint check (changed files only)
       run: |
@@ -152,6 +159,13 @@ jobs:
   pr-coverage:
     name: Coverage Check
     runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: ci
+      PYTHONUNBUFFERED: 1
+      PIXI_ENV: ci
+      UCKN_DISABLE_TORCH: "1"
+      HF_HUB_DISABLE_PROGRESS_BARS: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
     if: github.event.pull_request.draft == false
 
     steps:
@@ -167,8 +181,8 @@ jobs:
     - name: Install dependencies (pixi)
       run: pixi install
 
-    - name: Install quality environment
-      run: pixi run -e quality install-editable
+    - name: Install dev dependencies
+      run: pixi run -e dev dev
 
     - name: Generate coverage report
       env:

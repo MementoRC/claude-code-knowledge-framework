@@ -15,6 +15,13 @@ jobs:
   test:
     name: Test Suite
     runs-on: ${{ matrix.os }}
+    env:
+      ENVIRONMENT: ci
+      PYTHONUNBUFFERED: 1
+      PIXI_ENV: ci
+      UCKN_DISABLE_TORCH: "1"
+      HF_HUB_DISABLE_PROGRESS_BARS: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -33,8 +40,8 @@ jobs:
     - name: Install dependencies (pixi)
       run: pixi install
 
-    - name: Install CI environment
-      run: pixi run -e ci install
+    - name: Install dev dependencies
+      run: pixi run -e dev dev
 
     - name: Run tests
       run: pixi run ci-test
@@ -50,6 +57,13 @@ jobs:
   lint:
     name: Code Quality
     runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: ci
+      PYTHONUNBUFFERED: 1
+      PIXI_ENV: ci
+      UCKN_DISABLE_TORCH: "1"
+      HF_HUB_DISABLE_PROGRESS_BARS: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
 
     steps:
     - name: Checkout code
@@ -64,8 +78,8 @@ jobs:
     - name: Install dependencies (pixi)
       run: pixi install
 
-    - name: Install CI environment
-      run: pixi run -e ci install
+    - name: Install dev dependencies
+      run: pixi run -e dev dev
 
     - name: Run linting
       run: pixi run ci-lint
@@ -79,6 +93,13 @@ jobs:
   security:
     name: Security Scan
     runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: ci
+      PYTHONUNBUFFERED: 1
+      PIXI_ENV: ci
+      UCKN_DISABLE_TORCH: "1"
+      HF_HUB_DISABLE_PROGRESS_BARS: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
 
     steps:
     - name: Checkout code
@@ -93,8 +114,8 @@ jobs:
     - name: Install dependencies (pixi)
       run: pixi install
 
-    - name: Install quality-extended environment
-      run: pixi run -e quality-extended install
+    - name: Install dev dependencies
+      run: pixi run -e dev dev
 
     - name: Run Bandit Security Scan
       run: |
@@ -117,6 +138,13 @@ jobs:
   atomic-design-validation:
     name: Atomic Design Standards
     runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: ci
+      PYTHONUNBUFFERED: 1
+      PIXI_ENV: ci
+      UCKN_DISABLE_TORCH: "1"
+      HF_HUB_DISABLE_PROGRESS_BARS: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
 
     steps:
     - name: Checkout code
@@ -131,8 +159,8 @@ jobs:
     - name: Install dependencies (pixi)
       run: pixi install
 
-    - name: Install dev environment
-      run: pixi run -e dev install
+    - name: Install dev dependencies
+      run: pixi run -e dev dev
 
     - name: Install package in editable mode
       run: pixi run -e dev dev-setup
@@ -157,6 +185,13 @@ jobs:
   build:
     name: Build Package
     runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: ci
+      PYTHONUNBUFFERED: 1
+      PIXI_ENV: ci
+      UCKN_DISABLE_TORCH: "1"
+      HF_HUB_DISABLE_PROGRESS_BARS: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
     needs: [test, lint, security, atomic-design-validation]
 
     steps:
@@ -172,8 +207,8 @@ jobs:
     - name: Install dependencies (pixi)
       run: pixi install
 
-    - name: Install CI environment
-      run: pixi run -e ci install
+    - name: Install dev dependencies
+      run: pixi run -e dev dev
 
     - name: Build package
       run: pixi run --environment ci python -m build

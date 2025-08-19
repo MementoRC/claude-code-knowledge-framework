@@ -39,8 +39,8 @@ jobs:
       - name: Install dependencies (pixi)
         run: pixi install
 
-      - name: Install quality environment
-        run: pixi run -e quality install-editable
+      - name: Install dev dependencies
+        run: pixi run -e dev dev
 
       - name: Run database migrations
         env:
