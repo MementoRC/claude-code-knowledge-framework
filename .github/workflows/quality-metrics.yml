@@ -14,31 +14,18 @@ jobs:
       PYTHON_VERSION: "3.12"
     steps:
       - uses: actions/checkout@v4
-      - name: Setup pixi with retry mechanism
+      - name: Setup pixi
         uses: prefix-dev/setup-pixi@v0.8.1
         with:
           pixi-version: v0.50.2
           cache: true
-          cache-write: ${{ github.event_name != 'pull_request' }}
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y git
-      - name: Install dependencies with retry
-        run: |
-          # Retry mechanism for PIXI installation
-          for i in {1..3}; do
-            echo "Attempt $i: Installing PIXI environment..."
-            if pixi install --environment quality; then
-              echo "✅ PIXI environment installed successfully"
-              break
-            else
-              echo "⚠️ PIXI installation attempt $i failed"
-              if [ $i -eq 3 ]; then
-                echo "❌ All PIXI installation attempts failed"
-                exit 1
-              fi
-              sleep 10
-            fi
-          done
+      - name: Install dependencies (pixi)
+        run: pixi install
+
+      - name: Install quality environment
+        run: pixi run -e quality install-editable
       - name: Run tests with coverage (HTML, XML, JSON, Markdown)
         run: |
           pixi run -e quality test-cov
