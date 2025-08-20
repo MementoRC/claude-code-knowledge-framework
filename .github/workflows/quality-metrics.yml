@@ -31,7 +31,7 @@ jobs:
         run: pixi install
 
       - name: Install dev dependencies
-        run: pixi run -e dev dev
+        run: pixi run dev
       - name: Run tests with coverage (HTML, XML, JSON, Markdown)
         run: |
           pixi run -e quality test-cov

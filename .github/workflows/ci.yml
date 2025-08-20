@@ -41,7 +41,7 @@ jobs:
       run: pixi install
 
     - name: Install dev dependencies
-      run: pixi run -e dev dev
+      run: pixi run dev
 
     - name: Run tests
       run: pixi run ci-test
@@ -79,7 +79,7 @@ jobs:
       run: pixi install
 
     - name: Install dev dependencies
-      run: pixi run -e dev dev
+      run: pixi run dev
 
     - name: Run linting
       run: pixi run ci-lint
@@ -115,7 +115,7 @@ jobs:
       run: pixi install
 
     - name: Install dev dependencies
-      run: pixi run -e dev dev
+      run: pixi run dev
 
     - name: Run Bandit Security Scan
       run: |
@@ -160,27 +160,27 @@ jobs:
       run: pixi install
 
     - name: Install dev dependencies
-      run: pixi run -e dev dev
+      run: pixi run dev
 
     - name: Install package in editable mode
-      run: pixi run -e dev dev-setup
+      run: pixi run dev-setup
 
     - name: Test framework installation
       run: |
-        pixi run -e dev install
-        pixi run -e dev uckn --version
+        pixi run install
+        pixi run uckn-version
 
     - name: Install dependencies
       run: |
         mkdir test-project
         cd test-project
-        pixi run -e dev init-project
+        pixi run init-project
         ls -la
 
     - name: Validate UCKN atomic structure
       run: |
         cd test-project
-        pixi run -e dev analyze-project
+        pixi run analyze-project
 
   build:
     name: Build Package
@@ -208,7 +208,7 @@ jobs:
       run: pixi install
 
     - name: Install dev dependencies
-      run: pixi run -e dev dev
+      run: pixi run dev
 
     - name: Build package
       run: pixi run --environment ci python -m build
