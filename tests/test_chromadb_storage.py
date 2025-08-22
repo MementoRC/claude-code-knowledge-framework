@@ -6,17 +6,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-# Mock imports for graceful degradation testing
-try:
-    import chromadb
-    from chromadb.config import Settings
-
-    _HAS_CHROMADB = True
-except ImportError:
-    _HAS_CHROMADB = False
-
-# Import the connector
-from uckn.storage.chromadb_connector import ChromaDBConnector
+# Import the connector and ML environment manager
+from src.uckn.storage.chromadb_connector import ChromaDBConnector
+from src.uckn.core.ml_environment_manager import get_ml_manager
 
 
 # Mock the SemanticSearchEngine for tests that don't need actual embeddings
@@ -58,7 +50,10 @@ def chroma_connector(temp_db_path):
         connector.reset_db()
 
 
-@pytest.mark.skipif(not _HAS_CHROMADB, reason="ChromaDB not installed")
+@pytest.mark.skipif(
+    not get_ml_manager().capabilities.chromadb,
+    reason="ChromaDB not available in current environment",
+)
 class TestChromaDBConnector:
     def test_initialization_and_availability(self, temp_db_path):
         connector = ChromaDBConnector(db_path=temp_db_path)

@@ -7,61 +7,12 @@ Handles model loading, caching, batch processing, and multi-modal search combina
 
 import hashlib
 import logging
-import os
 import threading
 from typing import Any
 
 import numpy as np
 
-# Defensive import logic for torch and sentence-transformers
-SENTENCE_TRANSFORMERS_AVAILABLE = False
-TRANSFORMERS_AVAILABLE = False
-SentenceTransformer = None
-AutoTokenizer = None
-AutoModel = None
-torch = None
-
-_DISABLE_TORCH = os.environ.get("UCKN_DISABLE_TORCH", "0") == "1"
-
-if not _DISABLE_TORCH:
-    # Try importing torch and transformers defensively
-    try:
-        try:
-            import torch
-        except Exception:
-            torch = None
-            # Log or print for debugging, but do not raise
-        else:
-            try:
-                from transformers import AutoModel, AutoTokenizer
-
-                TRANSFORMERS_AVAILABLE = True
-            except Exception:
-                AutoTokenizer = None
-                AutoModel = None
-                TRANSFORMERS_AVAILABLE = False
-    except Exception:
-        torch = None
-        AutoTokenizer = None
-        AutoModel = None
-        TRANSFORMERS_AVAILABLE = False
-
-    # Try importing sentence-transformers defensively
-    try:
-        from sentence_transformers import SentenceTransformer
-
-        SENTENCE_TRANSFORMERS_AVAILABLE = True
-    except Exception:
-        SentenceTransformer = None
-        SENTENCE_TRANSFORMERS_AVAILABLE = False
-else:
-    # Torch is disabled by environment variable
-    torch = None
-    AutoTokenizer = None
-    AutoModel = None
-    SentenceTransformer = None
-    TRANSFORMERS_AVAILABLE = False
-    SENTENCE_TRANSFORMERS_AVAILABLE = False
+from ..ml_environment_manager import get_ml_manager
 
 
 class MultiModalEmbeddings:
@@ -80,15 +31,10 @@ class MultiModalEmbeddings:
 
     def __init__(self, device: str | None = None):
         self._logger = logging.getLogger(__name__)
-        # Defensive: If torch is unavailable, always use cpu
-        if (
-            torch is not None
-            and hasattr(torch, "cuda")
-            and callable(getattr(torch.cuda, "is_available", None))
-        ):
-            self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        else:
-            self.device = "cpu"
+        self._ml_manager = get_ml_manager()
+
+        # Use ML manager to determine device
+        self.device = device or self._ml_manager.get_device()
         self._lock = threading.Lock()
 
         # Model loading
@@ -96,13 +42,14 @@ class MultiModalEmbeddings:
         self.code_model = None
         self.text_model = None
 
-        # Only initialize models if not disabled
-        if not _DISABLE_TORCH:
+        # Initialize models based on environment capabilities
+        if self._ml_manager.should_use_real_ml():
             self._init_code_model()
             self._init_text_model()
         else:
-            self._logger.warning(
-                "Torch and transformers are disabled by environment variable."
+            env_info = self._ml_manager.get_environment_info()
+            self._logger.info(
+                f"Using fallback embeddings - Environment: {env_info['environment']}"
             )
 
         # In-memory cache for embeddings
@@ -115,19 +62,19 @@ class MultiModalEmbeddings:
         Returns:
             bool: True if at least one embedding model is available, False otherwise.
         """
-        # Component is available if at least one model is initialized
-        # or if we have the basic dependencies available
-        has_text_model = SENTENCE_TRANSFORMERS_AVAILABLE and self.text_model is not None
-        has_code_model = (
-            TRANSFORMERS_AVAILABLE
+        # Component is always available - either real ML or fallbacks
+        caps = self._ml_manager.capabilities
+
+        has_real_models = (
+            caps.sentence_transformers and self.text_model is not None
+        ) or (
+            caps.transformers
             and self.code_model is not None
             and self.code_tokenizer is not None
         )
 
-        # Available if we have at least one working model, basic dependencies, or can generate fake embeddings
-        return (
-            has_text_model or has_code_model or SENTENCE_TRANSFORMERS_AVAILABLE or True
-        )
+        # Always available: either real models or fallback embeddings
+        return has_real_models or caps.fallback_embeddings
 
     def _generate_fake_embedding(self, text: str, dim: int = 384) -> list[float]:
         """Generate deterministic fake embedding for testing when ML models unavailable."""
@@ -196,43 +143,49 @@ class MultiModalEmbeddings:
         return embedding
 
     def _init_code_model(self):
-        if (
-            not TRANSFORMERS_AVAILABLE
-            or AutoTokenizer is None
-            or AutoModel is None
-            or torch is None
-        ):
-            self._logger.warning(
+        if not self._ml_manager.capabilities.transformers:
+            self._logger.debug(
                 "Transformers not available. Code embedding will fallback to text model."
             )
             return
+
         try:
-            self.code_tokenizer = AutoTokenizer.from_pretrained(self._CODE_MODEL_NAME)
-            self.code_model = AutoModel.from_pretrained(self._CODE_MODEL_NAME).to(
-                self.device
+            self.code_model, self.code_tokenizer = (
+                self._ml_manager.get_transformers_model(self._CODE_MODEL_NAME)
             )
-            self._logger.info(f"Loaded code model: {self._CODE_MODEL_NAME}")
+            if self.code_model and self.code_tokenizer:
+                self._logger.info(f"Loaded code model: {self._CODE_MODEL_NAME}")
+            else:
+                self._logger.warning(
+                    f"Failed to load code model '{self._CODE_MODEL_NAME}'. Falling back to text model."
+                )
         except Exception as e:
             self._logger.warning(
-                f"Failed to load code model '{self._CODE_MODEL_NAME}': {e}. Falling back to text model."
+                f"Error loading code model '{self._CODE_MODEL_NAME}': {e}. Falling back to text model."
             )
             self.code_tokenizer = None
             self.code_model = None
 
     def _init_text_model(self):
-        if not SENTENCE_TRANSFORMERS_AVAILABLE or SentenceTransformer is None:
-            self._logger.warning(
-                "SentenceTransformers not available. Text embedding will be disabled."
+        if not self._ml_manager.capabilities.sentence_transformers:
+            self._logger.debug(
+                "SentenceTransformers not available. Text embedding will use fallbacks."
             )
             return
+
         try:
-            self.text_model = SentenceTransformer(
-                self._TEXT_MODEL_NAME, device=self.device
+            self.text_model = self._ml_manager.get_sentence_transformer(
+                self._TEXT_MODEL_NAME
             )
-            self._logger.info(f"Loaded text model: {self._TEXT_MODEL_NAME}")
+            if self.text_model:
+                self._logger.info(f"Loaded text model: {self._TEXT_MODEL_NAME}")
+            else:
+                self._logger.warning(
+                    f"Failed to load text model '{self._TEXT_MODEL_NAME}'. Using fallbacks."
+                )
         except Exception as e:
-            self._logger.error(
-                f"Failed to load text model '{self._TEXT_MODEL_NAME}': {e}"
+            self._logger.warning(
+                f"Error loading text model '{self._TEXT_MODEL_NAME}': {e}. Using fallbacks."
             )
             self.text_model = None
 
@@ -254,12 +207,17 @@ class MultiModalEmbeddings:
         cached = self._get_cached_embedding(key)
         if cached:
             return cached
-        if self.code_model and self.code_tokenizer and torch is not None:
+        if (
+            self.code_model
+            and self.code_tokenizer
+            and self._ml_manager.capabilities.torch
+        ):
             try:
                 inputs = self.code_tokenizer(
                     code, return_tensors="pt", truncation=True, max_length=256
                 )
                 inputs = {k: v.to(self.device) for k, v in inputs.items()}
+                torch = self._ml_manager._get_import("torch")
                 with torch.no_grad():
                     outputs = self.code_model(**inputs)
                     # Use [CLS] token representation

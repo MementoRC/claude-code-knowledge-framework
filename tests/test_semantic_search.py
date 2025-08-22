@@ -129,19 +129,86 @@ def test_numpy_storage_creation(temp_knowledge_dir):
     assert stored_data["test-session"]["metadata"]["session_id"] == "test-session"
 
 
-@pytest.mark.skipif(
-    True, reason="External dependencies not available in test environment"
-)
 def test_sentence_transformer_integration(temp_knowledge_dir):
-    """Test sentence transformer integration (skipped if dependencies unavailable)."""
-    # This test would run if sentence_transformers is available
-    pass
+    """Test sentence transformer integration (environment-aware)."""
+    from src.uckn.core.ml_environment_manager import get_ml_manager
+
+    engine = SemanticSearchEngine(temp_knowledge_dir)
+    ml_manager = get_ml_manager()
+
+    if ml_manager.capabilities.sentence_transformers:
+        # Real sentence transformer test
+        session_data = {
+            "session_id": "real-ml-test",
+            "context": {"error_type": "ValueError"},
+            "lessons_learned": ["Validate input parameters"],
+        }
+
+        # Should generate real embedding
+        success = engine.store_session_embedding("real-ml-test", session_data)
+        assert success, "Should succeed with real ML models"
+
+        # Search should work
+        results = engine.search_similar_sessions("ValueError validation")
+        # Don't assert specific results since ChromaDB might not be available
+        assert isinstance(results, list)
+    else:
+        # Fallback test - should still work with deterministic embeddings
+        session_data = {
+            "session_id": "fallback-test",
+            "context": {"error_type": "ImportError"},
+            "lessons_learned": ["Check dependencies"],
+        }
+
+        # Should work with fallback embeddings
+        success = engine.store_session_embedding("fallback-test", session_data)
+        # May not succeed without real storage, but shouldn't crash
+        assert isinstance(success, bool)
+
+        # Search should return empty list gracefully
+        results = engine.search_similar_sessions("ImportError dependencies")
+        assert results == []
 
 
-@pytest.mark.skipif(
-    True, reason="External dependencies not available in test environment"
-)
 def test_chromadb_integration(temp_knowledge_dir):
-    """Test ChromaDB integration (skipped if dependencies unavailable)."""
-    # This test would run if chromadb is available
-    pass
+    """Test ChromaDB integration (environment-aware)."""
+    from src.uckn.core.ml_environment_manager import get_ml_manager
+
+    engine = SemanticSearchEngine(temp_knowledge_dir)
+    ml_manager = get_ml_manager()
+
+    if ml_manager.capabilities.chromadb:
+        # Real ChromaDB test
+        session_data = {
+            "session_id": "chromadb-test",
+            "context": {"tools_used": ["pytest", "ruff"]},
+            "lessons_learned": ["Use consistent formatting"],
+        }
+
+        # Should work with real ChromaDB
+        success = engine.store_session_embedding("chromadb-test", session_data)
+        # Success depends on whether embedding generation works
+        assert isinstance(success, bool)
+
+        # Search functionality test
+        results = engine.search_similar_sessions("pytest formatting")
+        assert isinstance(results, list)
+
+        # Test embedding stats
+        stats = engine.get_embedding_stats()
+        assert stats["storage_type"] in ["chromadb", "numpy", "disabled"]
+    else:
+        # Fallback test - should handle missing ChromaDB gracefully
+        session_data = {
+            "session_id": "no-chromadb-test",
+            "context": {"tools_used": ["mypy"]},
+        }
+
+        # Should not crash without ChromaDB
+        success = engine.store_session_embedding("no-chromadb-test", session_data)
+        # Will likely fail without storage, but shouldn't crash
+        assert isinstance(success, bool)
+
+        # Search should return empty gracefully
+        results = engine.search_similar_sessions("mypy")
+        assert results == []

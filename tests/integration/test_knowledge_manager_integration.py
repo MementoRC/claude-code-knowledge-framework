@@ -73,9 +73,9 @@ def test_add_and_search_pattern(km):
     health = km.get_health_status()
     print(f"Health status: {health}")
     assert health["unified_db_available"] is True, f"Unified DB not available: {health}"
-    assert (
-        health["semantic_search_available"] is True
-    ), f"Semantic search not available: {health}"
+    assert health["semantic_search_available"] is True, (
+        f"Semantic search not available: {health}"
+    )
 
     pattern = valid_pattern_data()
     print(f"Pattern data: {pattern}")
@@ -121,9 +121,9 @@ def test_add_and_search_pattern(km):
     # Use the working results with appropriate threshold
     working_results = results_low if results_low else results
     assert isinstance(working_results, list)
-    assert any(
-        r.get("id") == pattern_id for r in working_results
-    ), f"Pattern {pattern_id} not found in search results. Available IDs: {[r.get('id') for r in working_results]}"
+    assert any(r.get("id") == pattern_id for r in working_results), (
+        f"Pattern {pattern_id} not found in search results. Available IDs: {[r.get('id') for r in working_results]}"
+    )
 
 
 def test_pattern_classification_workflow(km):
@@ -131,9 +131,9 @@ def test_pattern_classification_workflow(km):
     health = km.get_health_status()
     print(f"Health status: {health}")
     assert health["unified_db_available"] is True, f"Unified DB not available: {health}"
-    assert (
-        health["semantic_search_available"] is True
-    ), f"Semantic search not available: {health}"
+    assert health["semantic_search_available"] is True, (
+        f"Semantic search not available: {health}"
+    )
 
     pattern = valid_pattern_data("pattern2")
     pattern_id = km.add_pattern(pattern)

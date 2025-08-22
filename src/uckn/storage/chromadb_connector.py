@@ -2,17 +2,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-try:
-    import chromadb
-    from chromadb.config import Settings
-    from chromadb.utils import embedding_functions
-
-    CHROMADB_AVAILABLE = True
-except ImportError:
-    chromadb = None
-    Settings = None
-    embedding_functions = None
-    CHROMADB_AVAILABLE = False
+from ..core.ml_environment_manager import get_ml_manager
 
 # Assuming SentenceTransformer is available via framework/core/semantic_search.py
 # We will rely on the SemanticSearchEngine for actual embedding generation.
@@ -109,31 +99,35 @@ class ChromaDBConnector:
         self.db_path = Path(db_path)
         self.db_path.mkdir(parents=True, exist_ok=True)
         self._logger = logging.getLogger(__name__)
-        self.client: chromadb.PersistentClient | None = None
+        self._ml_manager = get_ml_manager()
+        self.client: Any | None = None
         self.collections: dict[str, Any] = {}
         self._connect_to_chromadb()
 
     def _connect_to_chromadb(self) -> None:
         """Initializes the ChromaDB client and collections."""
-        if not CHROMADB_AVAILABLE:
-            self._logger.warning(
-                "ChromaDB not available. Storage operations will be disabled."
+        if not self._ml_manager.capabilities.chromadb:
+            env_info = self._ml_manager.get_environment_info()
+            self._logger.info(
+                f"ChromaDB not available in {env_info['environment']} environment. "
+                "Storage operations will be disabled."
             )
             return
 
         try:
-            self.client = chromadb.PersistentClient(
-                path=str(self.db_path), settings=Settings(anonymized_telemetry=False)
-            )
-            self._logger.info(f"ChromaDB client initialized at {self.db_path}")
+            self.client = self._ml_manager.get_chromadb_client(str(self.db_path))
+            if self.client:
+                self._logger.info(f"ChromaDB client initialized at {self.db_path}")
 
-            # Initialize collections
-            for name in self._COLLECTION_SCHEMAS.keys():
-                self.collections[name] = self.client.get_or_create_collection(
-                    name=name,
-                    metadata={"description": f"UCKN {name.replace('_', ' ')}"},
-                )
-                self._logger.info(f"ChromaDB collection '{name}' initialized.")
+                # Initialize collections
+                for name in self._COLLECTION_SCHEMAS.keys():
+                    self.collections[name] = self.client.get_or_create_collection(
+                        name=name,
+                        metadata={"description": f"UCKN {name.replace('_', ' ')}"},
+                    )
+                    self._logger.debug(f"ChromaDB collection '{name}' initialized.")
+            else:
+                self._logger.warning("Failed to create ChromaDB client")
 
         except Exception as e:
             self._logger.error(f"Failed to initialize ChromaDB: {e}")
@@ -142,7 +136,11 @@ class ChromaDBConnector:
 
     def is_available(self) -> bool:
         """Checks if ChromaDB is connected and ready."""
-        return self.client is not None and bool(self.collections)
+        return (
+            self._ml_manager.capabilities.chromadb
+            and self.client is not None
+            and bool(self.collections)
+        )
 
     def _validate_metadata(
         self, collection_name: str, metadata: dict[str, Any]

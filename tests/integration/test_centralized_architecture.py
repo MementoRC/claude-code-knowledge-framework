@@ -151,9 +151,9 @@ def test_knowledge_manager_full_lifecycle_pattern(knowledge_manager_instance):
 
     # Verify the update actually worked
     retrieved_updated_pattern = km.get_pattern(pattern_id)
-    assert (
-        retrieved_updated_pattern is not None
-    ), "Updated pattern should be retrievable"
+    assert retrieved_updated_pattern is not None, (
+        "Updated pattern should be retrievable"
+    )
     assert retrieved_updated_pattern["document"] == updated_doc
     assert retrieved_updated_pattern["metadata"]["success_rate"] == 0.99
     assert retrieved_updated_pattern["metadata"]["new_field"] == "value"
