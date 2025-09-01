@@ -8348,7 +8348,7 @@ packages:
 - pypi: ./
   name: uckn-framework
   version: 1.0.0
-  sha256: 22a8bdc8f8b5b10329fa0e83304b1baf63eff7b021c4253f81bde5adece278a2
+  sha256: 92dac08843e2be166715e20f86cbdb72727c18e98989f09aa4359086bce66cb3
   requires_python: '>=3.12'
   editable: true
 - conda: https://conda.anaconda.org/conda-forge/linux-64/ukkonen-1.0.1-py312h68727a3_5.conda

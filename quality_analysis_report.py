@@ -178,7 +178,9 @@ def analyze_ruff_violations():
     print(f"Total violations: {total_violations}")
     print(f"Auto-fixable violations: {total_fixable}")
     if total_violations > 0:
-        print(f"Auto-fixable percentage: {total_fixable/total_violations*100:.1f}%\n")
+        print(
+            f"Auto-fixable percentage: {total_fixable / total_violations * 100:.1f}%\n"
+        )
 
     print("TOP AUTO-FIXABLE VIOLATIONS")
     auto_fixable_sorted = [
@@ -285,7 +287,9 @@ def main():
     print(f"Total quality issues: {total_issues}")
     print(f"Auto-fixable issues: {auto_fixable_issues}")
     if total_issues > 0:
-        print(f"Overall auto-fix ratio: {auto_fixable_issues/total_issues*100:.1f}%")
+        print(
+            f"Overall auto-fix ratio: {auto_fixable_issues / total_issues * 100:.1f}%"
+        )
 
     print("\nAUTOMATED FIX RECOMMENDATIONS")
     print("1. Format code:")

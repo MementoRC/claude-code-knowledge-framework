@@ -5,12 +5,12 @@ Provides environment-aware ML dependency loading with graceful fallbacks.
 Automatically detects CI vs production environments and loads appropriate dependencies.
 """
 
+import importlib.util
 import logging
 import os
-import importlib.util
-from typing import Any, Dict, Optional, Tuple
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
+from typing import Any
 
 
 class MLEnvironment(Enum):
@@ -49,8 +49,8 @@ class MLEnvironmentManager:
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        self._capabilities: Optional[MLCapabilities] = None
-        self._imports: Dict[str, Any] = {}
+        self._capabilities: MLCapabilities | None = None
+        self._imports: dict[str, Any] = {}
 
     @property
     def capabilities(self) -> MLCapabilities:
@@ -143,7 +143,7 @@ class MLEnvironmentManager:
             self.logger.debug(f"Import test failed for {module_name}: {e}")
             return False
 
-    def _get_import(self, module_name: str) -> Optional[Any]:
+    def _get_import(self, module_name: str) -> Any | None:
         """Get cached import or attempt import."""
         if module_name in self._imports:
             return self._imports[module_name]
@@ -153,7 +153,7 @@ class MLEnvironmentManager:
 
     def get_sentence_transformer(
         self, model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
-    ) -> Optional[Any]:
+    ) -> Any | None:
         """Get SentenceTransformer model if available."""
         if not self.capabilities.sentence_transformers:
             return None
@@ -170,9 +170,7 @@ class MLEnvironmentManager:
             )
             return None
 
-    def get_transformers_model(
-        self, model_name: str
-    ) -> Tuple[Optional[Any], Optional[Any]]:
+    def get_transformers_model(self, model_name: str) -> tuple[Any | None, Any | None]:
         """Get transformers AutoModel and AutoTokenizer if available."""
         if not self.capabilities.transformers:
             return None, None
@@ -191,7 +189,7 @@ class MLEnvironmentManager:
             self.logger.error(f"Failed to load transformers model {model_name}: {e}")
             return None, None
 
-    def get_chromadb_client(self, persist_directory: str) -> Optional[Any]:
+    def get_chromadb_client(self, persist_directory: str) -> Any | None:
         """Get ChromaDB client if available."""
         if not self.capabilities.chromadb:
             return None
@@ -223,7 +221,7 @@ class MLEnvironmentManager:
             return "cuda"
         return "cpu"
 
-    def get_environment_info(self) -> Dict[str, Any]:
+    def get_environment_info(self) -> dict[str, Any]:
         """Get detailed environment information for debugging."""
         caps = self.capabilities
         return {

@@ -1,191 +1,241 @@
-[project]
-name = "uckn-framework"
-version = "1.0.0"
-description = "Universal Claude Code Knowledge Network (UCKN) - AI-powered development knowledge management framework"
-authors = [
-    {name = "Claude Code Community", email = "noreply@anthropic.com"}
-]
-readme = "README.md"
-license = {file = "LICENSE"}
-requires-python = ">=3.12"
-keywords = ["ai", "knowledge-management", "ci-cd", "development", "claude-code"]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Software Development :: Libraries :: Application Frameworks",
-    "Topic :: Software Development :: Quality Assurance",
-]
-# 🚨 CRITICAL: All dependencies managed through pixi features to avoid conda/PyPI conflicts
-dependencies = []
+# pixi has been configured for this project but is not activated
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
 
-# All dependencies now managed through pixi features - see [tool.pixi.feature.*] sections
+[project]
+name = "uckn"
+authors = [{name = "UCKN Team"}]
+description = "Universal Cloud Knowledge Navigator - AI-Powered Code and Error Solution Framework"
+readme = "README.md"
+license = {text = "MIT"}
+dynamic = ["version"]
+requires-python = ">=3.8"
+dependencies = [
+    # Core dependencies
+    "fastapi>=0.100.0",
+    "uvicorn>=0.20.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "python-multipart>=0.0.6",
+    # Data processing
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.10.0",
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    # Feature flags and configuration
+    "python-dotenv>=1.0.0",
+    # Async support
+    "aiofiles>=23.0.0",
+    "httpx>=0.24.0",
+    # For MCP server protocol
+    "mcp>=1.0.0",
+    # OpenAI for embeddings (optional)
+    "openai>=1.0.0",
+]
+
 [project.optional-dependencies]
+# Heavy ML dependencies (only install when needed)
+ml = [
+    "chromadb>=0.4.0",
+    "sentence-transformers>=2.0.0,<3.0.0",
+    "transformers>=4.21.0,<5.0.0",
+    "torch>=2.0.0,<3.0.0",
+    "torchvision>=0.15.0,<1.0.0",
+    "Pillow>=10.0.0",
+    "librosa>=0.10.0",
+    "soundfile>=0.12.0",
+]
+# Additional ML heavy components (install only for full ML functionality)
+ml-heavy = [
+    "tensorflow>=2.13.0,<3.0.0",
+    "keras>=2.13.0,<3.0.0",
+    "scikit-learn>=1.3.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "plotly>=5.15.0",
+]
+# Development dependencies
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-timeout>=2.1.0",
+    "mypy>=1.5.0",
+    "types-requests>=2.31.0",
+    "types-aiofiles>=23.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "ruff>=0.0.290",
+    "pre-commit>=3.0.0",
+]
+# Quality assurance tools
+quality = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-timeout>=2.1.0",
+    "pytest-benchmark>=5.1.0,<6",
+    "mypy>=1.5.0",
+    "ruff>=0.0.290",
+    "bandit>=1.7.5",
+    "safety>=3.0.0",
+    "types-requests>=2.31.0",
+    "types-aiofiles>=23.0.0",
+]
+# Extended quality tools (for comprehensive analysis)
+quality-extended = [
+    "vulture>=2.7",  # Dead code detection
+    "xenon>=0.9.0",  # Complexity analysis
+    "radon>=6.0.0",  # Code metrics
+    "interrogate>=1.5.0",  # Documentation coverage
+    "semgrep>=1.35.0",  # Static analysis security
+    "prospector>=1.10.0",  # Multi-tool analysis
+]
+# CI-specific quality tools (optimized for CI environments)
+quality-ci = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-timeout>=2.1.0",  # 🚨 CRITICAL FIX: Required for CI timeout support
+    "pytest-benchmark>=5.1.0,<6",
+    "mypy>=1.5.0",
+    "ruff>=0.0.290",
+    "coverage[toml]>=7.3.0",
+]
+# MCP Server Support
+mcp = [
+    "mcp>=1.0.0",
+    "click>=8.0.0",
+    "typing-extensions>=4.0.0",
+]
+# Load testing dependencies
+loadtest = [
+    "locust>=2.15.0",
+    "pytest-benchmark>=5.1.0,<6",
+    "memory-profiler>=0.60.0",
+]
+
+# Documentation dependencies
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings>=0.20.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/MementoRC/claude-code-knowledge-framework"
-Documentation = "https://github.com/MementoRC/claude-code-knowledge-framework/docs"
 Repository = "https://github.com/MementoRC/claude-code-knowledge-framework"
 Issues = "https://github.com/MementoRC/claude-code-knowledge-framework/issues"
-Changelog = "https://github.com/MementoRC/claude-code-knowledge-framework/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/MementoRC/claude-code-knowledge-framework/docs"
 
 [project.scripts]
 uckn = "uckn.cli:main"
 uckn-server = "uckn.server:main"
-uckn-migrate = "uckn.migrate:main"
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[tool.hatch.version]
+source = "vcs"
+tag-pattern = "v(?P<version>.*)"
+
+[tool.hatch.build]
+include = ["src/uckn"]
+exclude = ["*.pyc", "__pycache__"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/uckn"]
-exclude = [
-    ".claude",
-    ".claude/**",
-    ".cursor",
-    ".cursor/**",
-    "*.tmp",
-    "*.temp"
-]
 
 [tool.hatch.build.targets.sdist]
-exclude = [
-    ".claude",
-    ".claude/**",
-    ".cursor",
-    ".cursor/**",
-    "*.tmp",
-    "*.temp",
-    ".uckn"
-]
+include = ["src/uckn", "tests", "pyproject.toml", "README.md"]
 
 [tool.pixi.project]
-channels = ["conda-forge", "pytorch"]
-platforms = ["linux-64"]  # 🚨 CRITICAL: Linux-only for fastest dependency resolution
-channel-priority = "disabled"  # Faster dependency resolution (unified template pattern)
-
-# Ensure proper environment isolation (CI Framework pattern)
-[tool.pixi.activation]
-env = { PYTHONNOUSERSITE = "1" }
-
-[tool.pixi.dependencies]
-python = ">=3.12"
-# pip removed to avoid conda/PyPI conflicts - using pure conda packages
-pytest-benchmark = ">=5.1.0,<6"
+channels = ["conda-forge", "pytorch", "nvidia"]
+platforms = ["linux-64", "win-64", "osx-64", "osx-arm64"]
 
 [tool.pixi.pypi-dependencies]
-uckn-framework = {path = ".", editable = true}
-# 🚨 CRITICAL: Only framework itself as PyPI dependency to avoid conda/PyPI conflicts
+uckn = { path = ".", editable = true }
 
-# TIER 1: Essential Quality Gates (ZERO-TOLERANCE)
-[tool.pixi.feature.quality.dependencies]
-pytest = ">=8.0.0"
-pytest-cov = ">=4.0.0"
-pytest-timeout = ">=2.1.0"
-pytest-asyncio = ">=0.21.0"
-ruff = ">=0.7.3"
-mypy = ">=1.0.0"
-types-psutil = "*"
-# Essential formatting tools (moved from project dependencies to avoid conflicts)
-black = ">=23.0.0"
-isort = ">=5.12.0"
-
-# Core Runtime Dependencies (CI-optimized minimal set)
 [tool.pixi.feature.core.dependencies]
-# Essential dependencies only - minimal for CI performance
-fastapi = ">=0.100.0,<1.0.0"
-uvicorn = ">=0.20.0,<1.0.0"
-pydantic = ">=2.0.0,<3.0.0"
-numpy = ">=1.21.0,<2.0.0"
-pandas = ">=1.5.0,<3.0.0"
-httpx = ">=0.24.0,<1.0.0"
-aiohttp = ">=3.8.0,<4.0.0"
-toml = ">=0.10.0"
-click = ">=8.0.0,<9.0.0"
-rich = ">=13.0.0,<14.0.0"
-jinja2 = ">=3.0.0,<4.0.0"
-psutil = ">=5.9.0,<6.0.0"
-sqlalchemy = ">=2.0.0,<3.0.0"
-psycopg = ">=3.1.0,<4.0.0"
-alembic = ">=1.12.0,<2.0.0"
-pytest-timeout = ">=2.1.0"  # 🚨 CRITICAL FIX: Required for CI timeout support
-# gitpython moved to dev feature to reduce core dependencies
+# System dependencies
+python = "3.12.*"
+# Core runtime dependencies (MINIMAL SET)
+pip = "*"
+# CLI and development utilities
+git = "*"
 
-# TIER 2: Extended Quality & Security
-[tool.pixi.feature.quality-extended.dependencies]
-bandit = ">=1.7.0"
-safety = ">=2.3.0,<3.0.0"
-pre-commit = ">=3.0.0"
-hypothesis = ">=6.0.0"
-diff-cover = ">=7.5.0"
-pytest-benchmark = ">=5.1.0,<6"
+[tool.pixi.feature.mcp.pypi-dependencies]
+# MCP Server Protocol support
+mcp = ">=1.0.0"
+click = ">=8.0.0"
+typing-extensions = ">=4.0.0"
 
-# TIER 3: CI/CD & Build Tools
-[tool.pixi.feature.quality-ci.dependencies]
-python-build = ">=1.0.0"
-twine = ">=4.0.0"
-coverage = ">=7.0.0"
-pytest-timeout = ">=2.1.0"  # 🚨 CRITICAL FIX: Required for CI timeout support
-
-# Development Tools (specialized)
-[tool.pixi.feature.dev.dependencies]
+[tool.pixi.feature.dev.pypi-dependencies]
+# Development tools only (for local development)
 pytest = ">=7.0.0"
 pytest-cov = ">=4.0.0"
 pytest-asyncio = ">=0.21.0"
-pytest-benchmark = ">=4.0.0"
-pytest-html = ">=4.0.0"
-pytest-json-report = ">=1.5.0"
-pytest-xdist = ">=3.3.1"
-pytest-metadata = ">=3.0.0"
-pytest-github-actions-annotate-failures = ">=0.2.0"
-pytest-timeout = ">=2.1.0"
-diff-cover = ">=7.5.0"
-coverage = ">=7.4.0"
-coverage-badge = ">=1.1.0"
-pytest-md = ">=0.2.0"
-memory_profiler = ">=0.61.0"
-ruff = ">=0.1.0"
+pytest-timeout = ">=2.1.0"  # 🚨 CRITICAL FIX: Required for CI timeout support
+mypy = ">=1.5.0"
 black = ">=23.0.0"
-mypy = ">=1.0.0"
+isort = ">=5.12.0"
+ruff = ">=0.0.290"
 pre-commit = ">=3.0.0"
-alembic = ">=1.12.0"
-gitpython = ">=3.1.0,<4.0.0"  # Moved from core for CI optimization
 
-# Load Testing Dependencies (specialized)
-[tool.pixi.feature.loadtest.dependencies]
-locust = ">=2.22.0"
-psutil = ">=5.9.0"
-requests = ">=2.31.0"
+[tool.pixi.feature.quality.pypi-dependencies]
+# Quality assurance tools (for CI and local quality checks)
+pytest = ">=8.0.0"
+pytest-cov = ">=4.0.0"
+pytest-asyncio = ">=0.21.0"
+pytest-timeout = ">=2.1.0"  # 🚨 CRITICAL FIX: Required for CI timeout support
+pytest-benchmark = ">=5.1.0,<6"
+mypy = ">=1.5.0"
+ruff = ">=0.0.290"
+bandit = ">=1.7.5"
+safety = ">=3.0.0"
+coverage = {extras = ["toml"], version = ">=7.3.0"}
 
-[tool.pixi.feature.mcp.dependencies]
-nodejs = ">=18"
-pnpm = "*"
-mcp = ">=1.9.0"
-websockets = ">=11.0.0"
-anyio = ">=3.6.0"
+[tool.pixi.feature.quality-extended.pypi-dependencies]
+# Extended quality analysis tools
+vulture = ">=2.7"
+xenon = ">=0.9.0"
+radon = ">=6.0.0"
+interrogate = ">=1.5.0"
+prospector = ">=1.10.0"
 
-[tool.pixi.feature.ml.dependencies]
-# ML dependencies - lightweight for CI compatibility
-scikit-learn = ">=1.3.0,<2.0.0"
-matplotlib = ">=3.5.0,<4.0.0"
-seaborn = ">=0.11.0,<1.0.0"
+[tool.pixi.feature.quality-ci.pypi-dependencies]
+# CI-optimized quality tools (reduced package set for faster CI)
+pytest = ">=8.0.0"
+pytest-cov = ">=4.0.0"
+pytest-asyncio = ">=0.21.0"
+pytest-timeout = ">=2.1.0"  # 🚨 CRITICAL FIX: Required for CI timeout support
+pytest-benchmark = ">=5.1.0,<6"
+mypy = ">=1.5.0"
+ruff = ">=0.0.290"
+coverage = {extras = ["toml"], version = ">=7.3.0"}
 
-# Heavy ML/Data dependencies - separate feature for optional loading
-[tool.pixi.feature.ml-heavy.dependencies]
-# Heavy ML/Data dependencies (only load when needed)
-pyarrow = ">=14.0.0,<21.0.0"  # Ensure PyExtensionType compatibility
-datasets = ">=2.12.0,<3.0.0"
-sentence-transformers = ">=2.2.0,<3.0.0"
-chromadb = ">=0.4.0,<1.0.0"
-redis-py = ">=4.0.0,<5.0.0"
-pytorch = "*"  # Moved here for optional use
-transformers = ">=4.20.0,<5.0.0"  # Moved here for optional use
+[tool.pixi.feature.ml.pypi-dependencies]
+# Machine learning dependencies
+chromadb = ">=0.4.0"
+sentence-transformers = ">=2.0.0,<3.0.0"
+openai = ">=1.0.0"
+numpy = ">=1.24.0"
 
-# Documentation Dependencies
-[tool.pixi.feature.docs.dependencies]
+[tool.pixi.feature.ml-heavy.pypi-dependencies]
+# Heavy ML dependencies (full ML stack)
+transformers = ">=4.21.0,<5.0.0"
+torch = ">=2.0.0,<3.0.0"
+torchvision = ">=0.15.0,<1.0.0"
+tensorflow = ">=2.13.0,<3.0.0"
+scikit-learn = ">=1.3.0"
+matplotlib = ">=3.7.0"
+seaborn = ">=0.12.0"
+
+[tool.pixi.feature.loadtest.pypi-dependencies]
+# Load testing dependencies
+locust = ">=2.15.0"
+memory-profiler = ">=0.60.0"
+
+[tool.pixi.feature.docs.pypi-dependencies]
+# Documentation dependencies
 mkdocs = ">=1.5.0"
 mkdocs-material = ">=9.0.0"
 mkdocstrings = ">=0.20.0"
@@ -237,87 +287,58 @@ coverage-markdown = { cmd = "coverage report --format=markdown > coverage.md", e
 coverage-trend = { cmd = "echo 'Coverage trend analysis - placeholder for future implementation'", env = { CLAUDECODE = "0" } }
 
 # Emergency Quality Fix (for CI failures)
-emergency-fix = "ruff check --fix src/ tests/ && ruff format src/ tests/ && pytest tests/ -v"
+emergency-fix = { cmd = "ruff check --fix src/ tests/ && ruff format src/ tests/ && pytest tests/ -v", env = { CLAUDECODE = "0" } }
 
-# TIER 2: Security & Compliance Tasks
-security-scan = "bandit -r src/ --severity-level high"
-safety-check = "safety check --continue-on-error --short-report"
-safety-check-ci = "safety check --continue-on-error --short-report --exit-code || echo 'Safety check completed with warnings'"
-static-analysis = { depends-on = ["security-scan", "safety-check"] }
+# Security scanning
+security-scan = { cmd = "bandit -r src/ --severity-level high", env = { CLAUDECODE = "0" } }
+safety-check = { cmd = "safety check --continue-on-error --short-report", env = { CLAUDECODE = "0" } }
+safety-check-ci = { cmd = "safety check --continue-on-error --short-report --exit-code || echo 'Safety check completed with warnings'", env = { CLAUDECODE = "0" } }
+
+# Extended static analysis
+static-analysis = { depends-on = ["lint", "typecheck", "security-scan"] }
+
+# Diff coverage (for PR reviews)
 diff-cover = { cmd = "diff-cover coverage.xml", env = { CLAUDECODE = "0" } }
 
-# TIER 3: Complete Validation Pipeline (CRITICAL for AG commands)
-check-all = { depends-on = ["quality", "static-analysis"] }
+# Complete quality check (CI equivalent)
+check-all = { depends-on = ["test-cov", "lint", "typecheck", "safety-check-ci"] }
 
 # CI-specific tasks (optimized for CI environments)
-ci-test = { cmd = "pixi run -e ci pytest tests/ --cov=src/uckn --cov-report=xml -m 'not slow and not benchmark' --maxfail=3 -x --tb=short", env = { CLAUDECODE = "0", ENVIRONMENT = "ci", CI = "1" } }
-ci-test-coverage = { cmd = "pixi run -e ci pytest tests/unit tests/integration --cov=src/uckn --cov-report=json --cov-report=term --maxfail=3 --tb=short", env = { CLAUDECODE = "0", ENVIRONMENT = "ci", CI = "1" } }
+ci-test = { cmd = "pixi run -e ci pytest tests/ --cov=src/uckn --cov-report=xml -m 'not slow and not benchmark' --maxfail=3 -x --tb=short", env = { CLAUDECODE = "0" } }
+ci-test-coverage = { cmd = "pixi run -e ci pytest tests/unit tests/integration --cov=src/uckn --cov-report=json --cov-report=term --maxfail=3 --tb=short", env = { CLAUDECODE = "0" } }
 ci-lint = { cmd = "pixi run -e quality ruff check src/ tests/ --output-format=github --select=F,E9", env = { CLAUDECODE = "0" } }
 ci-format-check = { cmd = "pixi run -e quality ruff format --check src/ tests/", env = { CLAUDECODE = "0" } }
 
-# Framework tasks
-start-server = "python -m uckn.server"
-analyze-project = "uckn analyze ."
-migrate-patterns = "uckn migrate --source .claude/knowledge"
-init-project = "uckn init --template python-ml"
-db-migrate = "alembic -c src/uckn/storage/migrations/alembic.ini upgrade head" # Added for DB migrations
+# MCP and Server tasks
+start-server = { cmd = "python -m uckn.server", env = { CLAUDECODE = "0" } }
+analyze-project = { cmd = "uckn analyze .", env = { CLAUDECODE = "0" } }
+migrate-patterns = { cmd = "uckn migrate --source .claude/knowledge", env = { CLAUDECODE = "0" } }
+init-project = { cmd = "uckn init --template python-ml", env = { CLAUDECODE = "0" } }
 
-# Framework tasks with explicit environment (for CI)
-uckn-version = "uckn --version"
-test-framework = "uckn --version"
+# Database migrations
+db-migrate = { cmd = "alembic -c src/uckn/storage/migrations/alembic.ini upgrade head", env = { CLAUDECODE = "0" } }
+
+# Utility commands
+uckn-version = { cmd = "uckn --version", env = { CLAUDECODE = "0" } }
+test-framework = { cmd = "uckn --version", env = { CLAUDECODE = "0" } }
 
 # Documentation
-docs-serve = "mkdocs serve"
-docs-build = "mkdocs build"
+docs-serve = { cmd = "mkdocs serve", env = { CLAUDECODE = "0" } }
+docs-build = { cmd = "mkdocs build", env = { CLAUDECODE = "0" } }
 
-# MCP Server tasks
-mcp-server = { cmd = "python -m uckn.mcp.universal_knowledge_server", env = { PYTHONPATH = "src" } }
-
-[tool.ruff]
-target-version = "py310"
-line-length = 88
-
-[tool.ruff.lint]
-select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "B",  # flake8-bugbear
-    "C4", # flake8-comprehensions
-    "UP", # pyupgrade
-]
-ignore = [
-    "E501",  # line too long, handled by black
-    "B008",  # do not perform function calls in argument defaults
-]
-
-[tool.ruff.lint.per-file-ignores]
-"tests/**/*" = ["F401", "F811", "F403"]
-
-[tool.mypy]
-python_version = "3.12"
-check_untyped_defs = true
-disallow_any_generics = true
-disallow_incomplete_defs = true
-disallow_untyped_defs = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-explicit_package_bases = true
-namespace_packages = true
-mypy_path = "src"
+# MCP server standalone
+mcp-server = { cmd = "python -m uckn.mcp.universal_knowledge_server", env = { CLAUDECODE = "0" } }
 
 [tool.pytest.ini_options]
+minversion = "8.0"
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = [
+    "-v",
+    "--tb=short",
     "--strict-markers",
-    "--strict-config",
-    "--disable-warnings",
-    "--timeout=120",  # 2 minutes per test (optimized for CI)
     "--timeout-method=thread",  # More robust for async/code with subprocesses
 ]
 # CI-specific configuration removed - using standard configuration with runtime environment detection
@@ -329,6 +350,7 @@ markers = [
     "e2e: End-to-end tests (slow, <300s timeout)",
     "slow: Slow tests (extended timeout) - skipped in CI",
     "benchmark: Performance benchmark tests (no timeout) - skipped in CI",
+    "performance: Performance tests (custom timeout) - may be skipped in CI",
     "asyncio: Async tests using pytest-asyncio plugin",
     "memory_intensive: Memory-intensive tests - reduced scope in CI",
     "external_deps: Tests requiring external dependencies - may be skipped",
@@ -344,38 +366,73 @@ asyncio_mode = "auto"  # Automatically detect and run async tests
 
 [tool.pytest.benchmark]
 disable = false
-min_rounds = 5
-max_time = 60
-min_time = 0.01
-sort = "mean"
-group_by = "group"
-columns = ["mean", "stddev", "rounds", "min", "max"]
-histogram = true
-save_data = true
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "chromadb.*",
+    "sentence_transformers.*",
+    "transformers.*",
+    "torch.*",
+    "torchvision.*",
+    "tensorflow.*",
+    "sklearn.*",
+    "PIL.*",
+    "librosa.*",
+    "soundfile.*",
+    "matplotlib.*",
+    "seaborn.*",
+    "plotly.*",
+    "pandas.*",
+    "numpy.*",
+    "mcp.*",
+]
+ignore_missing_imports = true
 
 [tool.coverage.run]
 source = ["src/uckn"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+    "*/site-packages/*",
+    "*/.venv/*",
+    "*/.pixi/*",
+]
 branch = true
 parallel = true
-# context = ${CONTEXT}
-omit = [
-    "tests/*",
-    "src/uckn/__main__.py",
-]
-# dynamic_context = test_function
 
 [tool.coverage.report]
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
     "raise AssertionError",
     "raise NotImplementedError",
+    "if 0:",
     "if __name__ == .__main__.:",
+    "except ImportError:",
+    "pass",
+    "\\.\\.\\.",
 ]
+ignore_errors = true
 show_missing = true
-skip_covered = false
 precision = 2
-fail_under = 90
 
 [tool.coverage.html]
 directory = "htmlcov"

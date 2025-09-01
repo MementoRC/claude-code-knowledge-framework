@@ -54,7 +54,7 @@ def test_enhanced_semantic_search():
             for i, result in enumerate(results[:2]):
                 score = result.get("combined_score", result.get("similarity_score", 0))
                 tech_compat = result.get("tech_compatibility", 0)
-                print(f"   [{i+1}] Score: {score:.3f}, Tech: {tech_compat:.3f}")
+                print(f"   [{i + 1}] Score: {score:.3f}, Tech: {tech_compat:.3f}")
                 print(f"       Content: {result.get('document', '')[:60]}...")
         print("✅ Text search completed")
     except Exception as e:
@@ -73,7 +73,7 @@ def test_enhanced_semantic_search():
         if results:
             for i, result in enumerate(results[:2]):
                 score = result.get("combined_score", result.get("similarity_score", 0))
-                print(f"   [{i+1}] Score: {score:.3f}")
+                print(f"   [{i + 1}] Score: {score:.3f}")
         print("✅ Code search completed")
     except Exception as e:
         print(f"❌ Code search failed: {e}")
@@ -91,7 +91,7 @@ def test_enhanced_semantic_search():
         if results:
             for i, result in enumerate(results[:2]):
                 score = result.get("combined_score", result.get("similarity_score", 0))
-                print(f"   [{i+1}] Score: {score:.3f}")
+                print(f"   [{i + 1}] Score: {score:.3f}")
         print("✅ Error search completed")
     except Exception as e:
         print(f"❌ Error search failed: {e}")
@@ -112,7 +112,7 @@ def test_enhanced_semantic_search():
             for i, result in enumerate(results[:2]):
                 score = result.get("combined_score", result.get("similarity_score", 0))
                 tech_compat = result.get("tech_compatibility", 0)
-                print(f"   [{i+1}] Score: {score:.3f}, Tech: {tech_compat:.3f}")
+                print(f"   [{i + 1}] Score: {score:.3f}, Tech: {tech_compat:.3f}")
         print("✅ Multi-modal search completed")
     except Exception as e:
         print(f"❌ Multi-modal search failed: {e}")

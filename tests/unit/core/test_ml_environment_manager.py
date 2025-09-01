@@ -6,16 +6,17 @@ Works in both CI (fallback mode) and production (full ML) environments.
 """
 
 import os
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 from src.uckn.core.ml_environment_manager import (
-    MLEnvironmentManager,
-    MLEnvironment,
     MLCapabilities,
+    MLEnvironment,
+    MLEnvironmentManager,
+    get_ml_environment,
     get_ml_manager,
     is_ml_available,
-    get_ml_environment,
 )
 
 

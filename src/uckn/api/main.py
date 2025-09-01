@@ -4,14 +4,16 @@ Implements comprehensive API endpoints for knowledge access and pattern manageme
 """
 
 import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from ..core.organisms.knowledge_manager import KnowledgeManager
 from .dependencies import set_knowledge_manager
+from .middleware import AuthMiddleware, RateLimitingMiddleware
 from .routers import (
     auth,
     collaboration,
@@ -29,7 +31,9 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(
+    app: FastAPI,
+) -> AsyncGenerator[None, None]:  # Fixed: added proper return type annotation
     """Application lifespan events."""
     # Startup
     logger.info("Starting UCKN FastAPI server...")
@@ -58,6 +62,10 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Add security middleware (order matters - authentication should be first)
+app.add_middleware(RateLimitingMiddleware)
+app.add_middleware(AuthMiddleware)
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -68,9 +76,10 @@ app.add_middleware(
 )
 
 
-# Global exception handler
+# Global exception handler - Fixed with proper type annotations
 @app.exception_handler(Exception)
-async def global_exception_handler(request, exc):
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Handle global exceptions with proper type annotations."""
     logger.error(f"Global exception: {exc}")
     return JSONResponse(
         status_code=500,

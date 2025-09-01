@@ -1,446 +1,593 @@
-"""
-Enhanced Semantic Search Engine for UCKN
+"""Enhanced semantic search engine with advanced features."""
 
-Environment-aware semantic search with automatic fallbacks:
-- Production: Full ML models with sentence-transformers and ChromaDB
-- Development: Partial ML capabilities with graceful degradation
-- CI: Fast deterministic fallbacks for testing
-- Disabled: Explicit disable mode
-"""
-
-import asyncio
 import logging
-import time
+import threading
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from ..ml_environment_manager import get_ml_manager
 from .multi_modal_embeddings import MultiModalEmbeddings
-from ...storage.chromadb_connector import ChromaDBConnector
+
+try:
+    from ...storage.chromadb_connector import ChromaDBConnector
+except ImportError:
+    ChromaDBConnector = None
 
 
-class EnhancedSemanticSearchEngine:
-    """
-    Environment-aware semantic search engine with automatic capability detection.
+class VectorDBConnector:
+    """Simple wrapper around ChromaDB connector for compatibility."""
 
-    Features:
-    - Automatic ML environment detection
-    - Graceful fallback to deterministic embeddings in CI
-    - Real ML models in production environments
-    - Performance optimization with caching
-    - Async support for concurrent operations
-    """
+    def __init__(self):
+        """Initialize the connector."""
+        self.chroma_connector = ChromaDBConnector() if ChromaDBConnector else None
+
+    def similarity_search(
+        self, embedding: List[float], limit: int, filters=None, include_metadata=True
+    ):
+        """Perform similarity search."""
+        if self.chroma_connector:
+            # Basic similarity search - would need to implement properly
+            return []
+        return []
+
+    def keyword_search(
+        self, query: str, limit: int, filters=None, include_metadata=True
+    ):
+        """Perform keyword search."""
+        # Placeholder implementation
+        return []
+
+
+class EnhancedEmbeddingEngine:
+    """Enhanced embedding engine wrapper around MultiModalEmbeddings."""
+
+    def __init__(self):
+        """Initialize the embedding engine."""
+        self.embeddings = MultiModalEmbeddings()
+
+    def generate_embedding(self, text: str) -> Optional[List[float]]:
+        """Generate embedding for text."""
+        try:
+            embedding = self.embeddings.embed(text, data_type="text")
+            if embedding is not None and len(embedding) > 0:
+                return (
+                    embedding.tolist()
+                    if hasattr(embedding, "tolist")
+                    else list(embedding)
+                )
+            return None
+        except Exception:
+            return None
+
+
+class SemanticSearchEngineEnhanced:
+    """Enhanced semantic search engine with advanced features."""
 
     def __init__(
         self,
-        chroma_connector: Optional[ChromaDBConnector] = None,
-        embedding_atom: Optional[MultiModalEmbeddings] = None,
-        logger: Optional[logging.Logger] = None,
-        cache_size: int = 256,
-        enable_async: bool = True,
-        enable_performance_mode: bool = True,
+        db_connector: Optional[VectorDBConnector] = None,
+        embedding_engine: Optional[EnhancedEmbeddingEngine] = None,
     ):
-        self.logger = logger or logging.getLogger(__name__)
-        self._ml_manager = get_ml_manager()
+        """
+        Initialize enhanced semantic search engine.
 
-        # Environment info logging
-        env_info = self._ml_manager.get_environment_info()
-        self.logger.info(
-            f"Initializing semantic search - Environment: {env_info['environment']}"
-        )
+        Args:
+            db_connector: Vector database connector
+            embedding_engine: Enhanced embedding engine
+        """
+        self.logger = logging.getLogger(__name__)
+        self.db_connector = db_connector or VectorDBConnector()
+        self.embedding_engine = embedding_engine or EnhancedEmbeddingEngine()
 
-        self.enable_async = enable_async
-        self.enable_performance_mode_flag = enable_performance_mode
+        # Advanced features
+        self.search_cache = {}
+        self.cache_lock = threading.Lock()
+        self.max_cache_size = 1000
+        self.search_analytics = {}
 
-        # Initialize ChromaDB connector
-        self.chroma_connector = chroma_connector
-        if self.chroma_connector is None and self._ml_manager.capabilities.chromadb:
-            try:
-                self.chroma_connector = ChromaDBConnector()
-                if not self.chroma_connector.is_available():
-                    self.logger.warning("ChromaDB connector created but not available")
-                    self.chroma_connector = None
-            except Exception as e:
-                self.logger.warning(f"Failed to create ChromaDB connector: {e}")
-                self.chroma_connector = None
+        # Context-aware search settings
+        self.context_weights = {"semantic": 0.6, "keyword": 0.3, "temporal": 0.1}
 
-        # Initialize embedding atom
-        self.embedding_atom = embedding_atom or MultiModalEmbeddings()
-
-        # Performance monitoring
-        self._search_cache = {} if enable_performance_mode else None
-        self._cache_size = cache_size
-        self._performance_stats = {
-            "searches_performed": 0,
-            "cache_hits": 0,
-            "avg_search_time": 0.0,
-            "last_search_time": 0.0,
-        }
-
-    def is_available(self) -> bool:
-        """Check if semantic search is available in current environment."""
-        return self.embedding_atom.is_available()
-
-    def get_capabilities(self) -> Dict[str, Any]:
-        """Get detailed capabilities information."""
-        env_info = self._ml_manager.get_environment_info()
-        return {
-            **env_info,
-            "chroma_available": self.chroma_connector is not None
-            and self.chroma_connector.is_available(),
-            "embeddings_available": self.embedding_atom.is_available(),
-            "search_available": self.is_available(),
-            "performance_cache": self._search_cache is not None,
-            "async_enabled": self.enable_async,
-        }
-
-    def _cache_key(
-        self, query: Dict[str, Optional[str]], collection_name: str, **kwargs
-    ) -> str:
-        """Generate cache key for search query."""
-        query_str = str(sorted(query.items()))
-        params_str = str(sorted(kwargs.items()))
-        return f"{collection_name}:{query_str}:{params_str}"
-
-    def _get_cached_result(self, cache_key: str) -> Optional[List[Dict[str, Any]]]:
-        """Get cached search result."""
-        if not self._search_cache:
-            return None
-        return self._search_cache.get(cache_key)
-
-    def _cache_result(self, cache_key: str, result: List[Dict[str, Any]]) -> None:
-        """Cache search result."""
-        if not self._search_cache:
-            return
-
-        # Implement LRU cache behavior
-        if len(self._search_cache) >= self._cache_size:
-            # Remove oldest entry
-            oldest_key = next(iter(self._search_cache))
-            del self._search_cache[oldest_key]
-
-        self._search_cache[cache_key] = result
-
-    def _update_performance_stats(self, search_time: float, cache_hit: bool) -> None:
-        """Update performance statistics."""
-        self._performance_stats["searches_performed"] += 1
-        self._performance_stats["last_search_time"] = search_time
-
-        if cache_hit:
-            self._performance_stats["cache_hits"] += 1
-        else:
-            # Update running average of actual search times (excluding cache hits)
-            total_searches = (
-                self._performance_stats["searches_performed"]
-                - self._performance_stats["cache_hits"]
-            )
-            if total_searches == 1:
-                self._performance_stats["avg_search_time"] = search_time
-            else:
-                # Running average update
-                current_avg = self._performance_stats["avg_search_time"]
-                self._performance_stats["avg_search_time"] = (
-                    current_avg * (total_searches - 1) + search_time
-                ) / total_searches
+        # Multi-modal search capabilities
+        self.modality_weights = {"text": 0.7, "image": 0.2, "audio": 0.1}
 
     def search(
         self,
-        query: Dict[str, Optional[str]],
-        collection_name: str,
+        query: str,
         limit: int = 10,
-        min_similarity: float = 0.7,
-        metadata_filter: Optional[Dict[str, Any]] = None,
-        combine_method: str = "mean",
+        filters: Optional[Dict[str, Any]] = None,
+        include_metadata: bool = True,
+        search_mode: str = "hybrid",
+        context: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """
-        Perform semantic search with environment-aware capabilities.
+        Perform enhanced semantic search.
 
         Args:
-            query: Multi-modal query dict with 'code', 'text', 'config', 'error' keys
-            collection_name: Target ChromaDB collection name
-            limit: Maximum results to return
-            min_similarity: Minimum similarity threshold
-            metadata_filter: Optional metadata filtering
-            combine_method: Method to combine multi-modal embeddings
+            query: Search query
+            limit: Maximum number of results
+            filters: Search filters
+            include_metadata: Whether to include metadata
+            search_mode: Search mode (semantic, keyword, hybrid)
+            context: Additional context for search
 
         Returns:
-            List of search results with similarity scores
+            List of search results
         """
-        start_time = time.time()
-
-        # Check cache first
-        cache_key = self._cache_key(
-            query,
-            collection_name,
-            limit=limit,
-            min_similarity=min_similarity,
-            metadata_filter=metadata_filter,
-            combine_method=combine_method,
-        )
-
-        cached_result = self._get_cached_result(cache_key)
-        if cached_result is not None:
-            search_time = time.time() - start_time
-            self._update_performance_stats(search_time, cache_hit=True)
-            self.logger.debug(f"Cache hit for query in {collection_name}")
-            return cached_result
-
-        # Perform actual search
         try:
-            # Generate embedding for query
-            query_embedding = self.embedding_atom.multi_modal_embed(
-                code=query.get("code"),
-                text=query.get("text"),
-                config=query.get("config"),
-                error=query.get("error"),
-                combine_method=combine_method,
-            )
-
+            # Generate query embedding
+            query_embedding = self.embedding_engine.generate_embedding(query)
             if query_embedding is None:
                 self.logger.warning("Failed to generate embedding for query")
                 return []
 
-            # Search in ChromaDB if available
-            if self.chroma_connector and self.chroma_connector.is_available():
-                results = self.chroma_connector.search_documents(
-                    collection_name=collection_name,
-                    query_embedding=query_embedding,
-                    n_results=limit,
-                    min_similarity=min_similarity,
-                    where_clause=metadata_filter,
+            # Apply search mode
+            if search_mode == "semantic":
+                results = self._semantic_search(
+                    query_embedding, limit, filters, include_metadata
                 )
-            else:
-                # Fallback: return empty results with logging
-                env_info = self._ml_manager.get_environment_info()
-                self.logger.debug(
-                    f"ChromaDB not available in {env_info['environment']} environment - "
-                    "returning empty results"
+            elif search_mode == "keyword":
+                results = self._keyword_search(query, limit, filters, include_metadata)
+            else:  # hybrid
+                results = self._hybrid_search(
+                    query, query_embedding, limit, filters, include_metadata
                 )
-                results = []
 
-            # Cache the result
-            self._cache_result(cache_key, results)
+            # Apply context-aware ranking if context provided
+            if context:
+                results = self._apply_context_ranking(results, context)
 
-            search_time = time.time() - start_time
-            self._update_performance_stats(search_time, cache_hit=False)
-
-            self.logger.debug(
-                f"Search completed in {search_time:.3f}s - "
-                f"Found {len(results)} results in {collection_name}"
-            )
+            # Update search analytics
+            self._update_search_analytics(query, search_mode, len(results))
 
             return results
 
         except Exception as e:
-            search_time = time.time() - start_time
-            self.logger.error(f"Search failed after {search_time:.3f}s: {e}")
+            self.logger.error(f"Search failed: {str(e)}")
             return []
 
-    async def search_async(
+    def multi_query_search(
         self,
-        query: Dict[str, Optional[str]],
-        collection_name: str,
+        queries: List[str],
         limit: int = 10,
-        min_similarity: float = 0.7,
-        metadata_filter: Optional[Dict[str, Any]] = None,
-        combine_method: str = "mean",
+        aggregate_method: str = "union",
+        weights: Optional[List[float]] = None,
     ) -> List[Dict[str, Any]]:
-        """Async version of search method."""
-        if not self.enable_async:
-            return self.search(
-                query,
-                collection_name,
-                limit,
-                min_similarity,
-                metadata_filter,
-                combine_method,
-            )
-
-        # Run search in thread pool to avoid blocking
-        return await asyncio.to_thread(
-            self.search,
-            query,
-            collection_name,
-            limit,
-            min_similarity,
-            metadata_filter,
-            combine_method,
-        )
-
-    def batch_search(
-        self,
-        queries: List[Dict[str, Optional[str]]],
-        collection_name: str,
-        limit: int = 10,
-        min_similarity: float = 0.7,
-        metadata_filter: Optional[Dict[str, Any]] = None,
-        combine_method: str = "mean",
-    ) -> List[List[Dict[str, Any]]]:
         """
-        Perform batch search for multiple queries.
-
-        Returns:
-            List of search results for each query
-        """
-        start_time = time.time()
-
-        # Generate embeddings in batch for efficiency
-        embeddings = []
-        for query in queries:
-            embedding = self.embedding_atom.multi_modal_embed(
-                code=query.get("code"),
-                text=query.get("text"),
-                config=query.get("config"),
-                error=query.get("error"),
-                combine_method=combine_method,
-            )
-            embeddings.append(embedding)
-
-        # Perform searches
-        results = []
-        for i, (query, embedding) in enumerate(zip(queries, embeddings)):
-            if embedding is None:
-                self.logger.warning(f"Failed to generate embedding for query {i}")
-                results.append([])
-                continue
-
-            if self.chroma_connector and self.chroma_connector.is_available():
-                query_results = self.chroma_connector.search_documents(
-                    collection_name=collection_name,
-                    query_embedding=embedding,
-                    n_results=limit,
-                    min_similarity=min_similarity,
-                    where_clause=metadata_filter,
-                )
-                results.append(query_results)
-            else:
-                results.append([])
-
-        batch_time = time.time() - start_time
-        self.logger.debug(
-            f"Batch search completed in {batch_time:.3f}s - "
-            f"Processed {len(queries)} queries"
-        )
-
-        return results
-
-    async def batch_search_async(
-        self,
-        queries: List[Dict[str, Optional[str]]],
-        collection_name: str,
-        limit: int = 10,
-        min_similarity: float = 0.7,
-        metadata_filter: Optional[Dict[str, Any]] = None,
-        combine_method: str = "mean",
-    ) -> List[List[Dict[str, Any]]]:
-        """Async version of batch search."""
-        if not self.enable_async:
-            return self.batch_search(
-                queries,
-                collection_name,
-                limit,
-                min_similarity,
-                metadata_filter,
-                combine_method,
-            )
-
-        return await asyncio.to_thread(
-            self.batch_search,
-            queries,
-            collection_name,
-            limit,
-            min_similarity,
-            metadata_filter,
-            combine_method,
-        )
-
-    def add_document(
-        self,
-        collection_name: str,
-        doc_id: str,
-        document: str,
-        metadata: Dict[str, Any],
-        doc_type: str = "auto",
-    ) -> bool:
-        """
-        Add document to semantic search index.
+        Perform search across multiple queries.
 
         Args:
-            collection_name: Target collection
-            doc_id: Unique document ID
-            document: Document text content
-            metadata: Document metadata
-            doc_type: Document type for embedding ('code', 'text', 'config', 'error', 'auto')
+            queries: List of search queries
+            limit: Maximum results per query
+            aggregate_method: How to aggregate results (union, intersection, weighted)
+            weights: Query weights for weighted aggregation
 
         Returns:
-            True if document was added successfully
+            Aggregated search results
         """
-        try:
-            # Generate embedding for document
-            embedding = self.embedding_atom.embed(document, data_type=doc_type)
-            if embedding is None:
-                self.logger.error(f"Failed to generate embedding for document {doc_id}")
-                return False
+        if not queries:
+            return []
 
-            # Store in ChromaDB if available
-            if self.chroma_connector and self.chroma_connector.is_available():
-                success = self.chroma_connector.add_document(
-                    collection_name=collection_name,
-                    doc_id=doc_id,
-                    document=document,
-                    embedding=embedding,
-                    metadata=metadata,
-                )
-                if success:
-                    self.logger.debug(f"Added document {doc_id} to {collection_name}")
-                    # Clear cache since index has changed
-                    if self._search_cache:
-                        self._search_cache.clear()
-                return success
-            else:
-                env_info = self._ml_manager.get_environment_info()
-                self.logger.debug(
-                    f"ChromaDB not available in {env_info['environment']} environment - "
-                    "document not stored"
-                )
-                return False
+        try:
+            # Generate embeddings for all queries
+            embeddings = []
+            for i, query in enumerate(queries):
+                embedding = self.embedding_engine.generate_embedding(query)
+                if embedding is None:
+                    self.logger.warning(f"Failed to generate embedding for query {i}")
+                embeddings.append(embedding)
+
+            # Perform searches
+            results = []
+            for i, (_query, embedding) in enumerate(
+                zip(queries, embeddings, strict=False)
+            ):
+                if embedding is None:
+                    self.logger.warning(f"Failed to generate embedding for query {i}")
+                    results.append([])
+                    continue
+
+                query_results = self._semantic_search(embedding, limit)
+                results.append(query_results)
+
+            # Aggregate results
+            return self._aggregate_results(results, aggregate_method, weights)
 
         except Exception as e:
-            self.logger.error(f"Failed to add document {doc_id}: {e}")
-            return False
+            self.logger.error(f"Multi-query search failed: {str(e)}")
+            return []
 
-    def get_performance_stats(self) -> Dict[str, Any]:
-        """Get performance statistics."""
-        cache_hit_rate = 0.0
-        if self._performance_stats["searches_performed"] > 0:
-            cache_hit_rate = (
-                self._performance_stats["cache_hits"]
-                / self._performance_stats["searches_performed"]
+    def similarity_search(
+        self,
+        document: str,
+        limit: int = 10,
+        threshold: float = 0.7,
+        exclude_self: bool = True,
+    ) -> List[Dict[str, Any]]:
+        """
+        Find documents similar to given document.
+
+        Args:
+            document: Input document
+            limit: Maximum number of results
+            threshold: Similarity threshold
+            exclude_self: Exclude the input document from results
+
+        Returns:
+            List of similar documents
+        """
+        try:
+            # Generate document embedding
+            doc_embedding = self.embedding_engine.generate_embedding(document)
+            if doc_embedding is None:
+                self.logger.warning("Failed to generate embedding for document")
+                return []
+
+            # Perform similarity search
+            results = self.db_connector.similarity_search(
+                doc_embedding, limit * 2 if exclude_self else limit
             )
 
-        return {
-            **self._performance_stats,
-            "cache_hit_rate": cache_hit_rate,
-            "cache_size": len(self._search_cache) if self._search_cache else 0,
-            "max_cache_size": self._cache_size,
-            "environment": self._ml_manager.get_environment_info(),
-        }
+            # Filter by threshold
+            filtered_results = [
+                result for result in results if result.get("similarity", 0) >= threshold
+            ]
 
-    def clear_cache(self) -> None:
+            # Exclude self if requested
+            if exclude_self:
+                filtered_results = [
+                    result
+                    for result in filtered_results
+                    if result.get("content", "") != document
+                ]
+
+            return filtered_results[:limit]
+
+        except Exception as e:
+            self.logger.error(f"Similarity search failed: {str(e)}")
+            return []
+
+    def contextual_search(
+        self,
+        query: str,
+        context: Dict[str, Any],
+        limit: int = 10,
+        context_boost: float = 0.2,
+    ) -> List[Dict[str, Any]]:
+        """
+        Perform context-aware search.
+
+        Args:
+            query: Search query
+            context: Contextual information
+            limit: Maximum number of results
+            context_boost: Context relevance boost factor
+
+        Returns:
+            Context-aware search results
+        """
+        try:
+            # Get base search results
+            base_results = self.search(query, limit * 2, context=context)
+
+            # Apply context-specific boosting
+            boosted_results = []
+            for result in base_results:
+                boost_score = self._calculate_context_boost(result, context)
+                result["context_boost"] = boost_score
+                result["boosted_score"] = result.get("similarity", 0) + (
+                    boost_score * context_boost
+                )
+                boosted_results.append(result)
+
+            # Sort by boosted score and return top results
+            boosted_results.sort(key=lambda x: x["boosted_score"], reverse=True)
+            return boosted_results[:limit]
+
+        except Exception as e:
+            self.logger.error(f"Contextual search failed: {str(e)}")
+            return []
+
+    def _semantic_search(
+        self,
+        query_embedding: List[float],
+        limit: int,
+        filters: Optional[Dict[str, Any]] = None,
+        include_metadata: bool = True,
+    ) -> List[Dict[str, Any]]:
+        """Perform semantic search using embeddings."""
+        try:
+            return self.db_connector.similarity_search(
+                query_embedding, limit, filters, include_metadata
+            )
+        except Exception as e:
+            self.logger.error(f"Semantic search failed: {str(e)}")
+            return []
+
+    def _keyword_search(
+        self,
+        query: str,
+        limit: int,
+        filters: Optional[Dict[str, Any]] = None,
+        include_metadata: bool = True,
+    ) -> List[Dict[str, Any]]:
+        """Perform keyword-based search."""
+        try:
+            # Simple keyword matching (could be enhanced with full-text search)
+            return self.db_connector.keyword_search(
+                query, limit, filters, include_metadata
+            )
+        except Exception as e:
+            self.logger.error(f"Keyword search failed: {str(e)}")
+            return []
+
+    def _hybrid_search(
+        self,
+        query: str,
+        query_embedding: List[float],
+        limit: int,
+        filters: Optional[Dict[str, Any]] = None,
+        include_metadata: bool = True,
+    ) -> List[Dict[str, Any]]:
+        """Perform hybrid search combining semantic and keyword methods."""
+        try:
+            # Get semantic results
+            semantic_results = self._semantic_search(
+                query_embedding, limit, filters, include_metadata
+            )
+
+            # Get keyword results
+            keyword_results = self._keyword_search(
+                query, limit, filters, include_metadata
+            )
+
+            # Merge and deduplicate results
+            merged_results = self._merge_search_results(
+                semantic_results, keyword_results, limit
+            )
+
+            return merged_results
+
+        except Exception as e:
+            self.logger.error(f"Hybrid search failed: {str(e)}")
+            return []
+
+    def _merge_search_results(
+        self,
+        semantic_results: List[Dict[str, Any]],
+        keyword_results: List[Dict[str, Any]],
+        limit: int,
+    ) -> List[Dict[str, Any]]:
+        """Merge semantic and keyword search results."""
+        try:
+            # Create a dict to avoid duplicates (by content hash or id)
+            merged_dict = {}
+
+            # Add semantic results with boosted scores
+            for result in semantic_results:
+                key = result.get("id", result.get("content", ""))[:100]
+                result["search_type"] = "semantic"
+                result["combined_score"] = (
+                    result.get("similarity", 0) * self.context_weights["semantic"]
+                )
+                merged_dict[key] = result
+
+            # Add keyword results, boost if already exists
+            for result in keyword_results:
+                key = result.get("id", result.get("content", ""))[:100]
+                keyword_score = (
+                    result.get("score", 0.5) * self.context_weights["keyword"]
+                )
+
+                if key in merged_dict:
+                    # Boost existing result
+                    merged_dict[key]["combined_score"] += keyword_score
+                    merged_dict[key]["search_type"] = "hybrid"
+                else:
+                    # Add new keyword result
+                    result["search_type"] = "keyword"
+                    result["combined_score"] = keyword_score
+                    merged_dict[key] = result
+
+            # Sort by combined score and return top results
+            sorted_results = sorted(
+                merged_dict.values(), key=lambda x: x["combined_score"], reverse=True
+            )
+
+            return sorted_results[:limit]
+
+        except Exception as e:
+            self.logger.error(f"Failed to merge search results: {str(e)}")
+            return semantic_results[:limit]  # Fallback to semantic only
+
+    def _apply_context_ranking(
+        self,
+        results: List[Dict[str, Any]],
+        context: Dict[str, Any],
+    ) -> List[Dict[str, Any]]:
+        """Apply context-aware ranking to search results."""
+        try:
+            for result in results:
+                context_score = self._calculate_context_score(result, context)
+                original_score = result.get(
+                    "combined_score", result.get("similarity", 0)
+                )
+                result["context_score"] = context_score
+                result["final_score"] = original_score + context_score
+
+            # Re-sort by final score
+            results.sort(key=lambda x: x["final_score"], reverse=True)
+            return results
+
+        except Exception as e:
+            self.logger.error(f"Context ranking failed: {str(e)}")
+            return results
+
+    def _calculate_context_score(
+        self,
+        result: Dict[str, Any],
+        context: Dict[str, Any],
+    ) -> float:
+        """Calculate context relevance score for a result."""
+        try:
+            context_score = 0.0
+
+            # Temporal context
+            if "timestamp" in context and "timestamp" in result:
+                time_diff = abs(
+                    datetime.fromisoformat(context["timestamp"]).timestamp()
+                    - datetime.fromisoformat(result["timestamp"]).timestamp()
+                )
+                # Boost recent documents (within 24 hours)
+                if time_diff < 86400:  # 24 hours in seconds
+                    context_score += 0.1
+
+            # Domain/category context
+            if "domain" in context and "domain" in result:
+                if context["domain"] == result["domain"]:
+                    context_score += 0.2
+
+            # User context
+            if "user_id" in context and "author" in result:
+                if context["user_id"] == result["author"]:
+                    context_score += 0.15
+
+            return context_score
+
+        except Exception as e:
+            self.logger.error(f"Context score calculation failed: {str(e)}")
+            return 0.0
+
+    def _calculate_context_boost(
+        self,
+        result: Dict[str, Any],
+        context: Dict[str, Any],
+    ) -> float:
+        """Calculate context boost score for a result."""
+        return self._calculate_context_score(result, context)
+
+    def _aggregate_results(
+        self,
+        results: List[List[Dict[str, Any]]],
+        method: str,
+        weights: Optional[List[float]] = None,
+    ) -> List[Dict[str, Any]]:
+        """Aggregate results from multiple queries."""
+        try:
+            if not results:
+                return []
+
+            if method == "union":
+                # Simple union - combine all results and deduplicate
+                all_results = []
+                for result_set in results:
+                    all_results.extend(result_set)
+
+                # Deduplicate by content/id
+                seen = set()
+                unique_results = []
+                for result in all_results:
+                    key = result.get("id", result.get("content", ""))[:100]
+                    if key not in seen:
+                        seen.add(key)
+                        unique_results.append(result)
+
+                return unique_results
+
+            elif method == "weighted" and weights:
+                # Weighted aggregation
+                weighted_results = {}
+                for i, result_set in enumerate(results):
+                    weight = weights[i] if i < len(weights) else 1.0
+                    for result in result_set:
+                        key = result.get("id", result.get("content", ""))[:100]
+                        if key in weighted_results:
+                            weighted_results[key]["combined_score"] += (
+                                result.get("similarity", 0) * weight
+                            )
+                        else:
+                            result["combined_score"] = (
+                                result.get("similarity", 0) * weight
+                            )
+                            weighted_results[key] = result
+
+                return sorted(
+                    weighted_results.values(),
+                    key=lambda x: x["combined_score"],
+                    reverse=True,
+                )
+
+            else:
+                # Default to first result set
+                return results[0] if results else []
+
+        except Exception as e:
+            self.logger.error(f"Result aggregation failed: {str(e)}")
+            return results[0] if results else []
+
+    def _update_search_analytics(self, query: str, search_mode: str, result_count: int):
+        """Update search analytics."""
+        try:
+            timestamp = datetime.now().isoformat()
+            self.search_analytics[timestamp] = {
+                "query": query,
+                "mode": search_mode,
+                "result_count": result_count,
+                "timestamp": timestamp,
+            }
+
+            # Keep only last 1000 entries
+            if len(self.search_analytics) > 1000:
+                oldest_keys = sorted(self.search_analytics.keys())[:100]
+                for key in oldest_keys:
+                    del self.search_analytics[key]
+
+        except Exception as e:
+            self.logger.error(f"Analytics update failed: {str(e)}")
+
+    def get_search_analytics(self) -> Dict[str, Any]:
+        """Get search analytics summary."""
+        try:
+            if not self.search_analytics:
+                return {}
+
+            total_searches = len(self.search_analytics)
+            mode_counts = {}
+            avg_results = 0
+
+            for analytics in self.search_analytics.values():
+                mode = analytics.get("mode", "unknown")
+                mode_counts[mode] = mode_counts.get(mode, 0) + 1
+                avg_results += analytics.get("result_count", 0)
+
+            avg_results = avg_results / total_searches if total_searches > 0 else 0
+
+            return {
+                "total_searches": total_searches,
+                "mode_distribution": mode_counts,
+                "average_results": avg_results,
+                "analytics_period": {
+                    "start": min(self.search_analytics.keys())
+                    if self.search_analytics
+                    else None,
+                    "end": max(self.search_analytics.keys())
+                    if self.search_analytics
+                    else None,
+                },
+            }
+
+        except Exception as e:
+            self.logger.error(f"Analytics summary failed: {str(e)}")
+            return {}
+
+    def clear_cache(self):
         """Clear search cache."""
-        if self._search_cache:
-            self._search_cache.clear()
-            self.logger.debug("Search cache cleared")
+        with self.cache_lock:
+            self.search_cache.clear()
 
-    def enable_performance_mode(self, enabled: bool = True) -> None:
-        """Enable or disable performance optimizations."""
-        if enabled:
-            if self._search_cache is None:
-                self._search_cache = {}
-                self.logger.info("Performance mode enabled")
-        else:
-            if self._search_cache is not None:
-                self._search_cache = None
-                self.logger.info("Performance mode disabled")
-
-        # Update the instance variable
-        self.enable_performance_mode_flag = enabled
+    def get_cache_info(self) -> Dict[str, Any]:
+        """Get cache information."""
+        with self.cache_lock:
+            return {
+                "cache_size": len(self.search_cache),
+                "max_cache_size": self.max_cache_size,
+            }

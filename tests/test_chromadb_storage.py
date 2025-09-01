@@ -1,14 +1,13 @@
-import os
 import shutil
 from datetime import datetime
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 
+from src.uckn.core.ml_environment_manager import get_ml_manager
+
 # Import the connector and ML environment manager
 from src.uckn.storage.chromadb_connector import ChromaDBConnector
-from src.uckn.core.ml_environment_manager import get_ml_manager
 
 
 # Mock the SemanticSearchEngine for tests that don't need actual embeddings

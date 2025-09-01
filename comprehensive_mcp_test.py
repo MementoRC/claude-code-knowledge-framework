@@ -177,7 +177,7 @@ async def run_mcp_test_sequence():
             status = "✅ PASS" if result else "❌ FAIL"
             print(f"{test_name.replace('_', ' ').title()}: {status}")
 
-        print(f"\nOverall: {passed}/{total} tests passed ({passed/total*100:.1f}%)")
+        print(f"\nOverall: {passed}/{total} tests passed ({passed / total * 100:.1f}%)")
 
         if passed == total:
             print("🎉 ALL TESTS PASSED! MCP Server is fully functional!")

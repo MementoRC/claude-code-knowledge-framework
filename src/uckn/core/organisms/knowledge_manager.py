@@ -170,21 +170,48 @@ class KnowledgeManager:
         metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Search for knowledge patterns using semantic similarity."""
-        if not self.semantic_search.is_available():
-            self._logger.warning(
-                "Semantic search not available, cannot generate query embedding."
+        try:
+            if not self.semantic_search.is_available():
+                self._logger.warning(
+                    "Semantic search not available, falling back to metadata search."
+                )
+                # Fallback to metadata-only search if available
+                if (
+                    hasattr(self.unified_db, "search_patterns_by_metadata")
+                    and metadata_filter
+                ):
+                    return self.unified_db.search_patterns_by_metadata(
+                        metadata_filter, limit=limit
+                    )
+                else:
+                    # Return empty list but don't fail completely
+                    return []
+
+            query_embedding = self.semantic_search.encode(query)
+            if query_embedding is None:
+                self._logger.warning(
+                    "Failed to generate query embedding, attempting fallback search."
+                )
+                # Try fallback to metadata search if available
+                if (
+                    hasattr(self.unified_db, "search_patterns_by_metadata")
+                    and metadata_filter
+                ):
+                    return self.unified_db.search_patterns_by_metadata(
+                        metadata_filter, limit=limit
+                    )
+                return []
+
+            return self.unified_db.search_patterns(
+                query_embedding,
+                n_results=limit,
+                min_similarity=min_similarity,
+                metadata_filter=metadata_filter,
             )
+        except Exception as e:
+            self._logger.error(f"Error in search_patterns: {e}")
+            # Return empty list instead of raising exception
             return []
-        query_embedding = self.semantic_search.encode(query)
-        if query_embedding is None:
-            self._logger.error("Failed to generate query embedding for pattern search.")
-            return []
-        return self.unified_db.search_patterns(
-            query_embedding,
-            n_results=limit,
-            min_similarity=min_similarity,
-            metadata_filter=metadata_filter,
-        )
 
     # Pattern classification methods
     def create_category(
@@ -216,7 +243,29 @@ class KnowledgeManager:
 
     def assign_pattern_to_category(self, pattern_id: str, category_id: str) -> bool:
         """Assign a pattern to a category."""
-        return self.unified_db.assign_pattern_to_category(pattern_id, category_id)
+        # Validate that both pattern and category exist before assignment
+        try:
+            pattern = self.unified_db.get_pattern(pattern_id)
+            category = self.unified_db.get_category(category_id)
+
+            if pattern is None:
+                self._logger.warning(
+                    f"Cannot assign non-existent pattern {pattern_id} to category"
+                )
+                return False
+
+            if category is None:
+                self._logger.warning(
+                    f"Cannot assign pattern to non-existent category {category_id}"
+                )
+                return False
+
+            return self.unified_db.assign_pattern_to_category(pattern_id, category_id)
+        except Exception as e:
+            self._logger.error(
+                f"Error assigning pattern {pattern_id} to category {category_id}: {e}"
+            )
+            return False
 
     def remove_pattern_from_category(self, pattern_id: str, category_id: str) -> bool:
         """Remove a pattern from a category."""
@@ -274,21 +323,47 @@ class KnowledgeManager:
         metadata_filter: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Search for error solutions using semantic similarity."""
-        if not self.semantic_search.is_available():
-            self._logger.warning(
-                "Semantic search not available, cannot generate query embedding."
+        try:
+            if not self.semantic_search.is_available():
+                self._logger.warning(
+                    "Semantic search not available, falling back to metadata search."
+                )
+                # Fallback to metadata-only search if available
+                if (
+                    hasattr(self.unified_db, "search_error_solutions_by_metadata")
+                    and metadata_filter
+                ):
+                    return self.unified_db.search_error_solutions_by_metadata(
+                        metadata_filter, limit=limit
+                    )
+                else:
+                    return []
+
+            query_embedding = self.semantic_search.encode(error_query)
+            if query_embedding is None:
+                self._logger.warning(
+                    "Failed to generate query embedding, attempting fallback search."
+                )
+                # Try fallback to metadata search if available
+                if (
+                    hasattr(self.unified_db, "search_error_solutions_by_metadata")
+                    and metadata_filter
+                ):
+                    return self.unified_db.search_error_solutions_by_metadata(
+                        metadata_filter, limit=limit
+                    )
+                return []
+
+            return self.unified_db.search_error_solutions(
+                query_embedding,
+                n_results=limit,
+                min_similarity=min_similarity,
+                metadata_filter=metadata_filter,
             )
+        except Exception as e:
+            self._logger.error(f"Error in search_error_solutions: {e}")
+            # Return empty list instead of raising exception
             return []
-        query_embedding = self.semantic_search.encode(error_query)
-        if query_embedding is None:
-            self._logger.error("Failed to generate query embedding for error search.")
-            return []
-        return self.unified_db.search_error_solutions(
-            query_embedding,
-            n_results=limit,
-            min_similarity=min_similarity,
-            metadata_filter=metadata_filter,
-        )
 
     # Team Access Management (new)
     def add_team_access(self, user_id: str, project_id: str, role: str) -> str | None:
@@ -370,9 +445,23 @@ class KnowledgeManager:
         unified_db_status = self.unified_db.is_available()
         db_manager_status = self.database_manager.get_status()
 
+        # Check ChromaDB availability through unified database
+        chromadb_available = False
+        try:
+            # Check if unified_db has ChromaDB connector and if it's available
+            chromadb_available = (
+                hasattr(self.unified_db, "chroma_connector")
+                and self.unified_db.chroma_connector is not None
+                and self.unified_db.chroma_connector.is_available()
+            )
+        except Exception as e:
+            self._logger.debug(f"ChromaDB availability check failed: {e}")
+            chromadb_available = False
+
         return {
             "unified_db_available": unified_db_status,
             "semantic_search_available": self.semantic_search.is_available(),
+            "chromadb_available": chromadb_available,  # Added for E2E test compatibility
             "knowledge_dir": str(self.knowledge_dir),
             "database_manager": {
                 "auto_start_enabled": db_manager_status["auto_start_enabled"],

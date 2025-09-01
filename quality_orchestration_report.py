@@ -139,10 +139,10 @@ def generate_effectiveness_report() -> None:
     print("TOOL EFFECTIVENESS ANALYSIS")
     print("-" * 30)
     print(
-        f"Auto-fixable issues: {auto_fixable_total}/{total_issues} ({auto_fixable_total/total_issues*100:.1f}%)"
+        f"Auto-fixable issues: {auto_fixable_total}/{total_issues} ({auto_fixable_total / total_issues * 100:.1f}%)"
     )
     print(
-        f"Manual fixes required: {manual_count}/{total_issues} ({manual_count/total_issues*100:.1f}%)"
+        f"Manual fixes required: {manual_count}/{total_issues} ({manual_count / total_issues * 100:.1f}%)"
     )
     print()
 

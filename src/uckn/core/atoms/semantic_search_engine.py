@@ -530,6 +530,7 @@ class SemanticSearchEngine:
                     results.get("distances", [[]])[0],
                     results.get("documents", [[]])[0],
                     results.get("metadatas", [[]])[0],
+                    strict=False,
                 )
             ):
                 # Convert distance to similarity score
