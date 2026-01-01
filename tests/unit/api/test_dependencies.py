@@ -200,15 +200,16 @@ class TestPredictiveIssueDetectorDependency:
         set_knowledge_manager(mock_km)
 
         # Mock the component classes
-        with patch(
-            "uckn.api.dependencies.TechStackDetector"
-        ) as mock_tech_detector, patch(
-            "uckn.api.dependencies.IssueDetectionRules"
-        ) as mock_issue_rules, patch(
-            "uckn.api.dependencies.IssuePredictionModels"
-        ) as mock_prediction_models, patch(
-            "uckn.api.dependencies.PredictiveIssueDetector"
-        ) as mock_detector_class:
+        with (
+            patch("uckn.api.dependencies.TechStackDetector") as mock_tech_detector,
+            patch("uckn.api.dependencies.IssueDetectionRules") as mock_issue_rules,
+            patch(
+                "uckn.api.dependencies.IssuePredictionModels"
+            ) as mock_prediction_models,
+            patch(
+                "uckn.api.dependencies.PredictiveIssueDetector"
+            ) as mock_detector_class,
+        ):
             # Setup mocks
             mock_tech_instance = Mock()
             mock_tech_detector.return_value = mock_tech_instance

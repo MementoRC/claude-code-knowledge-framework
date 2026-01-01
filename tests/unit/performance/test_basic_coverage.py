@@ -142,9 +142,11 @@ class TestSimpleStorageModuleCoverage:
 
     def test_migrations_init_basic_functions(self):
         """Test migrations init module basic functions."""
-        with patch("alembic.config.Config"), patch(
-            "alembic.command.upgrade"
-        ) as mock_upgrade, patch("alembic.command.downgrade") as mock_downgrade:
+        with (
+            patch("alembic.config.Config"),
+            patch("alembic.command.upgrade") as mock_upgrade,
+            patch("alembic.command.downgrade") as mock_downgrade,
+        ):
             from uckn.storage.migrations.init import rollback_migrations, run_migrations
 
             # Test functions exist and can be called

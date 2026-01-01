@@ -138,7 +138,9 @@ def test_update_error_solution_no_chroma(manager, mock_unified_db):
     assert result is False
 
 
-def test_update_error_solution_no_semantic(manager, mock_semantic_search, mock_unified_db):
+def test_update_error_solution_no_semantic(
+    manager, mock_semantic_search, mock_unified_db
+):
     mock_semantic_search.is_available.return_value = False
     updates = {"document": "new doc"}
     # Should warn but still call update_error_solution with embedding=None

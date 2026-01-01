@@ -2,7 +2,6 @@
 Locust scenario: High-volume search simulation for UCKN
 """
 
-
 from locust import HttpUser, TaskSet, tag, task
 
 from ..utils.test_data_generator import generate_search_queries

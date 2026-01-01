@@ -2,7 +2,6 @@
 UCKN Load Testing Entry Point (Locust)
 """
 
-
 from locust import between, events
 
 from .scenarios.mixed_workload import MixedWorkloadUser

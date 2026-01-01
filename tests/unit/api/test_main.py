@@ -19,9 +19,10 @@ class TestLifespan:
         mock_app = Mock(spec=FastAPI)
 
         # Mock KnowledgeManager and dependencies
-        with patch("uckn.api.main.KnowledgeManager") as mock_km_class, patch(
-            "uckn.api.main.set_knowledge_manager"
-        ) as mock_set_km:
+        with (
+            patch("uckn.api.main.KnowledgeManager") as mock_km_class,
+            patch("uckn.api.main.set_knowledge_manager") as mock_set_km,
+        ):
             # Setup mocks
             mock_km_instance = Mock()
             mock_km_class.return_value = mock_km_instance
@@ -164,9 +165,10 @@ class TestAppIntegration:
     async def test_lifespan_integration_with_mocks(self):
         """Test lifespan integration with proper mocking."""
         # Mock all dependencies
-        with patch("uckn.api.main.KnowledgeManager") as mock_km_class, patch(
-            "uckn.api.main.set_knowledge_manager"
-        ) as mock_set_km:
+        with (
+            patch("uckn.api.main.KnowledgeManager") as mock_km_class,
+            patch("uckn.api.main.set_knowledge_manager") as mock_set_km,
+        ):
             mock_km_instance = Mock()
             mock_km_class.return_value = mock_km_instance
 
