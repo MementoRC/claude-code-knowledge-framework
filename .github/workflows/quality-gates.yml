@@ -69,7 +69,7 @@ jobs:
     - name: Type Check
       run: |
         echo "Running type checks..."
-        pixi run typecheck
+        pixi run -e quality typecheck
         echo "Type checks passed"
 
     - name: Verify Package Import
