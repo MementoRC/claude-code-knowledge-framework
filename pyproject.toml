@@ -295,6 +295,7 @@ mcp-server = { cmd = "python -m uckn.mcp.universal_knowledge_server", env = { CL
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
+pythonpath = ["src"]  # Enable import of uckn package without installation
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
