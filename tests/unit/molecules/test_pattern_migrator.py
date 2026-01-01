@@ -7,7 +7,6 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
 
 from uckn.core.molecules.pattern_migrator import MigrationReport, PatternMigrator
 
