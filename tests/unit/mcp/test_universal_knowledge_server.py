@@ -8,6 +8,8 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
+pytestmark = pytest.mark.external_deps
+
 # Mock the MCP imports before importing the server
 sys_modules_backup = {}
 

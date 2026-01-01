@@ -48,11 +48,19 @@ def test_predict_returns_mock_prediction_if_not_trained(issue_prediction_models)
 
 
 @patch(
-    "random.random", side_effect=[0.3, 0.7]
-)  # First call triggers issue, second call for confidence
-@patch("random.choice", return_value="ml_performance_issue")
+    "src.uckn.core.molecules.issue_prediction_models.random.uniform",
+    return_value=0.75,
+)
+@patch(
+    "src.uckn.core.molecules.issue_prediction_models.random.choice",
+    return_value="ml_performance_issue",
+)
+@patch(
+    "src.uckn.core.molecules.issue_prediction_models.random.random",
+    return_value=0.7,
+)  # 0.7 > 0.6 triggers issue prediction
 def test_predict_returns_ml_issue_if_trained_and_random_allows(
-    mock_choice, mock_random, issue_prediction_models
+    mock_random, mock_choice, mock_uniform, issue_prediction_models
 ):
     issue_prediction_models._is_model_trained = True
     project_data = {"project_path": "/tmp/proj"}
@@ -62,7 +70,10 @@ def test_predict_returns_ml_issue_if_trained_and_random_allows(
     assert 0.6 <= predictions[0]["confidence"] <= 0.95
 
 
-@patch("random.random", return_value=0.8)  # High random value, no issue predicted
+@patch(
+    "src.uckn.core.molecules.issue_prediction_models.random.random",
+    return_value=0.5,
+)  # 0.5 > 0.6 is False, so no issue predicted
 def test_predict_returns_no_issue_if_trained_and_random_disallows(
     mock_random, issue_prediction_models
 ):

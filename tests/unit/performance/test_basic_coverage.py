@@ -2,6 +2,10 @@
 
 from unittest.mock import Mock, patch
 
+import pytest
+
+pytestmark = pytest.mark.external_deps
+
 
 class TestPerformanceModuleCoverage:
     """Basic tests to cover performance module imports and initialization."""

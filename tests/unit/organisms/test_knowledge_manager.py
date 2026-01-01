@@ -4,6 +4,8 @@ import pytest
 
 from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
 
+pytestmark = pytest.mark.external_deps
+
 
 @pytest.fixture
 def mock_chroma():

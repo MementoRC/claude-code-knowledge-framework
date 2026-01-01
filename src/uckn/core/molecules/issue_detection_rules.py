@@ -6,6 +6,7 @@ based on project configuration, dependencies, and common patterns.
 """
 
 import logging
+from pathlib import Path
 from typing import Any
 
 from ..atoms.tech_stack_detector import TechStackDetector
@@ -212,9 +213,9 @@ class IssueDetectionRules:
         """
         self._logger.info(f"Starting rule-based analysis for project: {project_path}")
         project_stack = self.tech_stack_detector.analyze_project(project_path)
-        project_stack["project_path"] = (
-            project_path  # Add path for potential file checks
-        )
+        project_stack["project_path"] = Path(
+            project_path
+        )  # Add path for potential file checks
 
         detected_issues = []
 

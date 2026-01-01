@@ -171,7 +171,7 @@ async def test_transition_pattern_state_success(client, mock_workflow_manager):
 
 
 @pytest.mark.asyncio
-async def test_transition_pattern_state_forbidden(client, mock_workflow_manager):
+async def test_transition_pattern_state_forbidden(mock_workflow_manager):
     pattern_id = "pat123"
     request_payload = {
         "target_state": "published",
@@ -179,12 +179,15 @@ async def test_transition_pattern_state_forbidden(client, mock_workflow_manager)
         "user_id": "test_user",
         "version": "1.0.0",
     }
-    # Temporarily override user roles to remove admin for this test
-    with patch(
-        "src.uckn.api.routers.workflow.get_current_user_roles",
-        return_value=["contributor"],
-    ):
-        response = client.post(
+    # Create a new app with contributor-only roles to test permission denial
+    app = FastAPI()
+    app.include_router(router)
+    app.dependency_overrides[get_workflow_manager] = lambda: mock_workflow_manager
+    app.dependency_overrides[get_current_user_id] = lambda: "test_user"
+    app.dependency_overrides[get_current_user_roles] = lambda: ["contributor"]
+
+    with TestClient(app) as test_client:
+        response = test_client.post(
             f"/patterns/{pattern_id}/workflow/transition", json=request_payload
         )
 
@@ -269,20 +272,23 @@ async def test_get_patterns_awaiting_review_admin(client, mock_workflow_manager)
 
 
 @pytest.mark.asyncio
-async def test_get_patterns_awaiting_review_contributor(client, mock_workflow_manager):
+async def test_get_patterns_awaiting_review_contributor(mock_workflow_manager):
     mock_workflow_manager.get_patterns_awaiting_review.return_value = [
-        {"pattern_id": "pat1", "title": "P1", "assigned_reviewer": "test_user"}
+        {"pattern_id": "pat1", "title": "P1", "assigned_reviewer": "contributor_user"}
     ]
-    # Ensure contributor role is present for this test
-    with patch(
-        "src.uckn.api.routers.workflow.get_current_user_roles",
-        return_value=["contributor"],
-    ):
-        response = client.get("/patterns/workflow/pending_reviews")
+    # Create a new app with contributor-only role to test permission
+    app = FastAPI()
+    app.include_router(router)
+    app.dependency_overrides[get_workflow_manager] = lambda: mock_workflow_manager
+    app.dependency_overrides[get_current_user_id] = lambda: "contributor_user"
+    app.dependency_overrides[get_current_user_roles] = lambda: ["contributor"]
+
+    with TestClient(app) as test_client:
+        response = test_client.get("/patterns/workflow/pending_reviews")
 
     assert response.status_code == 200
     assert len(response.json()) == 1
-    assert response.json()[0]["assigned_reviewer"] == "test_user"
+    assert response.json()[0]["assigned_reviewer"] == "contributor_user"
     mock_workflow_manager.get_patterns_awaiting_review.assert_called_once_with(
-        "test_user"
+        "contributor_user"
     )  # Contributor sees only their own

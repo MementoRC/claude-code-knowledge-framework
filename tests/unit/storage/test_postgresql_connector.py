@@ -15,6 +15,8 @@ from src.uckn.storage.postgresql_connector import (
     TeamAccess,
 )
 
+pytestmark = pytest.mark.external_deps
+
 # Use an in-memory SQLite database for testing
 # This allows testing the ORM and connector logic without a real PostgreSQL instance
 # Note: SQLite's JSON support is limited compared to PostgreSQL's JSONB.

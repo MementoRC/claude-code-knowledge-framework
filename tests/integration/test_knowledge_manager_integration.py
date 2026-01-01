@@ -6,6 +6,9 @@ import pytest
 
 from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
 
+# Mark as external_deps - requires PostgreSQL (psycopg)
+pytestmark = pytest.mark.external_deps
+
 # --- Pytest fixtures for temp directory and KnowledgeManager ---
 
 

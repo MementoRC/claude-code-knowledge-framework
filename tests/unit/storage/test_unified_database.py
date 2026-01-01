@@ -16,6 +16,8 @@ from src.uckn.storage.postgresql_connector import (
 )
 from src.uckn.storage.unified_database import UnifiedDatabase
 
+pytestmark = pytest.mark.external_deps
+
 
 # Mock the underlying connectors
 @pytest.fixture

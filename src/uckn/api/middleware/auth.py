@@ -97,14 +97,17 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
     def validate_api_key(self, api_key: str) -> bool:
         """Validate API key against configured keys."""
+        if not api_key:
+            return False
+
         # For testing/development - accept test keys
-        test_keys = ["test-key-123", "dev-key-456", "uckn-api-key"]
-        if api_key in test_keys:
+        valid_keys = {"test-key-123", "dev-key-456", "uckn-api-key"}
+        if api_key in valid_keys:
             return True
 
         # In production, validate against database or external service
-        # For now, return True for any non-empty key to allow testing
-        return bool(api_key and len(api_key.strip()) > 0)
+        # Reject unknown keys by default
+        return False
 
     def _unauthorized_response(self, message: str) -> Response:
         """Return unauthorized response"""

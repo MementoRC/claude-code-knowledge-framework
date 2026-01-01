@@ -6,6 +6,9 @@ import pytest
 
 from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
 
+# Mark all tests in this module as e2e and external_deps (requires ChromaDB/PostgreSQL)
+pytestmark = [pytest.mark.e2e, pytest.mark.external_deps]
+
 
 @pytest.fixture(scope="module")
 def temp_knowledge_dir():

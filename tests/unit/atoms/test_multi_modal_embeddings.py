@@ -4,6 +4,8 @@ import pytest
 from src.uckn.core.atoms.multi_modal_embeddings import MultiModalEmbeddings
 from src.uckn.core.ml_environment_manager import get_ml_manager
 
+pytestmark = pytest.mark.external_deps
+
 
 class DummyChromaDBConnector:
     def __init__(self):

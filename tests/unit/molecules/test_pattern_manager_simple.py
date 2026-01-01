@@ -80,7 +80,7 @@ class TestPatternManagerBasic:
         """Test successful pattern addition."""
         # Mock successful database operations
         mock_unified_db.add_pattern.return_value = True
-        mock_semantic_search.get_embeddings.return_value = [[0.1, 0.2, 0.3]]
+        mock_semantic_search.encode.return_value = [0.1, 0.2, 0.3]
 
         pattern_data = {
             "document": "Test pattern content",
@@ -98,7 +98,7 @@ class TestPatternManagerBasic:
     ):
         """Test pattern addition with specific ID."""
         mock_unified_db.add_pattern.return_value = True
-        mock_semantic_search.get_embeddings.return_value = [[0.1, 0.2, 0.3]]
+        mock_semantic_search.encode.return_value = [0.1, 0.2, 0.3]
 
         pattern_id = "custom-pattern-id"
         pattern_data = {
@@ -116,7 +116,7 @@ class TestPatternManagerBasic:
     ):
         """Test pattern addition with project ID."""
         mock_unified_db.add_pattern.return_value = True
-        mock_semantic_search.get_embeddings.return_value = [[0.1, 0.2, 0.3]]
+        mock_semantic_search.encode.return_value = [0.1, 0.2, 0.3]
 
         pattern_data = {
             "document": "Test pattern content",
@@ -137,7 +137,7 @@ class TestPatternManagerBasic:
     ):
         """Test pattern addition when database operation fails."""
         mock_unified_db.add_pattern.return_value = False
-        mock_semantic_search.get_embeddings.return_value = [[0.1, 0.2, 0.3]]
+        mock_semantic_search.encode.return_value = [0.1, 0.2, 0.3]
 
         pattern_data = {
             "document": "Test pattern content",
@@ -152,7 +152,7 @@ class TestPatternManagerBasic:
         self, pattern_manager, mock_unified_db, mock_semantic_search
     ):
         """Test pattern addition when embedding generation fails."""
-        mock_semantic_search.get_embeddings.return_value = None  # Embedding failure
+        mock_semantic_search.encode.return_value = None  # Embedding failure
 
         pattern_data = {
             "document": "Test pattern content",
@@ -198,7 +198,7 @@ class TestPatternManagerBasic:
         self, pattern_manager, mock_unified_db, mock_semantic_search
     ):
         """Test basic pattern search."""
-        mock_semantic_search.get_embeddings.return_value = [[0.1, 0.2, 0.3]]
+        mock_semantic_search.encode.return_value = [0.1, 0.2, 0.3]
         mock_unified_db.search_patterns.return_value = [
             {"id": "pattern-1", "similarity": 0.9},
             {"id": "pattern-2", "similarity": 0.8},
@@ -208,7 +208,7 @@ class TestPatternManagerBasic:
 
         assert len(result) == 2
         assert result[0]["id"] == "pattern-1"
-        mock_semantic_search.get_embeddings.assert_called_once_with(["test query"])
+        mock_semantic_search.encode.assert_called_once_with("test query")
         mock_unified_db.search_patterns.assert_called_once()
 
     def test_search_patterns_semantic_unavailable(
@@ -226,7 +226,7 @@ class TestPatternManagerBasic:
     ):
         """Test pattern search when database unavailable."""
         mock_unified_db.is_available.return_value = False
-        mock_semantic_search.get_embeddings.return_value = [[0.1, 0.2, 0.3]]
+        mock_semantic_search.encode.return_value = [0.1, 0.2, 0.3]
 
         result = pattern_manager.search_patterns("test query")
 
@@ -234,7 +234,7 @@ class TestPatternManagerBasic:
 
     def test_search_patterns_no_embeddings(self, pattern_manager, mock_semantic_search):
         """Test pattern search when embeddings cannot be generated."""
-        mock_semantic_search.get_embeddings.return_value = None
+        mock_semantic_search.encode.return_value = None
 
         result = pattern_manager.search_patterns("test query")
 

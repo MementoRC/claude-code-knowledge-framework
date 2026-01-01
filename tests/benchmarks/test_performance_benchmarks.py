@@ -339,6 +339,7 @@ class TestStoragePerformance:
 
 
 @pytest.mark.benchmark
+@pytest.mark.external_deps  # Requires PostgreSQL (psycopg)
 class TestEndToEndPerformance:
     """Benchmark tests for end-to-end workflow performance."""
 

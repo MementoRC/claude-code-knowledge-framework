@@ -96,6 +96,7 @@ def test_availability_check(temp_knowledge_dir):
     assert isinstance(available, bool)
 
 
+@pytest.mark.external_deps  # Requires PostgreSQL (psycopg)
 def test_integration_with_knowledge_manager(temp_knowledge_dir):
     """Test integration with current UCKN knowledge manager."""
     from src.uckn.core import KnowledgeManager

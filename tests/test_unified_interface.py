@@ -3,9 +3,13 @@
 Tests for Unified Knowledge Management Interface
 """
 
+import pytest
 from unittest.mock import Mock, patch
 
 from src.uckn.bridge.unified_interface import UnifiedKnowledgeManager
+
+# Mark as external_deps - requires PostgreSQL (psycopg)
+pytestmark = pytest.mark.external_deps
 
 
 def test_unified_interface_initialization():

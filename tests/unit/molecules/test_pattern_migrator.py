@@ -7,6 +7,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
 
 from uckn.core.molecules.pattern_migrator import MigrationReport, PatternMigrator
 
@@ -62,16 +63,18 @@ class TestPatternMigrator:
             assert migrator.chroma_connector is None
             assert migrator.semantic_search is None
 
-    @patch("uckn.core.molecules.pattern_migrator.ChromaDBConnector")
-    @patch("uckn.core.molecules.pattern_migrator.SemanticSearch")
-    @patch("uckn.core.molecules.pattern_migrator.PatternManager")
     @patch("uckn.core.molecules.pattern_migrator.ErrorSolutionManager")
+    @patch("uckn.core.molecules.pattern_migrator.PatternManager")
+    @patch("uckn.core.molecules.pattern_migrator.SemanticSearch")
+    @patch("uckn.core.molecules.pattern_migrator.UnifiedDatabase")
+    @patch("uckn.core.molecules.pattern_migrator.ChromaDBConnector")
     def test_migrator_initialization_full_mode(
         self,
-        mock_error_manager,
-        mock_pattern_manager,
-        mock_semantic_search,
         mock_chroma,
+        mock_unified_db,
+        mock_semantic_search,
+        mock_pattern_manager,
+        mock_error_manager,
     ):
         """Test PatternMigrator initializes correctly in full mode"""
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -81,6 +84,7 @@ class TestPatternMigrator:
             assert migrator.source_dir == Path(temp_dir)
             assert migrator.report_only is False
             assert mock_chroma.called
+            assert mock_unified_db.called
             assert mock_semantic_search.called
             assert mock_pattern_manager.called
             assert mock_error_manager.called

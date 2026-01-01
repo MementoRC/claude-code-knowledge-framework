@@ -135,17 +135,24 @@ class PatternMigrator:
         self.error_solution_manager = None
 
         if not self.report_only:
-            self.chroma_connector = ChromaDBConnector(
-                db_path=str(self.target_dir or ".uckn/knowledge/chroma_db")
+            chroma_db_path = str(self.target_dir or ".uckn/knowledge/chroma_db")
+            self.chroma_connector = ChromaDBConnector(db_path=chroma_db_path)
+            # Use default PostgreSQL URL from environment or a sensible default
+            import os
+
+            pg_db_url = os.environ.get(
+                "UCKN_PG_DB_URL", "postgresql://localhost:5432/uckn"
             )
-            self.unified_db = UnifiedDatabase()
+            self.unified_db = UnifiedDatabase(
+                pg_db_url=pg_db_url, chroma_db_path=chroma_db_path
+            )
             self.semantic_search = SemanticSearch()
             self.pattern_manager = PatternManager(
                 unified_db=self.unified_db,
                 semantic_search=self.semantic_search,
             )
             self.error_solution_manager = ErrorSolutionManager(
-                chroma_connector=self.chroma_connector,
+                unified_db=self.unified_db,
                 semantic_search=self.semantic_search,
             )
 

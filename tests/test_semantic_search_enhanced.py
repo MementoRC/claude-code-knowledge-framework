@@ -14,6 +14,9 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
+# Mark as external_deps - requires sentence_transformers and EnhancedSemanticSearchEngine
+pytestmark = pytest.mark.external_deps
+
 # Test configuration
 TEST_KNOWLEDGE_DIR = ".test_uckn_enhanced_semantic"
 

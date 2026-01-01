@@ -119,16 +119,16 @@ async def test_initiate_review_success(
     assert response["new_version"] == "0.2.0"  # Minor version increment
 
     mock_knowledge_manager.update_pattern.assert_called_once()
-    # The update_pattern method receives a Pydantic Pattern object
-    updated_pattern_obj = mock_knowledge_manager.update_pattern.call_args[0][1]
-    assert updated_pattern_obj.status == WorkflowState.IN_REVIEW
-    assert updated_pattern_obj.current_version == "0.2.0"
-    assert len(updated_pattern_obj.reviews) == 2
-    assert updated_pattern_obj.reviews[0].reviewer_id == "reviewer1"
-    assert updated_pattern_obj.reviews[0].status == ReviewStatus.PENDING
-    assert updated_pattern_obj.reviews[0].version == "0.2.0"
-    assert len(updated_pattern_obj.versions) == 2  # Original + new version
-    assert updated_pattern_obj.versions[-1].version_number == "0.2.0"
+    # The update_pattern method receives a dict (converted from Pattern via .dict())
+    updated_pattern_dict = mock_knowledge_manager.update_pattern.call_args[0][1]
+    assert updated_pattern_dict["status"] == WorkflowState.IN_REVIEW.value
+    assert updated_pattern_dict["current_version"] == "0.2.0"
+    assert len(updated_pattern_dict["reviews"]) == 2
+    assert updated_pattern_dict["reviews"][0]["reviewer_id"] == "reviewer1"
+    assert updated_pattern_dict["reviews"][0]["status"] == ReviewStatus.PENDING.value
+    assert updated_pattern_dict["reviews"][0]["version"] == "0.2.0"
+    assert len(updated_pattern_dict["versions"]) == 2  # Original + new version
+    assert updated_pattern_dict["versions"][-1]["version_number"] == "0.2.0"
 
     mock_connection_manager.broadcast.assert_called_once()
     broadcast_message = json.loads(mock_connection_manager.broadcast.call_args[0][0])
@@ -186,14 +186,14 @@ async def test_submit_review_feedback_success(
 
     assert response["status"] == "success"
     mock_knowledge_manager.update_pattern.assert_called_once()
-    updated_pattern_obj = mock_knowledge_manager.update_pattern.call_args[0][1]
+    updated_pattern_dict = mock_knowledge_manager.update_pattern.call_args[0][1]
 
     reviewer1_feedback = next(
-        r for r in updated_pattern_obj.reviews if r.reviewer_id == "reviewer1"
+        r for r in updated_pattern_dict["reviews"] if r["reviewer_id"] == "reviewer1"
     )
-    assert reviewer1_feedback.status == ReviewStatus.NEEDS_REVISION
-    assert reviewer1_feedback.comments == "Looks good, minor tweaks needed."
-    assert reviewer1_feedback.score == 4.5
+    assert reviewer1_feedback["status"] == ReviewStatus.NEEDS_REVISION.value
+    assert reviewer1_feedback["comments"] == "Looks good, minor tweaks needed."
+    assert reviewer1_feedback["score"] == 4.5
 
     mock_connection_manager.broadcast.assert_called_once()
     broadcast_message = json.loads(mock_connection_manager.broadcast.call_args[0][0])
@@ -232,8 +232,8 @@ async def test_transition_state_approve_review_success(
     assert response["status"] == "success"
     assert response["new_state"] == WorkflowState.IN_TESTING
     mock_knowledge_manager.update_pattern.assert_called_once()
-    updated_pattern_obj = mock_knowledge_manager.update_pattern.call_args[0][1]
-    assert updated_pattern_obj.status == WorkflowState.IN_TESTING
+    updated_pattern_dict = mock_knowledge_manager.update_pattern.call_args[0][1]
+    assert updated_pattern_dict["status"] == WorkflowState.IN_TESTING.value
     mock_connection_manager.broadcast.assert_called_once()
     broadcast_message = json.loads(mock_connection_manager.broadcast.call_args[0][0])
     assert broadcast_message["type"] == "pattern_approved_for_testing"
@@ -266,13 +266,14 @@ async def test_transition_state_publish_success(
     assert response["new_version"] == "1.0.0"  # Major version increment for publish
 
     mock_knowledge_manager.update_pattern.assert_called_once()
-    updated_pattern_obj = mock_knowledge_manager.update_pattern.call_args[0][1]
-    assert updated_pattern_obj.status == WorkflowState.PUBLISHED
-    assert updated_pattern_obj.current_version == "1.0.0"
-    assert len(updated_pattern_obj.versions) == 2  # Original 0.1.0 + new 1.0.0
-    assert updated_pattern_obj.versions[-1].version_number == "1.0.0"
+    updated_pattern_dict = mock_knowledge_manager.update_pattern.call_args[0][1]
+    assert updated_pattern_dict["status"] == WorkflowState.PUBLISHED.value
+    assert updated_pattern_dict["current_version"] == "1.0.0"
+    assert len(updated_pattern_dict["versions"]) == 2  # Original 0.1.0 + new 1.0.0
+    assert updated_pattern_dict["versions"][-1]["version_number"] == "1.0.0"
     assert (
-        updated_pattern_obj.versions[-1].status_at_creation == WorkflowState.PUBLISHED
+        updated_pattern_dict["versions"][-1]["status_at_creation"]
+        == WorkflowState.PUBLISHED.value
     )
 
     mock_connection_manager.broadcast.assert_called_once()

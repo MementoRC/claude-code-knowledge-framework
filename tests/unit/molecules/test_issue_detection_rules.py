@@ -62,9 +62,12 @@ def test_detect_dependency_conflicts_javascript_no_lock_file(
     mock_tech_stack_detector.analyze_project.return_value = {
         "languages": ["JavaScript"],
         "package_managers": ["npm"],
-        "project_path": Path("/tmp/js_proj"),
     }
     Path("/tmp/js_proj").mkdir(parents=True, exist_ok=True)
+    # Remove package-lock.json if it exists to trigger the rule
+    lock_file = Path("/tmp/js_proj") / "package-lock.json"
+    if lock_file.exists():
+        lock_file.unlink()
 
     issues = issue_detection_rules.analyze_project_for_rules("/tmp/js_proj")
     assert any(

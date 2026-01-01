@@ -10,6 +10,9 @@ from src.uckn.storage.postgresql_connector import (
     PostgreSQLConnector,
 )
 
+# Mark as external_deps - requires ChromaDB/PostgreSQL
+pytestmark = pytest.mark.external_deps
+
 # Use a temporary directory for ChromaDB and an in-memory SQLite for PostgreSQL
 # For true integration testing, a Dockerized PostgreSQL might be preferred,
 # but for CI/CD simplicity, in-memory SQLite is often used for the PG part.
