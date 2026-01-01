@@ -1,5 +1,5 @@
 name: CI/CD Pipeline
-# Trigger: retry CI after cache issue resolution
+# Cache disabled temporarily due to GitHub Actions cache 400 errors
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
         pixi-version: v0.50.2
-        cache: true
+        cache: false
 
     - name: Install dependencies (pixi)
       run: pixi install
@@ -74,7 +74,7 @@ jobs:
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
         pixi-version: v0.50.2
-        cache: true
+        cache: false
 
     - name: Install dependencies (pixi)
       run: pixi install
@@ -110,7 +110,7 @@ jobs:
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
         pixi-version: v0.50.2
-        cache: true
+        cache: false
 
     - name: Install dependencies (pixi)
       run: pixi install
@@ -155,7 +155,7 @@ jobs:
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
         pixi-version: v0.50.2
-        cache: true
+        cache: false
 
     - name: Install dependencies (pixi)
       run: pixi install
@@ -203,7 +203,7 @@ jobs:
       uses: prefix-dev/setup-pixi@v0.8.1
       with:
         pixi-version: v0.50.2
-        cache: true
+        cache: false
 
     - name: Install dependencies (pixi)
       run: pixi install
