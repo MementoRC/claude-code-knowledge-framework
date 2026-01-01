@@ -167,6 +167,9 @@ pytest-benchmark = ">=4.0.0"
 mypy = ">=1.5.0"
 ruff = ">=0.0.290"
 coverage = ">=7.3.0"
+# Build tools for ci-framework compatibility
+python-build = ">=1.0.0"
+twine = ">=4.0.0"
 
 [tool.pixi.feature.quality-extended.dependencies]
 # Extended quality tools from conda-forge/dnachun
@@ -203,6 +206,7 @@ default = {features = ["core"], solve-group = "default"}
 dev = {features = ["core", "quality", "dev"], solve-group = "default"}
 ci = {features = ["core", "quality"], solve-group = "default"}
 quality = {features = ["core", "quality"], solve-group = "default"}
+quality-ci = {features = ["core", "quality"], solve-group = "default"}  # Alias for ci-framework compatibility
 quality-extended = {features = ["core", "quality", "quality-extended"], solve-group = "default"}
 loadtest = {features = ["core", "loadtest"], solve-group = "default"}
 docs = {features = ["core", "docs"], solve-group = "default"}
@@ -216,12 +220,13 @@ install-editable = "python -m pip install -e ."
 dev-setup = "python -m pip install -e ."
 
 # TIER 1: Core Quality Gates (ZERO-TOLERANCE)
-test = { cmd = "pixi run -e quality pytest tests/ -v -x", env = { CLAUDECODE = "0" } }
-test-fast = { cmd = "pixi run -e quality pytest tests/unit/ -v --maxfail=5", env = { CLAUDECODE = "0" } }
-test-cov = { cmd = "pixi run -e quality pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term --cov-report=xml --cov-report=json", env = { CLAUDECODE = "0" } }
+test = { cmd = "pytest tests/ -v -x", env = { CLAUDECODE = "0" } }
+test-fast = { cmd = "pytest tests/unit/ -v --maxfail=5", env = { CLAUDECODE = "0" } }
+test-cov = { cmd = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term --cov-report=xml --cov-report=json", env = { CLAUDECODE = "0" } }
 lint = "ruff check src/ tests/ --select=F,E9"
 lint-fix = "ruff check --fix src/ tests/"
 format = "ruff format src/ tests/"
+format-check = "ruff format --check src/ tests/"
 typecheck = { cmd = "cd src && mypy uckn", env = { MYPYPATH = "." } }
 
 # Pre-commit Integration (CRITICAL for AG commands)
@@ -232,10 +237,13 @@ install-pre-commit = { cmd = "pre-commit install --install-hooks", env = { CLAUD
 quality = { depends-on = ["test", "lint", "typecheck"] }
 
 # Quality Gate (CI-specific comprehensive check)
-quality-gate = { cmd = "pixi run -e quality test && pixi run lint && pixi run typecheck", env = { CLAUDECODE = "0" } }
+quality-gate = { depends-on = ["test", "lint", "typecheck"] }
 
 # Development setup task
-dev = { cmd = "pixi run install-editable", env = { CLAUDECODE = "0" } }
+dev = "python -m pip install -e ."
+
+# Build task for ci-framework compatibility
+build = "python -m build"
 
 # Coverage tasks for CI
 coverage-markdown = { cmd = "coverage report --format=markdown > coverage.md", env = { CLAUDECODE = "0" } }
@@ -259,10 +267,10 @@ diff-cover = { cmd = "diff-cover coverage.xml", env = { CLAUDECODE = "0" } }
 check-all = { depends-on = ["test-cov", "lint", "typecheck", "safety-check-ci"] }
 
 # CI-specific tasks (optimized for CI environments)
-ci-test = { cmd = "pixi run -e ci pytest tests/ --cov=src/uckn --cov-report=xml -m 'not slow and not benchmark' --maxfail=3 -x --tb=short", env = { CLAUDECODE = "0" } }
-ci-test-coverage = { cmd = "pixi run -e ci pytest tests/unit tests/integration --cov=src/uckn --cov-report=json --cov-report=term --maxfail=3 --tb=short", env = { CLAUDECODE = "0" } }
-ci-lint = { cmd = "pixi run -e quality ruff check src/ tests/ --output-format=github --select=F,E9", env = { CLAUDECODE = "0" } }
-ci-format-check = { cmd = "pixi run -e quality ruff format --check src/ tests/", env = { CLAUDECODE = "0" } }
+ci-test = { cmd = "pytest tests/ --cov=src/uckn --cov-report=xml -m 'not slow and not benchmark' --maxfail=3 -x --tb=short", env = { CLAUDECODE = "0", ENVIRONMENT = "ci" } }
+ci-test-coverage = { cmd = "pytest tests/unit tests/integration --cov=src/uckn --cov-report=json --cov-report=term --maxfail=3 --tb=short", env = { CLAUDECODE = "0", ENVIRONMENT = "ci" } }
+ci-lint = { cmd = "ruff check src/ tests/ --output-format=github --select=F,E9", env = { CLAUDECODE = "0" } }
+ci-format-check = { cmd = "ruff format --check src/ tests/", env = { CLAUDECODE = "0" } }
 
 # MCP and Server tasks
 start-server = { cmd = "python -m uckn.server", env = { CLAUDECODE = "0" } }
