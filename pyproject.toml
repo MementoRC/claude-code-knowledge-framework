@@ -162,83 +162,9 @@ pip = "*"
 # CLI and development utilities
 git = "*"
 
-[tool.pixi.feature.mcp.pypi-dependencies]
-# MCP Server Protocol support
-mcp = ">=1.0.0"
-click = ">=8.0.0"
-typing-extensions = ">=4.0.0"
-
-[tool.pixi.feature.dev.pypi-dependencies]
-# Development tools only (for local development)
-pytest = ">=7.0.0"
-pytest-cov = ">=4.0.0"
-pytest-asyncio = ">=0.21.0"
-pytest-timeout = ">=2.1.0"  # 🚨 CRITICAL FIX: Required for CI timeout support
-mypy = ">=1.5.0"
-black = ">=23.0.0"
-isort = ">=5.12.0"
-ruff = ">=0.0.290"
-pre-commit = ">=3.0.0"
-
-[tool.pixi.feature.quality.pypi-dependencies]
-# Quality assurance tools (for CI and local quality checks)
-pytest = ">=8.0.0"
-pytest-cov = ">=4.0.0"
-pytest-asyncio = ">=0.21.0"
-pytest-timeout = ">=2.1.0"  # 🚨 CRITICAL FIX: Required for CI timeout support
-pytest-benchmark = ">=5.1.0,<6"
-mypy = ">=1.5.0"
-ruff = ">=0.0.290"
-bandit = ">=1.7.5"
-safety = ">=3.0.0"
-coverage = {extras = ["toml"], version = ">=7.3.0"}
-
-[tool.pixi.feature.quality-extended.pypi-dependencies]
-# Extended quality analysis tools
-vulture = ">=2.7"
-xenon = ">=0.9.0"
-radon = ">=6.0.0"
-interrogate = ">=1.5.0"
-prospector = ">=1.10.0"
-
-[tool.pixi.feature.quality-ci.pypi-dependencies]
-# CI-optimized quality tools (reduced package set for faster CI)
-pytest = ">=8.0.0"
-pytest-cov = ">=4.0.0"
-pytest-asyncio = ">=0.21.0"
-pytest-timeout = ">=2.1.0"  # 🚨 CRITICAL FIX: Required for CI timeout support
-pytest-benchmark = ">=5.1.0,<6"
-mypy = ">=1.5.0"
-ruff = ">=0.0.290"
-coverage = {extras = ["toml"], version = ">=7.3.0"}
-
-[tool.pixi.feature.ml.pypi-dependencies]
-# Machine learning dependencies
-chromadb = ">=0.4.0"
-sentence-transformers = ">=2.0.0,<3.0.0"
-openai = ">=1.0.0"
-numpy = ">=1.24.0"
-
-[tool.pixi.feature.ml-heavy.pypi-dependencies]
-# Heavy ML dependencies (full ML stack)
-transformers = ">=4.21.0,<5.0.0"
-torch = ">=2.0.0,<3.0.0"
-torchvision = ">=0.15.0,<1.0.0"
-tensorflow = ">=2.13.0,<3.0.0"
-scikit-learn = ">=1.3.0"
-matplotlib = ">=3.7.0"
-seaborn = ">=0.12.0"
-
-[tool.pixi.feature.loadtest.pypi-dependencies]
-# Load testing dependencies
-locust = ">=2.15.0"
-memory-profiler = ">=0.60.0"
-
-[tool.pixi.feature.docs.pypi-dependencies]
-# Documentation dependencies
-mkdocs = ">=1.5.0"
-mkdocs-material = ">=9.0.0"
-mkdocstrings = ">=0.20.0"
+# NOTE: All pypi-dependencies are now defined in [project.optional-dependencies]
+# Pixi reads those sections automatically via the pypi-options.extra-index-urls configuration
+# This avoids duplicate dependency declarations and ensures pip install compatibility
 
 [tool.pixi.environments]
 # CI-optimized environments (reduced package counts for faster installs)
