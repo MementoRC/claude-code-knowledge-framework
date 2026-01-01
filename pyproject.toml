@@ -229,7 +229,7 @@ lint = "ruff check src/ tests/ --select=F,E9"
 lint-fix = "ruff check --fix src/ tests/"
 format = "ruff format src/ tests/"
 format-check = "ruff format --check src/ tests/"
-typecheck = { cmd = "cd src && mypy uckn", env = { MYPYPATH = "." } }
+typecheck = { cmd = "mypy src/uckn" }
 
 # Pre-commit Integration (CRITICAL for AG commands)
 pre-commit = { cmd = "pre-commit run --all-files", env = { CLAUDECODE = "0", PRE_COMMIT = "1" } }
@@ -385,6 +385,8 @@ module = [
     "uvicorn.*",
     "nltk.*",
     "httpx.*",
+    "redis.*",
+    "aiohttp.*",
 ]
 ignore_missing_imports = true
 
