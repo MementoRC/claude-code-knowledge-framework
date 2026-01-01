@@ -2,10 +2,8 @@
 Test Pattern Analytics functionality
 """
 
-from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
 
-import pytest
 
 from uckn.core.molecules.pattern_analytics import PatternAnalytics
 

@@ -2,7 +2,6 @@
 Simple tests for MCP tools functionality
 """
 
-import json
 import os
 import tempfile
 

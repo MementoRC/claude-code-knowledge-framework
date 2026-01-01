@@ -3,9 +3,8 @@ Test Universal Knowledge MCP Server functionality
 """
 
 import json
-import os
 import tempfile
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 

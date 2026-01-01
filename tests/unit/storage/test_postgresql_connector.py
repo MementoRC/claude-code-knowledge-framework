@@ -1,8 +1,7 @@
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pytest
-from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from src.uckn.storage.postgresql_connector import (
@@ -11,7 +10,6 @@ from src.uckn.storage.postgresql_connector import (
     ErrorSolution,
     Pattern,
     PatternCategory,
-    PatternCategoryLink,
     PostgreSQLConnector,
     Project,
     TeamAccess,

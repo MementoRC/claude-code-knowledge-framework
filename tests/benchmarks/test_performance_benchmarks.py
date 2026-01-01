@@ -7,10 +7,8 @@ and establish baseline metrics for performance regression detection.
 
 import gc
 import os
-import tempfile
 import time
 from pathlib import Path
-from typing import Any
 
 import pytest
 

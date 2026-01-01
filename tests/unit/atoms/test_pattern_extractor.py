@@ -3,7 +3,6 @@ Tests for PatternExtractor atom
 """
 
 import unittest
-from pathlib import Path
 from unittest.mock import MagicMock
 
 from src.uckn.core.atoms.pattern_extractor import PatternExtractor

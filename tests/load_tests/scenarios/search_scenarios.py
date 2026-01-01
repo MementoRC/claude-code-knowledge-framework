@@ -2,7 +2,6 @@
 Locust scenario: High-volume search simulation for UCKN
 """
 
-import random
 
 from locust import HttpUser, TaskSet, tag, task
 

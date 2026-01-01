@@ -8,9 +8,8 @@ with focus on performance optimizations, multi-modal support, and robustness.
 import json
 import os
 import shutil
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest

@@ -2,7 +2,6 @@
 Locust scenario: Mixed workload (80% search, 20% add) for UCKN
 """
 
-import random
 
 from locust import HttpUser, TaskSet, tag, task
 

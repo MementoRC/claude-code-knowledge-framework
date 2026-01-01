@@ -2,15 +2,11 @@
 Tests for UCKN Synchronization Manager.
 """
 
-import asyncio
-from datetime import datetime
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from src.uckn.sync.conflict_resolver import ConflictResolver
 from src.uckn.sync.sync_manager import SyncDirection, SyncManager, SyncMode, SyncStatus
-from src.uckn.sync.sync_queue import SyncQueue
 
 
 @pytest.fixture

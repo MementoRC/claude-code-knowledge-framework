@@ -4,7 +4,6 @@ import shutil
 import tempfile
 from collections.abc import Generator
 from pathlib import Path
-from typing import Any
 
 import pytest
 
@@ -124,7 +123,6 @@ def uckn_component_factory():
         tech_detector = tech_detector or TechStackDetector()
         # Create unified_db for PatternManager
         from tests.fixtures.database_fixtures import DummyUnifiedDatabase
-        from uckn.storage.unified_database import UnifiedDatabase
 
         unified_db = DummyUnifiedDatabase()
         pattern_manager = pattern_manager or PatternManager(unified_db, semantic_search)

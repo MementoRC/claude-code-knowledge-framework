@@ -10,7 +10,7 @@ description = "Universal Cloud Knowledge Navigator - AI-Powered Code and Error S
 readme = "README.md"
 license = {text = "MIT"}
 dynamic = ["version"]
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 dependencies = [
     # Core dependencies
     "fastapi>=0.100.0",
@@ -83,14 +83,11 @@ quality = [
     "types-requests>=2.31.0",
     "types-aiofiles>=23.0.0",
 ]
-# Extended quality tools (for comprehensive analysis)
+# Extended quality tools (for comprehensive analysis) - pip only, not pixi
 quality-extended = [
     "vulture>=2.7",  # Dead code detection
     "xenon>=0.9.0",  # Complexity analysis
     "radon>=6.0.0",  # Code metrics
-    "interrogate>=1.5.0",  # Documentation coverage
-    "semgrep>=1.35.0",  # Static analysis security
-    "prospector>=1.10.0",  # Multi-tool analysis
 ]
 # CI-specific quality tools (optimized for CI environments)
 quality-ci = [
@@ -148,8 +145,8 @@ packages = ["src/uckn"]
 include = ["src/uckn", "tests", "pyproject.toml", "README.md"]
 
 [tool.pixi.project]
-channels = ["conda-forge", "pytorch", "nvidia"]
-platforms = ["linux-64", "win-64", "osx-64", "osx-arm64"]
+channels = ["conda-forge", "pytorch", "nvidia", "dnachun"]
+platforms = ["linux-64"]
 
 # NO pypi-dependencies - all dependencies come from conda-forge only
 # The package is installed separately via pip install -e . after pixi install
@@ -157,20 +154,60 @@ platforms = ["linux-64", "win-64", "osx-64", "osx-arm64"]
 [tool.pixi.feature.core.dependencies]
 # System dependencies
 python = "3.12.*"
-# Core runtime dependencies (MINIMAL SET)
 pip = "*"
-# CLI and development utilities
 git = "*"
 
+[tool.pixi.feature.quality.dependencies]
+# Quality tools from conda-forge
+pytest = ">=8.0.0"
+pytest-cov = ">=4.0.0"
+pytest-asyncio = ">=0.21.0"
+pytest-timeout = ">=2.1.0"
+pytest-benchmark = ">=4.0.0"
+mypy = ">=1.5.0"
+ruff = ">=0.0.290"
+coverage = ">=7.3.0"
+
+[tool.pixi.feature.quality-extended.dependencies]
+# Extended quality tools from conda-forge/dnachun
+bandit = ">=1.7.5"
+vulture = ">=2.7"
+radon = ">=6.0.0"
+interrogate = ">=1.5.0"
+prospector = ">=1.10.0"
+# NOTE: semgrep moved to separate environment (requires Python 3.11)
+
+[tool.pixi.feature.semgrep.dependencies]
+# Semgrep requires Python 3.11 (incompatible with 3.12)
+python = "3.11.*"
+semgrep = ">=1.35.0"
+
+[tool.pixi.feature.dev.dependencies]
+# Development tools from conda-forge
+black = ">=23.0.0"
+isort = ">=5.12.0"
+pre-commit = ">=3.0.0"
+
+[tool.pixi.feature.loadtest.dependencies]
+# Load testing from conda-forge
+locust = ">=2.15.0"
+
+[tool.pixi.feature.docs.dependencies]
+# Documentation from conda-forge
+mkdocs = ">=1.5.0"
+mkdocs-material = ">=9.0.0"
+
 [tool.pixi.environments]
-# All environments use only conda-forge dependencies (core feature)
-# Additional Python packages are installed via pip after pixi install
+# All dependencies from conda-forge only
 default = {features = ["core"], solve-group = "default"}
-dev = {features = ["core"], solve-group = "default"}
-ci = {features = ["core"], solve-group = "default"}
-docs = {features = ["core"], solve-group = "default"}
-quality = {features = ["core"], solve-group = "default"}
-quality-extended = {features = ["core"], solve-group = "default"}
+dev = {features = ["core", "quality", "dev"], solve-group = "default"}
+ci = {features = ["core", "quality"], solve-group = "default"}
+quality = {features = ["core", "quality"], solve-group = "default"}
+quality-extended = {features = ["core", "quality", "quality-extended"], solve-group = "default"}
+loadtest = {features = ["core", "loadtest"], solve-group = "default"}
+docs = {features = ["core", "docs"], solve-group = "default"}
+# Semgrep requires Python 3.11 - separate solve-group
+semgrep = {features = ["semgrep"], solve-group = "semgrep"}
 
 [tool.pixi.tasks]
 # Development tasks (STRICT COMPLIANCE: Use pip module with python)
@@ -282,8 +319,21 @@ filterwarnings = [
 [tool.pytest_asyncio]
 asyncio_mode = "auto"  # Automatically detect and run async tests
 
-[tool.pytest.benchmark]
-disable = false
+# pytest-benchmark settings moved to conftest.py or CLI args
+# [tool.pytest.benchmark] removed - conflicts with [tool.pytest.ini_options]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["F", "E9"]
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+# Allow star imports in conftest.py for pytest fixtures
+"tests/conftest.py" = ["F403", "F405"]
+"tests/**/conftest.py" = ["F403", "F405"]
 
 [tool.mypy]
 python_version = "3.12"

@@ -5,9 +5,8 @@ Test Pattern Migrator functionality
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
-import pytest
 
 from uckn.core.molecules.pattern_migrator import MigrationReport, PatternMigrator
 

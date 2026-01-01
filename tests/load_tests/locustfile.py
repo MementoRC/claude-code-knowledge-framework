@@ -2,9 +2,8 @@
 UCKN Load Testing Entry Point (Locust)
 """
 
-import os
 
-from locust import HttpUser, between, events
+from locust import between, events
 
 from .scenarios.mixed_workload import MixedWorkloadUser
 from .scenarios.pattern_scenarios import PatternAdditionUser

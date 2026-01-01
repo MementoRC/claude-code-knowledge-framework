@@ -1,4 +1,3 @@
-import pytest
 
 from src.uckn.core.atoms.multi_modal_embeddings_optimized import (
     MultiModalEmbeddingsOptimized,

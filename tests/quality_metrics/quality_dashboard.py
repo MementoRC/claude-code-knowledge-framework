@@ -14,7 +14,6 @@ from typing import Any
 
 from tests.quality_metrics.coverage_analysis import (
     extract_coverage_metrics,
-    generate_markdown_summary,
     load_coverage_json,
     print_coverage_trend,
 )

@@ -1,23 +1,14 @@
-import os
 import shutil
 import uuid
-from datetime import datetime
 from pathlib import Path
 
 import pytest
 
 from src.uckn.core.organisms.knowledge_manager import KnowledgeManager
-from src.uckn.storage.chromadb_connector import ChromaDBConnector
 from src.uckn.storage.postgresql_connector import (
     Base,
-    ErrorSolution,
-    Pattern,
-    PatternCategory,
-    PatternCategoryLink,
     PostgreSQLConnector,
-    Project,
 )
-from src.uckn.storage.unified_database import UnifiedDatabase
 
 # Use a temporary directory for ChromaDB and an in-memory SQLite for PostgreSQL
 # For true integration testing, a Dockerized PostgreSQL might be preferred,
@@ -102,7 +93,6 @@ def test_knowledge_manager_full_lifecycle_pattern(knowledge_manager_instance):
         print("Running integration test with semantic search disabled")
 
     # 1. Add a Project with unique name
-    import uuid
 
     unique_name = f"Test Project {uuid.uuid4().hex[:8]}"
     project_id = km.add_project(

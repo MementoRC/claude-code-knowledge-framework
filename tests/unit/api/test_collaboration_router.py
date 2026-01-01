@@ -2,20 +2,16 @@
 Tests for collaboration API router.
 """
 
-import json
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from src.uckn.core.molecules.collaboration_manager import (
-    ActivityEvent,
     CollaborationManager,
     Comment,
-    NotificationPreference,
-    WebhookConfig,
 )
 
 

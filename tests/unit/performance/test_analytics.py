@@ -1,4 +1,3 @@
-import pytest
 
 from src.uckn.core.atoms.semantic_search_engine_optimized import PerformanceAnalytics
 

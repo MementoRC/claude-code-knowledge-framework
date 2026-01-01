@@ -2,7 +2,6 @@
 Resource and performance monitoring for UCKN load tests.
 """
 
-import os
 import threading
 import time
 

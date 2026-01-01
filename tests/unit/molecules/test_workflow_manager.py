@@ -1,7 +1,7 @@
 import datetime
 import json
-from typing import Any, Optional  # Added missing imports
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import Any  # Added missing imports
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 

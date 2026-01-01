@@ -2,7 +2,6 @@
 Locust scenario: Concurrent pattern addition for UCKN
 """
 
-import random
 
 from locust import HttpUser, TaskSet, tag, task
 

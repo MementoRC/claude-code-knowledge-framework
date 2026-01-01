@@ -1,6 +1,6 @@
 import uuid
-from datetime import datetime, timedelta
-from unittest.mock import MagicMock, Mock, patch
+from datetime import datetime
+from unittest.mock import Mock
 
 import pytest
 
@@ -10,7 +10,6 @@ from src.uckn.storage.postgresql_connector import (
     ErrorSolution,
     Pattern,
     PatternCategory,
-    PatternCategoryLink,
     PostgreSQLConnector,
     Project,
     TeamAccess,
