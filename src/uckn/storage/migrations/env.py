@@ -23,7 +23,7 @@ if config.config_file_name is not None:
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 try:
-    from src.uckn.storage.database_models import Base
+    from uckn.storage.database_models import Base
 
     target_metadata = Base.metadata
 except ImportError:

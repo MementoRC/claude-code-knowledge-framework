@@ -12,7 +12,7 @@ import time
 from functools import wraps
 from typing import Any
 
-from src.uckn.core.atoms.multi_modal_embeddings_optimized import (
+from uckn.core.atoms.multi_modal_embeddings_optimized import (
     MultiModalEmbeddingsOptimized,
 )
 
