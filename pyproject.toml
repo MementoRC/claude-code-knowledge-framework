@@ -221,15 +221,15 @@ dev-setup = "python -m pip install -e ."
 
 # TIER 1: Core Quality Gates (ZERO-TOLERANCE)
 # Note: exclude external_deps and benchmark tests that require PostgreSQL or heavy dependencies
-test = { cmd = "pytest tests/ -v -x -m 'not external_deps and not benchmark'", env = { CLAUDECODE = "0" } }
-test-fast = { cmd = "pytest tests/unit/ -v --maxfail=5", env = { CLAUDECODE = "0" } }
-test-cov = { cmd = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term --cov-report=xml --cov-report=json -m 'not external_deps and not benchmark'", env = { CLAUDECODE = "0" } }
-test-all = { cmd = "pytest tests/ -v", env = { CLAUDECODE = "0" } }  # Runs all tests including external_deps
+test = "pytest tests/ -v -x -m 'not external_deps and not benchmark'"
+test-fast = "pytest tests/unit/ -v --maxfail=5"
+test-cov = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term --cov-report=xml --cov-report=json -m 'not external_deps and not benchmark'"
+test-all = "pytest tests/ -v"
 lint = "ruff check src/ tests/ --select=F,E9"
 lint-fix = "ruff check --fix src/ tests/"
 format = "ruff format src/ tests/"
 format-check = "ruff format --check src/ tests/"
-typecheck = { cmd = "mypy src/uckn" }
+typecheck = "mypy src/uckn"
 
 # Pre-commit Integration (CRITICAL for AG commands)
 pre-commit = { cmd = "pre-commit run --all-files", env = { CLAUDECODE = "0", PRE_COMMIT = "1" } }
