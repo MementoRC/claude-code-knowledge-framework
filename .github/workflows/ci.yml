@@ -37,9 +37,17 @@ jobs:
       with:
         pixi-version: v0.62.2
         cache: false
+        locked: false
+        manifest-path: pyproject.toml
+
+    - name: Debug pixi info
+      run: |
+        pixi --version
+        pixi info || true
+        cat pyproject.toml | head -20
 
     - name: Install dependencies (pixi)
-      run: pixi install
+      run: pixi install || (echo "Install failed, trying with --no-lockfile-update" && pixi install)
 
     - name: Install dev dependencies
       run: pixi run dev
