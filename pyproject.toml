@@ -151,8 +151,8 @@ include = ["src/uckn", "tests", "pyproject.toml", "README.md"]
 channels = ["conda-forge", "pytorch", "nvidia"]
 platforms = ["linux-64", "win-64", "osx-64", "osx-arm64"]
 
-[tool.pixi.pypi-dependencies]
-uckn = { path = ".", editable = true }
+# NO pypi-dependencies - all dependencies come from conda-forge only
+# The package is installed separately via pip install -e . after pixi install
 
 [tool.pixi.feature.core.dependencies]
 # System dependencies
@@ -162,23 +162,15 @@ pip = "*"
 # CLI and development utilities
 git = "*"
 
-# NOTE: All pypi-dependencies are now defined in [project.optional-dependencies]
-# Pixi reads those sections automatically via the pypi-options.extra-index-urls configuration
-# This avoids duplicate dependency declarations and ensures pip install compatibility
-
 [tool.pixi.environments]
-# CI-optimized environments (reduced package counts for faster installs)
+# All environments use only conda-forge dependencies (core feature)
+# Additional Python packages are installed via pip after pixi install
 default = {features = ["core"], solve-group = "default"}
-dev = {features = ["core", "quality", "dev"], solve-group = "default"}
-ci = {features = ["core", "quality", "quality-ci"], solve-group = "default"}  # Enhanced with full testing support
-docs = {features = ["core", "docs"], solve-group = "default"}
-quality = {features = ["core", "quality"], solve-group = "default"}
-quality-extended = {features = ["core", "quality", "quality-extended"], solve-group = "default"}
-loadtest = {features = ["core", "loadtest"], solve-group = "default"}
-# Full environments (use only when needed - heavy dependencies)
-dev-full = {features = ["core", "dev", "ml", "ml-heavy", "mcp"], solve-group = "default"}  # All features
-ci-full = {features = ["core", "dev", "mcp", "quality-ci"], solve-group = "default"}  # CI with MCP
-ml-full = {features = ["core", "ml", "ml-heavy"], solve-group = "default"}  # All ML dependencies
+dev = {features = ["core"], solve-group = "default"}
+ci = {features = ["core"], solve-group = "default"}
+docs = {features = ["core"], solve-group = "default"}
+quality = {features = ["core"], solve-group = "default"}
+quality-extended = {features = ["core"], solve-group = "default"}
 
 [tool.pixi.tasks]
 # Development tasks (STRICT COMPLIANCE: Use pip module with python)
