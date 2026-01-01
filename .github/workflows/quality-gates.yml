@@ -52,7 +52,7 @@ jobs:
       run: pixi install -e quality-extended
 
     - name: Install package in editable mode
-      run: pixi run dev
+      run: pixi run -e quality dev
 
     - name: CRITICAL - F,E9 Violations Check
       run: |
