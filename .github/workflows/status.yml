@@ -19,6 +19,7 @@ jobs:
       with:
         pixi-version: v0.62.2
         cache: false
+        run-install: false
 
     - name: Install dependencies
       run: |

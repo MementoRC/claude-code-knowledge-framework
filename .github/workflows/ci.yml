@@ -37,17 +37,17 @@ jobs:
       with:
         pixi-version: v0.62.2
         cache: false
-        locked: false
-        manifest-path: pyproject.toml
+        run-install: false
 
     - name: Debug pixi info
       run: |
         pixi --version
-        pixi info || true
-        cat pyproject.toml | head -20
+        pixi info
+        echo "=== Lock file version ==="
+        head -5 pixi.lock || echo "No pixi.lock found"
 
     - name: Install dependencies (pixi)
-      run: pixi install || (echo "Install failed, trying with --no-lockfile-update" && pixi install)
+      run: pixi install --locked || pixi install
 
     - name: Install dev dependencies
       run: pixi run dev
@@ -83,9 +83,10 @@ jobs:
       with:
         pixi-version: v0.62.2
         cache: false
+        run-install: false
 
     - name: Install dependencies (pixi)
-      run: pixi install
+      run: pixi install --locked || pixi install
 
     - name: Install dev dependencies
       run: pixi run dev
@@ -119,9 +120,10 @@ jobs:
       with:
         pixi-version: v0.62.2
         cache: false
+        run-install: false
 
     - name: Install dependencies (pixi)
-      run: pixi install
+      run: pixi install --locked || pixi install
 
     - name: Install dev dependencies
       run: pixi run dev
@@ -164,9 +166,10 @@ jobs:
       with:
         pixi-version: v0.62.2
         cache: false
+        run-install: false
 
     - name: Install dependencies (pixi)
-      run: pixi install
+      run: pixi install --locked || pixi install
 
     - name: Install dev dependencies
       run: pixi run dev
@@ -212,9 +215,10 @@ jobs:
       with:
         pixi-version: v0.62.2
         cache: false
+        run-install: false
 
     - name: Install dependencies (pixi)
-      run: pixi install
+      run: pixi install --locked || pixi install
 
     - name: Install dev dependencies
       run: pixi run dev
