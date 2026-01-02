@@ -220,7 +220,7 @@ install-editable = "python -m pip install -e ."
 dev-setup = "python -m pip install -e ."
 
 # TIER 1: Core Quality Gates (ZERO-TOLERANCE)
-# Note: exclude external_deps and benchmark tests via addopts in pytest config
+# CI test excludes external_deps and benchmark tests
 test = "pytest tests/ -v -x"
 test-fast = "pytest tests/unit/ -v --maxfail=5"
 test-cov = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term --cov-report=xml --cov-report=json -m 'not external_deps and not benchmark'"
@@ -301,7 +301,14 @@ pythonpath = ["src"]  # Enable import of uckn package without installation
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --tb=short --strict-markers --timeout-method=thread -m 'not external_deps and not benchmark'"
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "--timeout-method=thread",
+    "-m",
+    "not external_deps and not benchmark",
+]
 # CI-specific configuration removed - using standard configuration with runtime environment detection
 timeout = 120  # 2 minutes default timeout for all tests (pytest-timeout)
 timeout_method = "thread"
