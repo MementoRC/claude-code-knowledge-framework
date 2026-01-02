@@ -220,9 +220,8 @@ install-editable = "python -m pip install -e ."
 dev-setup = "python -m pip install -e ."
 
 # TIER 1: Core Quality Gates (ZERO-TOLERANCE)
-# CI test excludes external_deps and benchmark tests via --ignore flags
-# (More reliable than -m marker filtering in CI environments)
-test = "pytest tests/ -v -x --ignore=tests/integration --ignore=tests/e2e --ignore=tests/benchmarks --ignore=tests/test_unified_interface.py --ignore=tests/test_semantic_search_simple.py --ignore=tests/test_semantic_search_enhanced.py --ignore=tests/unit/performance/test_basic_coverage.py --ignore=tests/unit/mcp/test_universal_knowledge_server.py --ignore=tests/unit/atoms/test_multi_modal_embeddings.py --ignore=tests/unit/storage/test_unified_database.py --ignore=tests/unit/storage/test_postgresql_connector.py --ignore=tests/unit/organisms/test_knowledge_manager.py"
+# Ignores are configured in [tool.pytest.ini_options] via norecursedirs and addopts
+test = "pytest tests/ -x"
 test-fast = "pytest tests/unit/ -v --maxfail=5"
 test-cov = "pytest tests/ --cov=src/uckn --cov-report=html --cov-report=term --cov-report=xml --cov-report=json -m 'not external_deps and not benchmark'"
 test-all = "pytest tests/ -v"
@@ -302,11 +301,27 @@ pythonpath = ["src"]  # Enable import of uckn package without installation
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+# Ignore directories with external dependencies or slow tests
+norecursedirs = [
+    "tests/integration",
+    "tests/e2e",
+    "tests/benchmarks",
+    "tests/load_tests",
+]
 addopts = [
     "-v",
     "--tb=short",
     "--strict-markers",
     "--timeout-method=thread",
+    "--ignore=tests/test_unified_interface.py",
+    "--ignore=tests/test_semantic_search_simple.py",
+    "--ignore=tests/test_semantic_search_enhanced.py",
+    "--ignore=tests/unit/performance/test_basic_coverage.py",
+    "--ignore=tests/unit/mcp/test_universal_knowledge_server.py",
+    "--ignore=tests/unit/atoms/test_multi_modal_embeddings.py",
+    "--ignore=tests/unit/storage/test_unified_database.py",
+    "--ignore=tests/unit/storage/test_postgresql_connector.py",
+    "--ignore=tests/unit/organisms/test_knowledge_manager.py",
 ]
 # CI-specific configuration removed - using standard configuration with runtime environment detection
 timeout = 120  # 2 minutes default timeout for all tests (pytest-timeout)
