@@ -170,6 +170,9 @@ coverage = ">=7.3.0"
 # Build tools for ci-framework compatibility
 python-build = ">=1.0.0"
 twine = ">=4.0.0"
+# Runtime dependencies needed for tests
+aiohttp = ">=3.8.0"
+redis-py = ">=4.0.0"
 
 [tool.pixi.feature.quality-extended.dependencies]
 # Extended quality tools from conda-forge/dnachun

@@ -57,26 +57,29 @@ class TestMLEnvironmentManager:
 
     def test_production_environment_detection(self):
         """Test production environment with full ML capabilities."""
-        # Mock all ML packages as available
-        with patch.multiple(
-            "src.uckn.core.ml_environment_manager.MLEnvironmentManager",
-            _test_import=MagicMock(return_value=True),
-        ):
-            # Mock torch.cuda.is_available
-            mock_torch = MagicMock()
-            mock_torch.cuda.is_available.return_value = True
+        # Clear UCKN_DISABLE_TORCH to allow production detection
+        env_vars = {"UCKN_DISABLE_TORCH": "0"}
+        with patch.dict(os.environ, env_vars, clear=False):
+            # Mock all ML packages as available
+            with patch.multiple(
+                "src.uckn.core.ml_environment_manager.MLEnvironmentManager",
+                _test_import=MagicMock(return_value=True),
+            ):
+                # Mock torch.cuda.is_available
+                mock_torch = MagicMock()
+                mock_torch.cuda.is_available.return_value = True
 
-            with patch.dict("sys.modules", {"torch": mock_torch}):
-                manager = MLEnvironmentManager()
-                manager._imports["torch"] = mock_torch
-                caps = manager.capabilities
+                with patch.dict("sys.modules", {"torch": mock_torch}):
+                    manager = MLEnvironmentManager()
+                    manager._imports["torch"] = mock_torch
+                    caps = manager.capabilities
 
-                assert caps.environment == MLEnvironment.PRODUCTION
-                assert caps.sentence_transformers
-                assert caps.transformers
-                assert caps.chromadb
-                assert caps.torch
-                assert caps.has_gpu
+                    assert caps.environment == MLEnvironment.PRODUCTION
+                    assert caps.sentence_transformers
+                    assert caps.transformers
+                    assert caps.chromadb
+                    assert caps.torch
+                    assert caps.has_gpu
 
     def test_development_environment_detection(self):
         """Test development environment with partial ML capabilities."""
@@ -84,16 +87,19 @@ class TestMLEnvironmentManager:
         def mock_import(module_name):
             return module_name in ["sentence_transformers"]
 
-        with patch.object(
-            MLEnvironmentManager, "_test_import", side_effect=mock_import
-        ):
-            manager = MLEnvironmentManager()
-            caps = manager.capabilities
+        # Clear UCKN_DISABLE_TORCH to allow development detection
+        env_vars = {"UCKN_DISABLE_TORCH": "0"}
+        with patch.dict(os.environ, env_vars, clear=False):
+            with patch.object(
+                MLEnvironmentManager, "_test_import", side_effect=mock_import
+            ):
+                manager = MLEnvironmentManager()
+                caps = manager.capabilities
 
-            assert caps.environment == MLEnvironment.DEVELOPMENT
-            assert caps.sentence_transformers
-            assert not caps.transformers
-            assert not caps.chromadb
+                assert caps.environment == MLEnvironment.DEVELOPMENT
+                assert caps.sentence_transformers
+                assert not caps.transformers
+                assert not caps.chromadb
 
     def test_capability_caching(self):
         """Test that capabilities are cached after first detection."""
