@@ -301,13 +301,7 @@ pythonpath = ["src"]  # Enable import of uckn package without installation
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = [
-    "-v",
-    "--tb=short",
-    "--strict-markers",
-    "--timeout-method=thread",  # More robust for async/code with subprocesses
-    "-m", "not external_deps and not benchmark",  # Exclude tests requiring external deps
-]
+addopts = "-v --tb=short --strict-markers --timeout-method=thread -m 'not external_deps and not benchmark'"
 # CI-specific configuration removed - using standard configuration with runtime environment detection
 timeout = 120  # 2 minutes default timeout for all tests (pytest-timeout)
 timeout_method = "thread"
