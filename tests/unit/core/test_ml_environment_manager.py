@@ -57,9 +57,12 @@ class TestMLEnvironmentManager:
 
     def test_production_environment_detection(self):
         """Test production environment with full ML capabilities."""
-        # Clear UCKN_DISABLE_TORCH to allow production detection
-        env_vars = {"UCKN_DISABLE_TORCH": "0"}
-        with patch.dict(os.environ, env_vars, clear=False):
+        # Clear UCKN_DISABLE_TORCH and CI variables to allow production detection
+        # Use clear=True to remove CI, GITHUB_ACTIONS, etc.
+        minimal_env = {k: v for k, v in os.environ.items()
+                       if k not in ("CI", "GITHUB_ACTIONS", "CONTINUOUS_INTEGRATION", "UCKN_DISABLE_TORCH")}
+        minimal_env["UCKN_DISABLE_TORCH"] = "0"
+        with patch.dict(os.environ, minimal_env, clear=True):
             # Mock all ML packages as available
             with patch.multiple(
                 "src.uckn.core.ml_environment_manager.MLEnvironmentManager",
@@ -87,9 +90,11 @@ class TestMLEnvironmentManager:
         def mock_import(module_name):
             return module_name in ["sentence_transformers"]
 
-        # Clear UCKN_DISABLE_TORCH to allow development detection
-        env_vars = {"UCKN_DISABLE_TORCH": "0"}
-        with patch.dict(os.environ, env_vars, clear=False):
+        # Clear UCKN_DISABLE_TORCH and CI variables to allow development detection
+        minimal_env = {k: v for k, v in os.environ.items()
+                       if k not in ("CI", "GITHUB_ACTIONS", "CONTINUOUS_INTEGRATION", "UCKN_DISABLE_TORCH")}
+        minimal_env["UCKN_DISABLE_TORCH"] = "0"
+        with patch.dict(os.environ, minimal_env, clear=True):
             with patch.object(
                 MLEnvironmentManager, "_test_import", side_effect=mock_import
             ):
