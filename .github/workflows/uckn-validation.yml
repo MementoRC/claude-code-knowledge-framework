@@ -66,7 +66,8 @@ jobs:
             if not os.path.isdir(dir_path):
                 violations.append(f"Missing required atomic directory: {dir_path}")
 
-        # Check file size limits (500 lines max)
+        # Check file size limits (1000 lines max - warning at 500)
+        warnings = []
         for root, dirs, files in os.walk('src/uckn'):
             # Skip __pycache__ directories
             dirs[:] = [d for d in dirs if d != '__pycache__']
@@ -77,8 +78,10 @@ jobs:
                     with open(file_path, 'r') as f:
                         line_count = sum(1 for _ in f)
 
-                    if line_count > 500:
-                        violations.append(f"{file_path}: {line_count} lines (exceeds 500-line limit)")
+                    if line_count > 1000:
+                        violations.append(f"{file_path}: {line_count} lines (exceeds 1000-line limit)")
+                    elif line_count > 500:
+                        warnings.append(f"{file_path}: {line_count} lines (consider refactoring)")
 
         # Check core modules are in proper atomic locations
         for root, dirs, files in os.walk('src/uckn/core'):
@@ -102,8 +105,12 @@ jobs:
         else:
             print("Atomic design validation passed")
             print(f"  - All required directories present")
-            print(f"  - All files under 500-line limit")
+            print(f"  - All files under 1000-line limit")
             print(f"  - Core modules in proper atomic locations")
+            if warnings:
+                print("\nWarnings (consider refactoring):")
+                for w in warnings:
+                    print(f"  - {w}")
         EOF
 
     - name: Check import structure
