@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import logging
 import os
 from pathlib import Path
-from typing import List, Optional, Dict, Any
-from functools import lru_cache
+from typing import Any
 
 # Defensive import to handle PyTorch docstring conflicts
 _DISABLE_TORCH = os.environ.get("UCKN_DISABLE_TORCH", "0") == "1"
@@ -17,6 +18,7 @@ if _DISABLE_TORCH:
 else:
     try:
         from sentence_transformers import SentenceTransformer
+
         SENTENCE_TRANSFORMER_AVAILABLE = True
     except (ImportError, RuntimeError) as e:
         logging.getLogger(__name__).warning(
@@ -27,528 +29,550 @@ else:
         SENTENCE_TRANSFORMER_AVAILABLE = False
 
 try:
-    from uckn.storage.chromadb_connector import ChromaDBConnector
-    CHROMADB_CONNECTOR_AVAILABLE = True
+    from .atoms.multi_modal_embeddings import MultiModalEmbeddings
+
+    MULTI_MODAL_AVAILABLE = True
 except ImportError:
-    logging.getLogger(__name__).warning(
-        "ChromaDBConnector not found. "
-        "ChromaDB integration for semantic search will be disabled."
-    )
-    ChromaDBConnector = None
-    CHROMADB_CONNECTOR_AVAILABLE = False
+    MultiModalEmbeddings = None
+    MULTI_MODAL_AVAILABLE = False
 
 try:
-    from .multi_modal_embeddings import MultiModalEmbeddings
-    MULTIMODAL_EMBEDDINGS_AVAILABLE = True
-except ImportError:
-    logging.getLogger(__name__).warning(
-        "MultiModalEmbeddings not found. "
-        "Multi-modal search capabilities will be limited."
-    )
-    MultiModalEmbeddings = None
-    MULTIMODAL_EMBEDDINGS_AVAILABLE = False
+    from ..storage.chromadb_connector import ChromaDBConnector
 
-def _tech_stack_match(query_stack: Optional[List[str]], doc_stack: Optional[List[str]]) -> float:
+    CHROMADB_AVAILABLE = True
+except ImportError:
+    ChromaDBConnector = None
+    CHROMADB_AVAILABLE = False
+
+
+def _tech_stack_match(
+    query_stack: list[str] | None, doc_stack: list[str] | None
+) -> float:
     """
-    Compute a tech stack compatibility score between two stacks.
-    Returns a float between 0.0 and 1.0.
+    Calculate compatibility score between two tech stacks.
+
+    Args:
+        query_stack: Technology stack from query
+        doc_stack: Technology stack from document metadata
+
+    Returns:
+        Compatibility score between 0.0 and 1.0
     """
     if not query_stack or not doc_stack:
-        return 0.5  # Neutral if unknown
-    set_query = set([s.lower() for s in query_stack])
-    set_doc = set([s.lower() for s in doc_stack])
-    if not set_query or not set_doc:
-        return 0.5
-    intersection = set_query & set_doc
-    union = set_query | set_doc
-    if not union:
-        return 0.5
-    return len(intersection) / len(union)
+        return 0.0
 
-class EnhancedSemanticSearchEngine:
+    query_set = {stack.lower() for stack in query_stack}
+    doc_set = {stack.lower() for stack in doc_stack}
+
+    if not query_set or not doc_set:
+        return 0.0
+
+    intersection = query_set & doc_set
+    union = query_set | doc_set
+
+    return len(intersection) / len(union) if union else 0.0
+
+
+class SemanticSearchEnhanced:
     """
-    Enhanced semantic search engine using sentence transformers and ChromaDB.
+    Enhanced semantic search engine with multi-modal support and optimizations.
 
-    Provides embedding-based similarity search for knowledge management with
-    features like LRU caching, batch processing, and robust error handling.
+    This class provides advanced semantic search capabilities combining text embeddings,
+    code embeddings, and multi-modal search with ChromaDB integration. It supports
+    various embedding models, caching, and technology stack filtering.
     """
 
-    def __init__(self, knowledge_dir: str = ".uckn/knowledge",
-                 model_name: str = "all-MiniLM-L6-v2",
-                 device: str = "cpu",
-                 embedding_atom: Optional[MultiModalEmbeddings] = None,
-                 chroma_connector: Optional[ChromaDBConnector] = None):
-        self._logger = logging.getLogger(__name__)
-        self.knowledge_dir = knowledge_dir
-        self.model_name = model_name
-        self.device = device
-        self.sentence_model: Optional[SentenceTransformer] = None
-        self.chroma_connector: Optional[ChromaDBConnector] = chroma_connector
-        self.embedding_atom: Optional[MultiModalEmbeddings] = embedding_atom
+    def __init__(
+        self,
+        sentence_model_name: str = "sentence-transformers/all-mpnet-base-v2",
+        collection_name: str = "enhanced_code_patterns",
+        **chromadb_kwargs: Any,
+    ):
+        """
+        Initialize the enhanced semantic search engine.
+
+        Args:
+            sentence_model_name: Name of the sentence transformer model
+            collection_name: ChromaDB collection name
+            **chromadb_kwargs: Additional ChromaDB configuration
+        """
+        self._logger = logging.getLogger(self.__class__.__name__)
+        self.collection_name = collection_name
         self._is_initialized = False
 
-        self._initialize_components()
+        # Initialize sentence transformer model
+        self.sentence_model = None
+        if SENTENCE_TRANSFORMER_AVAILABLE and SentenceTransformer:
+            try:
+                # Check if model exists locally first
+                model_path = Path.home() / ".cache" / "huggingface" / "transformers"
+                if model_path.exists():
+                    self._logger.info(f"Loading cached model: {sentence_model_name}")
 
-    def _initialize_components(self) -> None:
-        """Initializes the sentence transformer model, ChromaDB connector, and MultiModalEmbeddings."""
-        try:
-            if SENTENCE_TRANSFORMER_AVAILABLE:
-                self._init_sentence_transformer()
-            else:
-                self._logger.warning("SentenceTransformer not available, semantic encoding will be disabled.")
+                self.sentence_model = SentenceTransformer(sentence_model_name)
+                self._logger.info(
+                    f"SentenceTransformer model loaded: {sentence_model_name}"
+                )
+            except Exception as e:
+                self._logger.warning(f"Failed to load SentenceTransformer: {e}")
+                self.sentence_model = None
 
-            if CHROMADB_CONNECTOR_AVAILABLE and not self.chroma_connector:
-                self._init_chromadb()
-            elif not CHROMADB_CONNECTOR_AVAILABLE:
-                self._logger.warning("ChromaDBConnector not available, ChromaDB search will be disabled.")
+        # Initialize multi-modal embeddings atom
+        self.embedding_atom = None
+        if MULTI_MODAL_AVAILABLE:
+            try:
+                self.embedding_atom = MultiModalEmbeddings(
+                    model_name=sentence_model_name
+                )
+                self._logger.info("MultiModalEmbeddings atom initialized")
+            except Exception as e:
+                self.embedding_atom = None
+                self._logger.warning(f"Failed to initialize MultiModalEmbeddings: {e}")
 
-            # Initialize MultiModalEmbeddings if not provided
-            if MULTIMODAL_EMBEDDINGS_AVAILABLE and not self.embedding_atom:
-                self._init_multimodal_embeddings()
-            elif not MULTIMODAL_EMBEDDINGS_AVAILABLE:
-                self._logger.warning("MultiModalEmbeddings not available, multi-modal search will be disabled.")
+        # Initialize ChromaDB connector
+        self.vector_store = None
+        if CHROMADB_AVAILABLE:
+            try:
+                self.vector_store = ChromaDBConnector(**chromadb_kwargs)
+                self._logger.info("ChromaDB connector initialized")
+            except Exception as e:
+                self.vector_store = None
+                self._logger.warning(f"ChromaDB connector initialization failed: {e}")
 
-            # Check initialization status
-            has_embeddings = self.sentence_model or self.embedding_atom
-            has_storage = self.chroma_connector and self.chroma_connector.is_available()
-            
-            if has_embeddings and has_storage:
-                self._is_initialized = True
-                self._logger.info("EnhancedSemanticSearchEngine initialized successfully.")
-            else:
-                self._is_initialized = False
-                self._logger.warning("EnhancedSemanticSearchEngine could not be fully initialized due to missing dependencies or connection issues.")
+        # Simple instance cache to avoid memory leaks from lru_cache
+        self._encoding_cache: dict[str, list[float] | None] = {}
+        self._embedding_cache: dict[tuple[str, str], list[float] | None] = {}
 
-        except Exception as e:
-            self._logger.error(f"Failed to initialize EnhancedSemanticSearchEngine: {e}")
-            self._is_initialized = False
+        # Mark as initialized if at least one component is available
+        self._is_initialized = (
+            self.sentence_model is not None or self.embedding_atom is not None
+        ) and self.vector_store is not None
 
-    def _init_sentence_transformer(self) -> None:
-        """Loads the sentence transformer model."""
-        try:
-            self.sentence_model = SentenceTransformer(self.model_name, device=self.device)
-            self._logger.info(f"SentenceTransformer model '{self.model_name}' loaded on device '{self.device}'.")
-        except Exception as e:
-            self.sentence_model = None
-            self._logger.error(f"Failed to load SentenceTransformer model '{self.model_name}': {e}")
-
-    def _init_chromadb(self) -> None:
-        """Initializes the ChromaDBConnector."""
-        try:
-            db_path = Path(self.knowledge_dir) / "chroma_db"
-            self.chroma_connector = ChromaDBConnector(db_path=str(db_path))
-            if not self.chroma_connector.is_available():
-                self._logger.error("ChromaDBConnector initialized but not available.")
-                self.chroma_connector = None
-            else:
-                self._logger.info(f"ChromaDBConnector initialized at {db_path}.")
-        except Exception as e:
-            self.chroma_connector = None
-            self._logger.error(f"Failed to initialize ChromaDBConnector: {e}")
-
-    def _init_multimodal_embeddings(self) -> None:
-        """Initializes the MultiModalEmbeddings."""
-        try:
-            self.embedding_atom = MultiModalEmbeddings()
-            self._logger.info("MultiModalEmbeddings initialized successfully.")
-        except Exception as e:
+        if not self._is_initialized:
             self.embedding_atom = None
-            self._logger.error(f"Failed to initialize MultiModalEmbeddings: {e}")
+            self._logger.error("Failed to initialize SemanticSearchEnhanced components")
 
     def is_available(self) -> bool:
         """Check if the engine and its underlying components are fully available."""
         return self._is_initialized
 
-    @lru_cache(maxsize=128) # Cache for single text encodings
-    def encode(self, text: str) -> Optional[List[float]]:
+    def encode(self, text: str) -> list[float] | None:
         """
         Generate embeddings for a single text using the underlying sentence transformer model.
-        Results are cached using LRU.
+        Results are cached using instance-level cache to avoid memory leaks.
         """
         if not self.is_available() or self.sentence_model is None:
-            self._logger.warning("Semantic search engine not available or model not loaded, cannot encode text.")
+            self._logger.warning(
+                "SentenceTransformer model not available for text encoding"
+            )
             return None
-        if not isinstance(text, str):
-            self._logger.error(f"Invalid input type for encode: Expected str, got {type(text)}")
-            return None
+
+        # Check cache first
+        if text in self._encoding_cache:
+            return self._encoding_cache[text]
+
         try:
+            # Generate embedding
             embedding = self.sentence_model.encode(text, convert_to_numpy=True)
-            return embedding.tolist()
+            embedding_list = embedding.tolist()
+
+            # Cache result (with basic size limit)
+            if len(self._encoding_cache) > 1000:  # Simple cache eviction
+                # Remove oldest 25% of entries
+                items_to_remove = list(self._encoding_cache.keys())[:250]
+                for key in items_to_remove:
+                    del self._encoding_cache[key]
+
+            self._encoding_cache[text] = embedding_list
+            return embedding_list
         except Exception as e:
-            self._logger.error(f"Failed to encode text '{text[:50]}...': {e}")
+            self._logger.error(f"Error encoding text: {e}")
             return None
 
-    def batch_encode(self, texts: List[str], batch_size: int = 32) -> Optional[List[List[float]]]:
+    def encode_batch(self, texts: list[str]) -> list[list[float]] | None:
         """
-        Generate embeddings for a list of texts in batches.
-        This method does not use LRU cache directly, but individual encodes might if called separately.
-        """
-        if not self.is_available() or self.sentence_model is None:
-            self._logger.warning("Semantic search engine not available or model not loaded, cannot batch encode texts.")
-            return None
-        if not texts:
-            return []
-        if not all(isinstance(t, str) for t in texts):
-            self._logger.error("Invalid input type for batch_encode: All elements must be strings.")
-            return None
-        try:
-            embeddings = self.sentence_model.encode(texts, batch_size=batch_size, convert_to_numpy=True)
-            return embeddings.tolist()
-        except Exception as e:
-            self._logger.error(f"Failed to batch encode texts: {e}")
-            return None
-
-    def search(self, query: str, collection_name: str, limit: int = 10, min_similarity: float = 0.7,
-               metadata_filter: Optional[Dict[str, Any]] = None) -> List[Dict]:
-        """
-        Perform semantic search in a specified ChromaDB collection.
+        Generate embeddings for multiple texts using batch processing.
 
         Args:
-            query: The natural language query string.
-            collection_name: The name of the ChromaDB collection to search.
-            limit: The maximum number of results to return.
-            min_similarity: Minimum similarity score to include a result (0.0 to 1.0).
-            metadata_filter: Optional dictionary for metadata filtering (ChromaDB 'where' clause).
+            texts: List of texts to encode
 
         Returns:
-            A list of dictionaries, each containing 'id', 'document', 'metadata', and 'similarity_score'.
+            List of embedding vectors or None if encoding fails
         """
-        if not self.is_available() or self.chroma_connector is None:
-            self._logger.warning("Semantic search engine or ChromaDB connector not available, cannot perform search.")
-            return []
+        if not self.is_available() or self.sentence_model is None:
+            self._logger.warning(
+                "SentenceTransformer model not available for batch encoding"
+            )
+            return None
 
-        query_embedding = self.encode(query)
-        if query_embedding is None:
-            self._logger.error("Failed to generate query embedding for search.")
+        try:
+            # Check for cached results first
+            cached_results = []
+            uncached_texts = []
+            uncached_indices = []
+
+            for i, text in enumerate(texts):
+                if text in self._encoding_cache:
+                    cached_results.append((i, self._encoding_cache[text]))
+                else:
+                    uncached_texts.append(text)
+                    uncached_indices.append(i)
+
+            # Process uncached texts
+            if uncached_texts:
+                embeddings = self.sentence_model.encode(
+                    uncached_texts, convert_to_numpy=True
+                )
+
+                # Cache new results
+                for text, embedding, idx in zip(
+                    uncached_texts, embeddings, uncached_indices, strict=False
+                ):
+                    embedding_list = embedding.tolist()
+
+                    # Simple cache management
+                    if len(self._encoding_cache) > 1000:
+                        items_to_remove = list(self._encoding_cache.keys())[:250]
+                        for key in items_to_remove:
+                            del self._encoding_cache[key]
+
+                    self._encoding_cache[text] = embedding_list
+                    cached_results.append((idx, embedding_list))
+
+            # Sort results by original index
+            cached_results.sort(key=lambda x: x[0])
+            return [result[1] for result in cached_results]
+
+        except Exception as e:
+            self._logger.error(f"Error in batch encoding: {e}")
+            return None
+
+    def semantic_search(
+        self,
+        query: str,
+        limit: int = 10,
+        min_similarity: float = 0.0,
+        tech_stack: list[str] | None = None,
+        **kwargs: Any,
+    ) -> list[dict[str, Any]]:
+        """
+        Perform semantic search using sentence transformer embeddings.
+
+        Args:
+            query: Search query text
+            limit: Maximum number of results
+            min_similarity: Minimum similarity threshold
+            tech_stack: Technology stack for filtering
+            **kwargs: Additional search parameters
+
+        Returns:
+            List of search results with scores and metadata
+        """
+        if not self.is_available():
+            self._logger.warning("Semantic search engine not available")
             return []
 
         try:
-            self._logger.info(f"Performing semantic search for query: '{query}' in collection '{collection_name}'")
-            results = self.chroma_connector.search_documents(
-                collection_name=collection_name,
-                query_embedding=query_embedding,
-                n_results=limit,
-                min_similarity=min_similarity,
-                where_clause=metadata_filter
+            # Generate query embedding
+            query_embedding = self.encode(query)
+            if query_embedding is None:
+                self._logger.warning("Failed to generate query embedding")
+                return []
+
+            # Perform vector search
+            results = self.vector_store.query_collection(
+                collection_name=self.collection_name,
+                query_embeddings=[query_embedding],
+                n_results=limit * 2,  # Get extra results for filtering
+                **kwargs,
             )
-            return results
+
+            # Process and filter results
+            processed_results = []
+            for doc_id, distance, doc_content, metadata in zip(
+                results.get("ids", [[]])[0],
+                results.get("distances", [[]])[0],
+                results.get("documents", [[]])[0],
+                results.get("metadatas", [{}])[0]
+                if results.get("metadatas")
+                else [{} for _ in range(len(results.get("ids", [[]])[0]))],
+                strict=False,
+            ):
+                # Convert distance to similarity score (assuming cosine distance)
+                similarity = 1.0 - distance
+
+                if similarity < min_similarity:
+                    continue
+
+                result = {
+                    "id": doc_id,
+                    "content": doc_content,
+                    "similarity": similarity,
+                    "metadata": metadata or {},
+                }
+
+                # Tech stack filtering if specified
+                if tech_stack:
+                    doc_tech_stack = metadata.get("tech_stack", []) if metadata else []
+                    compatibility = _tech_stack_match(tech_stack, doc_tech_stack)
+                    if (
+                        compatibility > 0.0
+                    ):  # Only include if there's some compatibility
+                        result["tech_compatibility"] = compatibility
+                        processed_results.append(result)
+                else:
+                    processed_results.append(result)
+
+                if len(processed_results) >= limit:
+                    break
+
+            return processed_results
+
         except Exception as e:
-            self._logger.error(f"Semantic search failed: {e}")
+            self._logger.error(f"Error in semantic search: {e}")
             return []
 
-    def get_embedding_stats(self) -> Dict[str, Any]:
-        """
-        Get statistics about the embedding process, including LRU cache info.
-        """
-        cache_info = self.encode.cache_info()
-        return {
-            "cache_hits": cache_info.hits,
-            "cache_misses": cache_info.misses,
-            "cache_current_size": cache_info.currsize,
-            "cache_max_size": cache_info.maxsize,
-            "model_name": self.model_name if self.sentence_model else "N/A",
-            "chroma_db_available": self.chroma_connector.is_available() if self.chroma_connector else False,
-            "engine_initialized": self._is_initialized
-        }
-
-    # --- Multi-Modal and Advanced Search Methods ---
-
-    def _get_collection(self, collection_type: str) -> str:
-        """Map collection type to collection name."""
-        return collection_type  # Direct mapping for now
-
-    def _get_success_rate(self, metadata: Dict[str, Any]) -> float:
-        """Extract success rate from metadata."""
-        return float(metadata.get("success_rate", 0.5))
-
-    def _extract_tech_stack(self, metadata: Dict[str, Any]) -> List[str]:
-        """Extract technology stack from metadata."""
-        tech_stack = metadata.get("technologies", [])
-        if isinstance(tech_stack, str):
-            return [tech_stack]
-        elif isinstance(tech_stack, list):
-            return tech_stack
-        return []
-
-    def _rank_results(
+    def multi_modal_search(
         self,
-        results: List[Dict[str, Any]],
-        query_tech_stack: Optional[List[str]] = None
-    ) -> List[Dict[str, Any]]:
+        query: str,
+        limit: int = 10,
+        min_similarity: float = 0.0,
+        tech_stack: list[str] | None = None,
+        **kwargs: Any,
+    ) -> list[dict[str, Any]]:
         """
-        Advanced ranking of search results considering:
-        - Base similarity score
-        - Technology stack compatibility
-        - Historical success rate
-        """
-        if not results:
-            return results
+        Perform multi-modal search using enhanced embeddings.
 
-        for result in results:
-            metadata = result.get("metadata", {})
-            
-            # Base similarity score (from vector search)
-            base_score = result.get("similarity_score", 0.0)
-            
-            # Technology stack compatibility bonus
-            doc_tech_stack = self._extract_tech_stack(metadata)
-            tech_score = _tech_stack_match(query_tech_stack, doc_tech_stack)
-            
-            # Success rate bonus
-            success_rate = self._get_success_rate(metadata)
-            
-            # Combined score with weighted components
-            combined_score = (
-                base_score * 0.6 +      # 60% similarity
-                tech_score * 0.25 +     # 25% tech compatibility  
-                success_rate * 0.15     # 15% success rate
+        Args:
+            query: Multi-modal search query
+            limit: Maximum number of results
+            min_similarity: Minimum similarity threshold
+            tech_stack: Technology stack for filtering
+            **kwargs: Additional search parameters
+
+        Returns:
+            List of multi-modal search results
+        """
+        if not self.is_available() or not self.embedding_atom:
+            self._logger.warning("Multi-modal search not available")
+            return self.semantic_search(
+                query, limit, min_similarity, tech_stack, **kwargs
             )
-            
-            result["combined_score"] = combined_score
-            result["tech_compatibility"] = tech_score
 
-        # Sort by combined score (descending)
-        ranked = sorted(results, key=lambda x: x["combined_score"], reverse=True)
-        return ranked
+        try:
+            # Generate multi-modal query embedding
+            query_embedding = self._get_cached_embedding(query, "multi_modal")
+            if query_embedding is None:
+                self._logger.warning("Failed to generate multi-modal query embedding")
+                return []
 
-    def _filter_by_tech_stack(
-        self,
-        results: List[Dict[str, Any]],
-        tech_stack: Optional[List[str]],
-        min_compatibility: float = 0.3
-    ) -> List[Dict[str, Any]]:
-        """Filter results by technology stack compatibility."""
-        if not tech_stack:
-            return results
-        
-        filtered = []
-        for result in results:
-            metadata = result.get("metadata", {})
-            doc_tech_stack = self._extract_tech_stack(metadata)
-            compatibility = _tech_stack_match(tech_stack, doc_tech_stack)
-            
-            if compatibility >= min_compatibility:
-                result["tech_compatibility"] = compatibility
-                filtered.append(result)
-        
-        return filtered
+            # Perform vector search
+            results = self.vector_store.query_collection(
+                collection_name=self.collection_name,
+                query_embeddings=[query_embedding],
+                n_results=limit * 2,  # Get extra results for filtering
+                **kwargs,
+            )
 
-    @lru_cache(maxsize=128)
-    def _cached_embed(self, data: str, data_type: str) -> Optional[List[float]]:
-        """Use MultiModalEmbeddings for embedding generation with caching."""
+            # Process results with tech stack filtering
+            processed_results = []
+            for doc_id, distance, doc_content, metadata in zip(
+                results.get("ids", [[]])[0],
+                results.get("distances", [[]])[0],
+                results.get("documents", [[]])[0],
+                results.get("metadatas", [{}])[0]
+                if results.get("metadatas")
+                else [{} for _ in range(len(results.get("ids", [[]])[0]))],
+                strict=False,
+            ):
+                similarity = 1.0 - distance
+
+                if similarity < min_similarity:
+                    continue
+
+                result = {
+                    "id": doc_id,
+                    "content": doc_content,
+                    "similarity": similarity,
+                    "metadata": metadata or {},
+                    "search_type": "multi_modal",
+                }
+
+                # Tech stack filtering
+                if tech_stack:
+                    doc_tech_stack = metadata.get("tech_stack", []) if metadata else []
+                    compatibility = _tech_stack_match(tech_stack, doc_tech_stack)
+                    if compatibility > 0.0:
+                        result["tech_compatibility"] = compatibility
+                        processed_results.append(result)
+                else:
+                    processed_results.append(result)
+
+                if len(processed_results) >= limit:
+                    break
+
+            return processed_results
+
+        except Exception as e:
+            self._logger.error(f"Error in multi-modal search: {e}")
+            return []
+
+    def search_by_tech_stack_enhanced(
+        self, tech_stack: list[str], limit: int = 10, min_compatibility: float = 0.3
+    ) -> list[dict[str, Any]]:
+        """
+        Enhanced search by technology stack compatibility with better scoring.
+
+        Args:
+            tech_stack: List of technologies to match
+            limit: Maximum number of results
+            min_compatibility: Minimum tech stack compatibility score
+
+        Returns:
+            List of compatible patterns sorted by compatibility
+        """
+        if not self.is_available():
+            return []
+
+        try:
+            # Get all documents from collection
+            results = self.vector_store.query_collection(
+                collection_name=self.collection_name,
+                query_embeddings=None,
+                n_results=limit * 5,  # Get more for filtering
+                include=["documents", "metadatas"],
+            )
+
+            # Filter and score by tech stack compatibility
+            filtered = []
+            for doc_id, doc_content, metadata in zip(
+                results.get("ids", [[]])[0],
+                results.get("documents", [[]])[0],
+                results.get("metadatas", [{}])[0]
+                if results.get("metadatas")
+                else [{} for _ in range(len(results.get("ids", [[]])[0]))],
+                strict=False,
+            ):
+                doc_tech_stack = metadata.get("tech_stack", []) if metadata else []
+                compatibility = _tech_stack_match(tech_stack, doc_tech_stack)
+
+                if compatibility >= min_compatibility:
+                    result = {
+                        "id": doc_id,
+                        "content": doc_content,
+                        "metadata": metadata or {},
+                        "tech_compatibility": compatibility,
+                    }
+                    filtered.append(result)
+
+            # Sort by compatibility score
+            filtered.sort(key=lambda x: x["tech_compatibility"], reverse=True)
+            return filtered[:limit]
+
+        except Exception as e:
+            self._logger.error(f"Error in enhanced tech stack search: {e}")
+            return []
+
+    def _get_cached_embedding(self, data: str, data_type: str) -> list[float] | None:
+        """Get embedding with instance-level caching to avoid memory leaks."""
+        cache_key = (data, data_type)
+
+        if cache_key in self._embedding_cache:
+            return self._embedding_cache[cache_key]
+
+        # Generate new embedding
+        embedding = None
         if self.embedding_atom:
-            return self.embedding_atom.embed(data, data_type=data_type)
+            embedding = self.embedding_atom.embed(data, data_type=data_type)
         elif self.sentence_model and data_type == "text":
             # Fallback to SentenceTransformer for text
-            return self.sentence_model.encode(data).tolist()
-        return None
-
-    def _embed_query(self, text=None, code=None, error=None) -> Optional[List[float]]:
-        """Generate embeddings for multi-modal queries."""
-        if not self.embedding_atom:
-            # Fallback: use text embedding if available
-            if text and self.sentence_model:
-                return self.sentence_model.encode(text).tolist()
-            return None
-            
-        # Use multi-modal embedding if more than one modality is present
-        if sum(x is not None for x in [text, code, error]) > 1:
-            return self.embedding_atom.multi_modal_embed(
-                text=text, code=code, error=error
-            )
-        elif code is not None:
-            return self._cached_embed(code, "code")
-        elif error is not None:
-            return self._cached_embed(error, "error")
-        elif text is not None:
-            return self._cached_embed(text, "text")
-        else:
-            return None
-
-    def _parse_tech_stack(self, tech_stack) -> Optional[List[str]]:
-        """Parse technology stack from various input formats."""
-        if tech_stack is None:
-            return None
-        elif isinstance(tech_stack, str):
-            # Split by common separators
-            return [s.strip() for s in tech_stack.replace(",", " ").split() if s.strip()]
-        elif isinstance(tech_stack, list):
-            return [str(s).strip() for s in tech_stack if str(s).strip()]
-        else:
-            return None
-
-    def search_by_text(self, query_text: str, tech_stack=None, limit: int = 10) -> List[Dict[str, Any]]:
-        """
-        Semantic search for code patterns and error solutions by text.
-
-        Args:
-            query_text: Natural language query.
-            tech_stack: Optional technology stack filter (str or list).
-            limit: Max results.
-
-        Returns:
-            Ranked list of matching documents.
-        """
-        if not self.is_available():
-            self._logger.warning("Search engine not available")
-            return []
-            
-        query_tech_stack = self._parse_tech_stack(tech_stack)
-        embedding = self._cached_embed(query_text, "text")
-        if embedding is None:
-            self._logger.warning("Failed to generate embedding for text query.")
-            return []
-            
-        results = []
-        for collection in ("code_patterns", "error_solutions"):
-            res = self.search(
-                query=query_text,
-                collection_name=collection,
-                limit=limit,
-                min_similarity=0.7
-            )
-            results.extend(res)
-            
-        # Apply technology stack filtering
-        if query_tech_stack:
-            results = self._filter_by_tech_stack(results, query_tech_stack)
-            
-        ranked = self._rank_results(results, query_tech_stack)
-        return ranked[:limit]
-
-    def search_by_code(self, code_snippet: str, tech_stack=None, limit: int = 10) -> List[Dict[str, Any]]:
-        """
-        Semantic search for code patterns and error solutions by code snippet.
-
-        Args:
-            code_snippet: Code string.
-            tech_stack: Optional technology stack filter (str or list).
-            limit: Max results.
-
-        Returns:
-            Ranked list of matching documents.
-        """
-        if not self.is_available():
-            self._logger.warning("Search engine not available")
-            return []
-            
-        query_tech_stack = self._parse_tech_stack(tech_stack)
-        embedding = self._cached_embed(code_snippet, "code")
-        if embedding is None:
-            self._logger.warning("Failed to generate embedding for code query.")
-            return []
-            
-        results = []
-        for collection in ("code_patterns", "error_solutions"):
-            if self.chroma_connector:
-                res = self.chroma_connector.search_by_embedding(
-                    collection_name=collection,
-                    query_embedding=embedding,
-                    n_results=limit,
-                    where=None
+            try:
+                embedding_array = self.sentence_model.encode(
+                    data, convert_to_numpy=True
                 )
-                for result in res:
-                    result["similarity_score"] = 1.0 - result.get("distance", 0.0)
-                results.extend(res)
-                
-        # Apply technology stack filtering
-        if query_tech_stack:
-            results = self._filter_by_tech_stack(results, query_tech_stack)
-            
-        ranked = self._rank_results(results, query_tech_stack)
-        return ranked[:limit]
+                embedding = embedding_array.tolist()
+            except Exception as e:
+                self._logger.error(f"Error generating fallback embedding: {e}")
+                return None
+        else:
+            self._logger.warning(
+                f"No embedding method available for data_type: {data_type}"
+            )
+            return None
 
-    def search_by_error(self, error_message: str, tech_stack=None, limit: int = 10) -> List[Dict[str, Any]]:
-        """
-        Semantic search for error solutions by error message.
+        # Cache the result (with basic size limit)
+        if len(self._embedding_cache) > 1000:  # Simple cache eviction
+            # Remove oldest 25% of entries
+            items_to_remove = list(self._embedding_cache.keys())[:250]
+            for key in items_to_remove:
+                del self._embedding_cache[key]
 
-        Args:
-            error_message: Error message string.
-            tech_stack: Optional technology stack filter (str or list).
-            limit: Max results.
+        self._embedding_cache[cache_key] = embedding
+        return embedding
 
-        Returns:
-            Ranked list of matching documents.
-        """
-        if not self.is_available():
-            self._logger.warning("Search engine not available")
-            return []
-            
-        query_tech_stack = self._parse_tech_stack(tech_stack)
-        embedding = self._cached_embed(error_message, "error")
-        if embedding is None:
-            self._logger.warning("Failed to generate embedding for error query.")
-            return []
-            
-        results = []
-        # Focus on error_solutions collection for error queries
-        for collection in ("error_solutions", "code_patterns"):
-            if self.chroma_connector:
-                res = self.chroma_connector.search_by_embedding(
-                    collection_name=collection,
-                    query_embedding=embedding,
-                    n_results=limit,
-                    where=None
-                )
-                for result in res:
-                    result["similarity_score"] = 1.0 - result.get("distance", 0.0)
-                results.extend(res)
-                
-        # Apply technology stack filtering
-        if query_tech_stack:
-            results = self._filter_by_tech_stack(results, query_tech_stack)
-            
-        ranked = self._rank_results(results, query_tech_stack)
-        return ranked[:limit]
-
-    def search_multi_modal(
+    def store_enhanced_pattern(
         self,
-        text: Optional[str] = None,
-        code: Optional[str] = None,
-        error: Optional[str] = None,
-        tech_stack=None,
-        limit: int = 10
-    ) -> List[Dict[str, Any]]:
+        pattern_id: str,
+        content: str,
+        metadata: dict[str, Any] | None = None,
+        content_type: str = "text",
+    ) -> bool:
         """
-        Multi-modal semantic search using any combination of text, code, and error.
+        Store a pattern with enhanced multi-modal embedding generation.
 
         Args:
-            text: Optional text query.
-            code: Optional code snippet.
-            error: Optional error message.
-            tech_stack: Optional technology stack filter (str or list).
-            limit: Max results.
+            pattern_id: Unique identifier for the pattern
+            content: Text content of the pattern
+            metadata: Optional metadata dictionary
+            content_type: Type of content for embedding generation
 
         Returns:
-            Ranked list of matching documents.
+            True if stored successfully, False otherwise
         """
         if not self.is_available():
-            self._logger.warning("Search engine not available")
-            return []
-            
-        query_tech_stack = self._parse_tech_stack(tech_stack)
-        embedding = self._embed_query(text=text, code=code, error=error)
-        if embedding is None:
-            self._logger.warning("Failed to generate embedding for multi-modal query.")
-            return []
-            
-        results = []
-        for collection in ("code_patterns", "error_solutions"):
-            if self.chroma_connector:
-                res = self.chroma_connector.search_by_embedding(
-                    collection_name=collection,
-                    query_embedding=embedding,
-                    n_results=limit,
-                    where=None
-                )
-                for result in res:
-                    result["similarity_score"] = 1.0 - result.get("distance", 0.0)
-                results.extend(res)
-                
-        # Apply technology stack filtering
-        if query_tech_stack:
-            results = self._filter_by_tech_stack(results, query_tech_stack)
-            
-        ranked = self._rank_results(results, query_tech_stack)
-        return ranked[:limit]
+            return False
 
+        try:
+            # Generate appropriate embedding
+            if self.embedding_atom and content_type != "text":
+                embedding = self._get_cached_embedding(content, content_type)
+            else:
+                embedding = self.encode(content)
+
+            if embedding is None:
+                self._logger.warning(
+                    f"Failed to generate embedding for pattern {pattern_id}"
+                )
+                return False
+
+            # Store in vector database
+            success = self.vector_store.add_documents(
+                collection_name=self.collection_name,
+                ids=[pattern_id],
+                documents=[content],
+                embeddings=[embedding],
+                metadatas=[metadata] if metadata else None,
+            )
+
+            return success
+
+        except Exception as e:
+            self._logger.error(f"Error storing enhanced pattern {pattern_id}: {e}")
+            return False
+
+    def clear_caches(self) -> None:
+        """Clear all caches."""
+        self._encoding_cache.clear()
+        self._embedding_cache.clear()
+        self._logger.info("All caches cleared")
+
+    def get_cache_stats(self) -> dict[str, Any]:
+        """Get cache statistics."""
+        return {
+            "encoding_cache_size": len(self._encoding_cache),
+            "embedding_cache_size": len(self._embedding_cache),
+            "is_initialized": self._is_initialized,
+            "has_sentence_model": self.sentence_model is not None,
+            "has_embedding_atom": self.embedding_atom is not None,
+            "has_vector_store": self.vector_store is not None,
+        }

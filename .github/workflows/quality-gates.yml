@@ -1,0 +1,139 @@
+name: Quality Gates
+
+# Zero-tolerance quality gates for PR validation
+# Provides fast feedback on critical quality issues before ci-framework runs
+# Complements ci-framework with repo hygiene and format checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_call:
+    inputs:
+      tier:
+        description: 'Quality tier (essential/comprehensive/extended)'
+        required: false
+        default: 'essential'
+        type: string
+      fail-fast:
+        description: 'Fail fast on first error'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  PYTHONNOUSERSITE: 1
+  PYTHONDONTWRITEBYTECODE: 1
+  PIXI_VERSION: v0.62.2
+  UCKN_DISABLE_TORCH: "1"
+  HF_HUB_DISABLE_PROGRESS_BARS: "1"
+  HF_HUB_DISABLE_TELEMETRY: "1"
+
+jobs:
+  quality-gates:
+    name: Zero-Tolerance Quality Checks - ${{ inputs.tier || 'essential' }} tier
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup pixi
+      uses: prefix-dev/setup-pixi@v0.9.3
+      with:
+        pixi-version: ${{ env.PIXI_VERSION }}
+        cache: true
+        cache-key: quality-gates-${{ inputs.tier || 'essential' }}-${{ runner.os }}-${{ hashFiles('pyproject.toml', 'pixi.lock') }}
+
+    - name: Install dependencies (Essential Tier)
+      if: inputs.tier == 'essential' || inputs.tier == '' || inputs.tier == null
+      run: pixi install -e quality
+
+    - name: Install dependencies (Comprehensive/Extended Tier)
+      if: inputs.tier == 'comprehensive' || inputs.tier == 'extended'
+      run: pixi install -e quality-extended
+
+    - name: Install package in editable mode
+      run: pixi run -e quality dev
+
+    - name: CRITICAL - F,E9 Violations Check
+      run: |
+        echo "ZERO-TOLERANCE: Checking for F,E9 violations..."
+        pixi run -e quality ruff check src/ tests/ --select=F,E9
+        echo "No F,E9 violations found"
+
+    - name: Format Check
+      run: |
+        echo "Checking code formatting..."
+        pixi run -e quality ruff format --check src/ tests/
+        echo "Code formatting OK"
+
+    - name: Type Check
+      run: |
+        echo "Running type checks..."
+        pixi run -e quality typecheck
+        echo "Type checks passed"
+
+    - name: Verify Package Import
+      run: |
+        echo "Verifying package installation..."
+        pixi run -e quality python -c 'from uckn.core.organisms.knowledge_manager import KnowledgeManager; print("Package import successful")'
+
+    - name: Run Tests
+      run: |
+        echo "Running test suite..."
+        pixi run -e quality test
+
+    - name: Repository Hygiene Check
+      run: |
+        echo "Checking repository hygiene..."
+
+        # Configure git
+        git config --global --add safe.directory $PWD || true
+
+        # Check for __pycache__ tracked in git
+        if git ls-files 2>/dev/null | grep -q "__pycache__"; then
+          echo "ERROR: __pycache__ directories tracked in git!"
+          git ls-files | grep "__pycache__"
+          exit 1
+        fi
+
+        # Check for .pyc files tracked in git
+        if git ls-files 2>/dev/null | grep -q "\.pyc$"; then
+          echo "ERROR: .pyc files tracked in git!"
+          git ls-files | grep "\.pyc$"
+          exit 1
+        fi
+
+        # Check .gitignore exists
+        if [ ! -f .gitignore ]; then
+          echo "ERROR: .gitignore file missing!"
+          exit 1
+        fi
+
+        # Check for common files that shouldn't be committed
+        for pattern in ".env" "*.log" ".DS_Store" "Thumbs.db"; do
+          if git ls-files 2>/dev/null | grep -q "$pattern"; then
+            echo "WARNING: $pattern files tracked in git"
+          fi
+        done
+
+        echo "Repository hygiene check passed"
+
+    - name: Quality Summary
+      if: always()
+      run: |
+        echo "Quality Gate Summary - ${{ inputs.tier || 'essential' }} tier"
+        echo "============================================"
+        echo "Critical lint (F,E9): See above"
+        echo "Format check: See above"
+        echo "Type check: See above"
+        echo "Package import: See above"
+        echo "Test suite: See above"
+        echo "Repo hygiene: See above"
+        echo ""
+        echo "Zero-Tolerance Policy: ENFORCED"
+
+    # CI Framework compatibility outputs
+    outputs:
+      quality-tier: ${{ inputs.tier || 'essential' }}
+      success: ${{ job.status == 'success' }}
+      fail-fast: ${{ inputs.fail-fast }}

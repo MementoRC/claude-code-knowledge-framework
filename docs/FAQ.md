@@ -1,6 +1,6 @@
 # ❓ UCKN Frequently Asked Questions (FAQ)
 
-Welcome to the UCKN FAQ!  
+Welcome to the UCKN FAQ!
 This document answers the most common questions about installing, migrating, using, and troubleshooting the Unified Claude Knowledge Network (UCKN) framework.
 
 ---

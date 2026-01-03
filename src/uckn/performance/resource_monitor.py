@@ -10,19 +10,23 @@ UCKN Resource Monitor
 import logging
 import threading
 import time
-from typing import Dict, Any, Optional, Callable
+from collections.abc import Callable
+from typing import Any
 
 try:
     import psutil
+
     PSUTIL_AVAILABLE = True
 except ImportError:
     psutil = None
     PSUTIL_AVAILABLE = False
 
+
 class ResourceMonitor:
     """
     Monitors system resources and throttles if needed.
     """
+
     def __init__(self, interval=2.0, cpu_threshold=90.0, mem_threshold=90.0):
         self.interval = interval
         self.cpu_threshold = cpu_threshold
@@ -31,7 +35,7 @@ class ResourceMonitor:
         self.metrics = []
         self._stop_event = threading.Event()
         self._thread = None
-        self._throttle_callback: Optional[Callable[[], None]] = None
+        self._throttle_callback: Callable[[], None] | None = None
 
     def start(self):
         if self._thread and self._thread.is_alive():
@@ -49,17 +53,24 @@ class ResourceMonitor:
         while not self._stop_event.is_set():
             usage = self.get_resource_usage()
             self.metrics.append(usage)
-            if usage["cpu"] > self.cpu_threshold or usage["memory"] > self.mem_threshold:
+            if (
+                usage["cpu"] > self.cpu_threshold
+                or usage["memory"] > self.mem_threshold
+            ):
                 self.logger.warning("Resource usage high, throttling triggered.")
                 if self._throttle_callback:
                     self._throttle_callback()
             time.sleep(self.interval)
 
-    def get_resource_usage(self) -> Dict[str, Any]:
+    def get_resource_usage(self) -> dict[str, Any]:
         if PSUTIL_AVAILABLE:
             cpu = psutil.cpu_percent()
             mem = psutil.virtual_memory().percent
-            io = psutil.disk_io_counters()._asdict() if hasattr(psutil, "disk_io_counters") else {}
+            io = (
+                psutil.disk_io_counters()._asdict()
+                if hasattr(psutil, "disk_io_counters")
+                else {}
+            )
         else:
             cpu = 0.0
             mem = 0.0
@@ -72,9 +83,12 @@ class ResourceMonitor:
     def get_metrics(self) -> list:
         return self.metrics
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         usage = self.get_resource_usage()
-        healthy = usage["cpu"] < self.cpu_threshold and usage["memory"] < self.mem_threshold
+        healthy = (
+            usage["cpu"] < self.cpu_threshold and usage["memory"] < self.mem_threshold
+        )
         return {"healthy": healthy, "usage": usage}
+
 
 resource_monitor = ResourceMonitor()

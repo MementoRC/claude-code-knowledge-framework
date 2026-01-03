@@ -196,13 +196,13 @@ export default function PatternSubmission() {
       };
 
       const response: PatternContributionResponse = await apiService.contributePattern(patternData);
-      
+
       clearInterval(progressInterval);
       setSubmitProgress(100);
-      
+
       setSuccess(`Pattern submitted successfully! ID: ${response.pattern_id}`);
       setActiveStep(0); // Reset to first step
-      
+
       // Clear form after successful submission
       setTimeout(() => {
         handleReset();
@@ -223,7 +223,7 @@ export default function PatternSubmission() {
         <Typography variant="h5" gutterBottom>
           {title || 'Untitled Pattern'}
         </Typography>
-        
+
         <Box sx={{ mb: 2 }}>
           <Chip label={patternType || 'No type selected'} color="secondary" />
         </Box>
@@ -479,7 +479,7 @@ export default function PatternSubmission() {
                   <Typography variant="body1" sx={{ mb: 2 }}>
                     Please review your pattern submission before submitting.
                   </Typography>
-                  
+
                   <PatternPreview />
 
                   <Box sx={{ mb: 1, mt: 2 }}>

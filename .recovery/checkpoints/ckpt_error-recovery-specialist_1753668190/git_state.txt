@@ -1,0 +1,5 @@
+=== GIT STATE CAPTURE ===
+Branch: unknown
+Commit: unknown
+Status:
+git status failed

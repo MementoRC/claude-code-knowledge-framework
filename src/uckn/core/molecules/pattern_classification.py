@@ -3,11 +3,12 @@ UCKN Pattern Classification Molecule
 Handles management of pattern categories and their assignments.
 """
 
-from typing import Dict, List, Optional, Any
-import uuid
 import logging
+import uuid
+from typing import Any
 
-from ...storage import UnifiedDatabase # Changed from ChromaDBConnector
+from ...storage import UnifiedDatabase  # Changed from ChromaDBConnector
+
 
 class PatternClassification:
     """
@@ -16,10 +17,12 @@ class PatternClassification:
     """
 
     def __init__(self, unified_db: UnifiedDatabase):
-        self.unified_db = unified_db # Now uses UnifiedDatabase
+        self.unified_db = unified_db  # Now uses UnifiedDatabase
         self._logger = logging.getLogger(__name__)
 
-    def add_category(self, name: str, description: str = "", category_id: Optional[str] = None) -> Optional[str]:
+    def add_category(
+        self, name: str, description: str = "", category_id: str | None = None
+    ) -> str | None:
         """
         Adds a new pattern category to the database.
 
@@ -34,14 +37,16 @@ class PatternClassification:
         if not self.unified_db.is_available():
             self._logger.error("Unified Database not available, cannot add category.")
             return None
-        
+
         category_id = category_id or str(uuid.uuid4())
-        
+
         # UnifiedDatabase handles adding to PostgreSQL
-        success = self.unified_db.add_category(name=name, description=description, category_id=category_id)
+        success = self.unified_db.add_category(
+            name=name, description=description, category_id=category_id
+        )
         return category_id if success else None
 
-    def get_category(self, category_id: str) -> Optional[Dict[str, Any]]:
+    def get_category(self, category_id: str) -> dict[str, Any] | None:
         """
         Retrieves a pattern category by its ID.
 
@@ -52,12 +57,16 @@ class PatternClassification:
             A dictionary containing category details, or None if not found.
         """
         if not self.unified_db.is_available():
-            self._logger.warning("Unified Database not available, cannot retrieve category.")
+            self._logger.warning(
+                "Unified Database not available, cannot retrieve category."
+            )
             return None
         # UnifiedDatabase handles getting from PostgreSQL
         return self.unified_db.get_category(category_id)
 
-    def update_category(self, category_id: str, name: Optional[str] = None, description: Optional[str] = None) -> bool:
+    def update_category(
+        self, category_id: str, name: str | None = None, description: str | None = None
+    ) -> bool:
         """
         Updates an existing pattern category.
 
@@ -70,15 +79,17 @@ class PatternClassification:
             True if the category was updated successfully, False otherwise.
         """
         if not self.unified_db.is_available():
-            self._logger.warning("Unified Database not available, cannot update category.")
+            self._logger.warning(
+                "Unified Database not available, cannot update category."
+            )
             return False
-        
+
         updates = {}
         if name is not None:
             updates["name"] = name
         if description is not None:
             updates["description"] = description
-        
+
         if not updates:
             self._logger.info(f"No updates provided for category {category_id}.")
             return False
@@ -97,7 +108,9 @@ class PatternClassification:
             True if the category was deleted successfully, False otherwise.
         """
         if not self.unified_db.is_available():
-            self._logger.warning("Unified Database not available, cannot delete category.")
+            self._logger.warning(
+                "Unified Database not available, cannot delete category."
+            )
             return False
         # UnifiedDatabase handles deleting from PostgreSQL (including cascading links)
         return self.unified_db.delete_category(category_id)
@@ -114,9 +127,11 @@ class PatternClassification:
             True if the assignment was successful, False otherwise.
         """
         if not self.unified_db.is_available():
-            self._logger.warning("Unified Database not available, cannot assign pattern to category.")
+            self._logger.warning(
+                "Unified Database not available, cannot assign pattern to category."
+            )
             return False
-        
+
         # Check if pattern and category exist (optional, but good for data integrity)
         # These checks are now done via the unified_db's get methods, which in turn
         # query PostgreSQL.
@@ -142,12 +157,14 @@ class PatternClassification:
             True if the removal was successful, False otherwise.
         """
         if not self.unified_db.is_available():
-            self._logger.warning("Unified Database not available, cannot remove pattern from category.")
+            self._logger.warning(
+                "Unified Database not available, cannot remove pattern from category."
+            )
             return False
         # UnifiedDatabase handles removing link in PostgreSQL
         return self.unified_db.remove_pattern_from_category(pattern_id, category_id)
 
-    def get_patterns_in_category(self, category_id: str) -> List[str]:
+    def get_patterns_in_category(self, category_id: str) -> list[str]:
         """
         Retrieves a list of pattern IDs belonging to a specific category.
 
@@ -158,12 +175,14 @@ class PatternClassification:
             A list of pattern IDs.
         """
         if not self.unified_db.is_available():
-            self._logger.warning("Unified Database not available, cannot get patterns in category.")
+            self._logger.warning(
+                "Unified Database not available, cannot get patterns in category."
+            )
             return []
         # UnifiedDatabase handles querying links in PostgreSQL
         return self.unified_db.get_patterns_by_category(category_id)
 
-    def get_categories_for_pattern(self, pattern_id: str) -> List[Dict[str, Any]]:
+    def get_categories_for_pattern(self, pattern_id: str) -> list[dict[str, Any]]:
         """
         Retrieves a list of categories assigned to a specific pattern.
 
@@ -174,7 +193,9 @@ class PatternClassification:
             A list of dictionaries, each representing a category.
         """
         if not self.unified_db.is_available():
-            self._logger.warning("Unified Database not available, cannot get categories for pattern.")
+            self._logger.warning(
+                "Unified Database not available, cannot get categories for pattern."
+            )
             return []
         # UnifiedDatabase handles querying links and categories in PostgreSQL
         return self.unified_db.get_pattern_categories(pattern_id)

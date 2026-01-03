@@ -6,8 +6,8 @@ Includes feature extraction, model training, and inference.
 """
 
 import logging
-from typing import Dict, Any, List
 import random
+from typing import Any
 
 # In a real scenario, you'd import libraries like scikit-learn, tensorflow, or pytorch
 # from sklearn.ensemble import RandomForestClassifier
@@ -19,6 +19,7 @@ import random
 # from ..molecules.error_solution_manager import ErrorSolutionManager # Future integration
 # from ..molecules.pattern_analytics import PatternAnalytics # Future integration
 
+
 class IssuePredictionModels:
     """
     Manages ML models for predicting issues based on historical data and patterns.
@@ -27,8 +28,8 @@ class IssuePredictionModels:
 
     def __init__(self):
         self._logger = logging.getLogger(__name__)
-        self._model = None # Placeholder for a trained ML model
-        self._vectorizer = None # Placeholder for a feature vectorizer
+        self._model = None  # Placeholder for a trained ML model
+        self._vectorizer = None  # Placeholder for a feature vectorizer
         self._is_model_trained = False
 
     def is_available(self) -> bool:
@@ -36,7 +37,7 @@ class IssuePredictionModels:
         Checks if the ML model system is ready for predictions.
         For now, it's always available but will indicate if a model is trained.
         """
-        return True # Always available, but prediction quality depends on training
+        return True  # Always available, but prediction quality depends on training
 
     def _load_model(self):
         """
@@ -54,9 +55,9 @@ class IssuePredictionModels:
         #     self._is_model_trained = False
         # except Exception as e:
         #     self._logger.error(f"Error loading ML model: {e}")
-        self._is_model_trained = False # Assume no model loaded for initial setup
+        self._is_model_trained = False  # Assume no model loaded for initial setup
 
-    def train_model(self, training_data: List[Dict[str, Any]]) -> bool:
+    def train_model(self, training_data: list[dict[str, Any]]) -> bool:
         """
         (Placeholder) Trains the ML model using historical issue data.
 
@@ -70,7 +71,9 @@ class IssuePredictionModels:
         Returns:
             True if training was successful, False otherwise.
         """
-        self._logger.info(f"Starting ML model training with {len(training_data)} samples (placeholder).")
+        self._logger.info(
+            f"Starting ML model training with {len(training_data)} samples (placeholder)."
+        )
         if not training_data:
             self._logger.warning("No training data provided for ML model.")
             return False
@@ -89,7 +92,7 @@ class IssuePredictionModels:
         self._logger.info("ML model training completed (mock success).")
         return True
 
-    def feature_extract(self, project_data: Dict[str, Any]) -> List[float]:
+    def feature_extract(self, project_data: dict[str, Any]) -> list[float]:
         """
         (Placeholder) Extracts features from project data for ML model input.
         This would involve using MultiModalEmbeddings for code/text,
@@ -110,9 +113,9 @@ class IssuePredictionModels:
         # )
         # Combine embeddings with structured features from tech_stack_detector
         # For now, return a random vector
-        return [random.random() for _ in range(128)] # Mock 128-dim embedding
+        return [random.random() for _ in range(128)]  # Mock 128-dim embedding
 
-    def predict(self, project_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def predict(self, project_data: dict[str, Any]) -> list[dict[str, Any]]:
         """
         Predicts potential issues based on project data using the trained ML model.
 
@@ -132,7 +135,7 @@ class IssuePredictionModels:
                     "description": "ML model suggests a general risk of issues based on historical patterns.",
                     "severity": "low",
                     "confidence": 0.4,
-                    "preventive_measure": "Ensure code quality and follow best practices. Consider running static analysis tools."
+                    "preventive_measure": "Ensure code quality and follow best practices. Consider running static analysis tools.",
                 }
             ]
 
@@ -148,21 +151,26 @@ class IssuePredictionModels:
         # confidence = max(prediction_proba)
 
         # Mock prediction: randomly decide if an issue is predicted
-        if random.random() > 0.6: # 40% chance of predicting an issue
-            issue_type = random.choice(["ml_performance_issue", "ml_stability_issue", "ml_security_issue"])
+        if random.random() > 0.6:  # 40% chance of predicting an issue
+            issue_type = random.choice(
+                ["ml_performance_issue", "ml_stability_issue", "ml_security_issue"]
+            )
             confidence = round(random.uniform(0.6, 0.95), 2)
             description = f"ML model predicts a high likelihood of a {issue_type.replace('ml_', '').replace('_', ' ')}."
-            preventive_measure = "Review recent changes, check logs, and consult similar past issues."
+            preventive_measure = (
+                "Review recent changes, check logs, and consult similar past issues."
+            )
             severity = "medium" if confidence > 0.75 else "low"
 
-            return [{
-                "type": issue_type,
-                "description": description,
-                "severity": severity,
-                "confidence": confidence,
-                "preventive_measure": preventive_measure
-            }]
+            return [
+                {
+                    "type": issue_type,
+                    "description": description,
+                    "severity": severity,
+                    "confidence": confidence,
+                    "preventive_measure": preventive_measure,
+                }
+            ]
         else:
             self._logger.info("ML model predicts no significant issues at this time.")
             return []
-

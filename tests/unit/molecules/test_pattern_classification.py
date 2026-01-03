@@ -1,375 +1,411 @@
-import unittest
-from unittest.mock import MagicMock, patch
-from typing import List, Dict, Any, Optional
+"""Tests for PatternClassification molecule."""
 
-# --- Dummy/Mock Classes for Testing ---
-# These mocks simulate the behavior of ChromaDBConnector and PatternClassification
-# to allow the tests to run without needing the actual implementations.
+from unittest.mock import Mock, patch
 
-class DummyChromaDBConnector:
-    """
-    A simplified in-memory mock for ChromaDBConnector to simulate its basic operations
-    for categories and pattern-category links.
-    """
-    def __init__(self):
-        self.collections = {} # Stores data for different collections
+import pytest
 
-    def get_or_create_collection(self, name):
-        """Simulates getting or creating a collection."""
-        if name not in self.collections:
-            self.collections[name] = {"documents": {}, "metadatas": {}, "ids": []}
-        return self.collections[name]
+from uckn.core.molecules.pattern_classification import PatternClassification
 
-    def add_documents(self, collection_name: str, documents: List[str], metadatas: List[Dict[str, Any]], ids: List[str]):
-        """Simulates adding documents to a collection."""
-        collection = self.get_or_create_collection(collection_name)
-        for i, doc_id in enumerate(ids):
-            if doc_id in collection["ids"]:
-                # In a real ChromaDB, adding an existing ID might update or error.
-                # For this mock, we'll just skip to prevent duplicates in our internal list.
-                continue
-            collection["documents"][doc_id] = documents[i]
-            collection["metadatas"][doc_id] = metadatas[i]
-            collection["ids"].append(doc_id)
 
-    def get_documents(self, collection_name: str, ids: Optional[List[str]] = None, where: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
-        """Simulates retrieving documents from a collection."""
-        collection = self.get_or_create_collection(collection_name)
-        results = []
-        if ids:
-            for doc_id in ids:
-                if doc_id in collection["documents"]:
-                    results.append({
-                        "id": doc_id,
-                        "document": collection["documents"][doc_id],
-                        "metadata": collection["metadatas"][doc_id]
-                    })
-        elif where:
-            # Simple 'where' clause simulation for metadata matching
-            for doc_id in collection["ids"]:
-                metadata = collection["metadatas"].get(doc_id, {})
-                match = True
-                for key, value in where.items():
-                    if metadata.get(key) != value:
-                        match = False
-                        break
-                if match:
-                    results.append({
-                        "id": doc_id,
-                        "document": collection["documents"][doc_id],
-                        "metadata": metadata
-                    })
-        else:
-            # Return all documents if no specific ids or where clause
-            for doc_id in collection["ids"]:
-                results.append({
-                    "id": doc_id,
-                    "document": collection["documents"][doc_id],
-                    "metadata": collection["metadatas"][doc_id]
-                })
-        return results
+class TestPatternClassification:
+    """Test PatternClassification functionality."""
 
-    def update_documents(self, collection_name: str, ids: List[str], documents: Optional[List[Optional[str]]] = None, metadatas: Optional[List[Optional[Dict[str, Any]]]] = None):
-        """Simulates updating documents in a collection."""
-        collection = self.get_or_create_collection(collection_name)
-        for i, doc_id in enumerate(ids):
-            if doc_id in collection["documents"]:
-                if documents and documents[i] is not None:
-                    collection["documents"][doc_id] = documents[i]
-                if metadatas and metadatas[i] is not None:
-                    collection["metadatas"][doc_id].update(metadatas[i])
-            # If ID not found, do nothing (similar to how some DBs handle non-existent updates)
+    @pytest.fixture
+    def mock_unified_db(self):
+        """Create mock UnifiedDatabase."""
+        mock_db = Mock()
+        mock_db.is_available.return_value = True
+        return mock_db
 
-    def delete_documents(self, collection_name: str, ids: List[str]):
-        """Simulates deleting documents from a collection."""
-        collection = self.get_or_create_collection(collection_name)
-        for doc_id in ids:
-            if doc_id in collection["documents"]:
-                del collection["documents"][doc_id]
-                del collection["metadatas"][doc_id]
-                if doc_id in collection["ids"]:
-                    collection["ids"].remove(doc_id)
+    @pytest.fixture
+    def pattern_classification(self, mock_unified_db):
+        """Create PatternClassification instance with mock database."""
+        return PatternClassification(mock_unified_db)
 
-    def query_documents(self, collection_name: str, query_texts: Optional[List[str]] = None, query_embeddings: Optional[List[List[float]]] = None, n_results: int = 10, where: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
-        """Simplified query for testing, primarily uses 'where' clause."""
-        return self.get_documents(collection_name, where=where)
+    def test_initialization(self, mock_unified_db):
+        """Test PatternClassification initialization."""
+        pc = PatternClassification(mock_unified_db)
+        assert pc.unified_db is mock_unified_db
+        assert hasattr(pc, "_logger")
 
-class PatternClassification:
-    """
-    A mock implementation of the PatternClassification class based on the provided
-    method signatures, using the DummyChromaDBConnector.
-    """
-    def __init__(self, db_connector: DummyChromaDBConnector):
-        self.db_connector = db_connector
-        self.categories_collection_name = "categories"
-        self.pattern_category_links_collection_name = "pattern_category_links"
+    def test_add_category_success(self, pattern_classification, mock_unified_db):
+        """Test successful category addition."""
+        mock_unified_db.add_category.return_value = True
 
-    def add_category(self, category_id: str, name: str, description: str = "") -> bool:
-        """Adds a new category."""
-        if self.db_connector.get_documents(self.categories_collection_name, ids=[category_id]):
-            return False  # Category already exists
-        self.db_connector.add_documents(
-            self.categories_collection_name,
-            documents=[name],
-            metadatas=[{"name": name, "description": description}],
-            ids=[category_id]
+        result = pattern_classification.add_category("Test Category", "Description")
+
+        assert result is not None
+        assert isinstance(result, str)
+        mock_unified_db.add_category.assert_called_once()
+
+        # Verify the call arguments
+        call_args = mock_unified_db.add_category.call_args
+        assert call_args[1]["name"] == "Test Category"
+        assert call_args[1]["description"] == "Description"
+        assert "category_id" in call_args[1]
+
+    def test_add_category_with_specific_id(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test category addition with specific ID."""
+        mock_unified_db.add_category.return_value = True
+        category_id = "custom-id-123"
+
+        result = pattern_classification.add_category(
+            "Test Category", "Description", category_id
         )
-        return True
 
-    def get_category(self, category_id: str) -> Optional[Dict[str, Any]]:
-        """Retrieves a category by its ID."""
-        results = self.db_connector.get_documents(self.categories_collection_name, ids=[category_id])
-        if results:
-            return {"id": results[0]["id"], "name": results[0]["document"], **results[0]["metadata"]}
-        return None
+        assert result == category_id
+        call_args = mock_unified_db.add_category.call_args
+        assert call_args[1]["category_id"] == category_id
 
-    def update_category(self, category_id: str, new_name: Optional[str] = None, new_description: Optional[str] = None) -> bool:
-        """Updates an existing category's name or description."""
-        current_category = self.get_category(category_id)
-        if not current_category:
-            return False  # Category does not exist
-        
-        updated_metadata = {}
-        updated_document = None
-        if new_name is not None:
-            updated_metadata["name"] = new_name
-            updated_document = new_name # Document field often stores the primary name/text
-        if new_description is not None:
-            updated_metadata["description"] = new_description
-        
-        if not updated_metadata and updated_document is None:
-            return False # No changes requested
+    def test_add_category_failure(self, pattern_classification, mock_unified_db):
+        """Test category addition failure."""
+        mock_unified_db.add_category.return_value = False
 
-        self.db_connector.update_documents(
-            self.categories_collection_name,
-            ids=[category_id],
-            documents=[updated_document] if updated_document else [None],
-            metadatas=[updated_metadata]
+        result = pattern_classification.add_category("Test Category")
+
+        assert result is None
+
+    def test_add_category_db_unavailable(self, pattern_classification, mock_unified_db):
+        """Test category addition when database unavailable."""
+        mock_unified_db.is_available.return_value = False
+
+        result = pattern_classification.add_category("Test Category")
+
+        assert result is None
+        mock_unified_db.add_category.assert_not_called()
+
+    def test_get_category_success(self, pattern_classification, mock_unified_db):
+        """Test successful category retrieval."""
+        expected_category = {
+            "id": "test-id",
+            "name": "Test Category",
+            "description": "Test Description",
+        }
+        mock_unified_db.get_category.return_value = expected_category
+
+        result = pattern_classification.get_category("test-id")
+
+        assert result == expected_category
+        mock_unified_db.get_category.assert_called_once_with("test-id")
+
+    def test_get_category_not_found(self, pattern_classification, mock_unified_db):
+        """Test category retrieval when not found."""
+        mock_unified_db.get_category.return_value = None
+
+        result = pattern_classification.get_category("non-existent")
+
+        assert result is None
+
+    def test_get_category_db_unavailable(self, pattern_classification, mock_unified_db):
+        """Test category retrieval when database unavailable."""
+        mock_unified_db.is_available.return_value = False
+
+        result = pattern_classification.get_category("test-id")
+
+        assert result is None
+        mock_unified_db.get_category.assert_not_called()
+
+    def test_update_category_success(self, pattern_classification, mock_unified_db):
+        """Test successful category update."""
+        mock_unified_db.update_category.return_value = True
+
+        result = pattern_classification.update_category(
+            "test-id", name="New Name", description="New Description"
         )
-        return True
 
-    def delete_category(self, category_id: str) -> bool:
-        """Deletes a category and all associated pattern links."""
-        if not self.db_connector.get_documents(self.categories_collection_name, ids=[category_id]):
-            return False  # Category does not exist
-        
-        self.db_connector.delete_documents(self.categories_collection_name, ids=[category_id])
-        
-        # Also delete all links associated with this category
-        links_to_delete = self.db_connector.get_documents(self.pattern_category_links_collection_name, where={"category_id": category_id})
-        if links_to_delete:
-            self.db_connector.delete_documents(self.pattern_category_links_collection_name, ids=[link["id"] for link in links_to_delete])
-        return True
-
-    def assign_pattern_to_category(self, pattern_id: str, category_id: str) -> bool:
-        """Assigns a pattern to a category."""
-        if not self.get_category(category_id):
-            return False  # Category must exist
-        
-        # Check if link already exists
-        existing_links = self.db_connector.get_documents(
-            self.pattern_category_links_collection_name,
-            where={"pattern_id": pattern_id, "category_id": category_id}
+        assert result is True
+        mock_unified_db.update_category.assert_called_once_with(
+            "test-id", {"name": "New Name", "description": "New Description"}
         )
-        if existing_links:
-            return False  # Link already exists
 
-        link_id = f"link_{pattern_id}_{category_id}" # Unique ID for the link
-        self.db_connector.add_documents(
-            self.pattern_category_links_collection_name,
-            documents=[f"Pattern {pattern_id} in Category {category_id}"],
-            metadatas=[{"pattern_id": pattern_id, "category_id": category_id}],
-            ids=[link_id]
+    def test_update_category_name_only(self, pattern_classification, mock_unified_db):
+        """Test category update with name only."""
+        mock_unified_db.update_category.return_value = True
+
+        result = pattern_classification.update_category("test-id", name="New Name")
+
+        assert result is True
+        mock_unified_db.update_category.assert_called_once_with(
+            "test-id", {"name": "New Name"}
         )
-        return True
 
-    def remove_pattern_from_category(self, pattern_id: str, category_id: str) -> bool:
-        """Removes a pattern from a category."""
-        links_to_delete = self.db_connector.get_documents(
-            self.pattern_category_links_collection_name,
-            where={"pattern_id": pattern_id, "category_id": category_id}
+    def test_update_category_description_only(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test category update with description only."""
+        mock_unified_db.update_category.return_value = True
+
+        result = pattern_classification.update_category(
+            "test-id", description="New Description"
         )
-        if not links_to_delete:
-            return False  # Link does not exist
-        
-        self.db_connector.delete_documents(self.pattern_category_links_collection_name, ids=[link["id"] for link in links_to_delete])
-        return True
 
-    def get_patterns_in_category(self, category_id: str) -> List[str]:
-        """Retrieves all patterns assigned to a specific category."""
-        links = self.db_connector.get_documents(self.pattern_category_links_collection_name, where={"category_id": category_id})
-        return sorted(list(set([link["metadata"]["pattern_id"] for link in links])))
+        assert result is True
+        mock_unified_db.update_category.assert_called_once_with(
+            "test-id", {"description": "New Description"}
+        )
 
-    def get_categories_for_pattern(self, pattern_id: str) -> List[str]:
-        """Retrieves all categories a specific pattern is assigned to."""
-        links = self.db_connector.get_documents(self.pattern_category_links_collection_name, where={"pattern_id": pattern_id})
-        return sorted(list(set([link["metadata"]["category_id"] for link in links])))
+    def test_update_category_no_changes(self, pattern_classification, mock_unified_db):
+        """Test category update with no changes."""
+        result = pattern_classification.update_category("test-id")
 
-# --- Test Class ---
+        assert result is False
+        mock_unified_db.update_category.assert_not_called()
 
-class TestPatternClassification(unittest.TestCase):
-    """
-    Unit tests for the PatternClassification class.
-    """
-    def setUp(self):
-        """Set up a fresh mock database and classifier for each test."""
-        self.mock_db_connector = DummyChromaDBConnector()
-        self.pattern_classifier = PatternClassification(self.mock_db_connector)
+    def test_update_category_db_unavailable(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test category update when database unavailable."""
+        mock_unified_db.is_available.return_value = False
 
-    def test_add_category(self):
-        """Test adding new categories and handling duplicates."""
-        # Test successful addition
-        self.assertTrue(self.pattern_classifier.add_category("cat1", "Category One", "Description for cat1"))
-        category = self.pattern_classifier.get_category("cat1")
-        self.assertIsNotNone(category)
-        self.assertEqual(category["name"], "Category One")
-        self.assertEqual(category["description"], "Description for cat1")
+        result = pattern_classification.update_category("test-id", name="New Name")
 
-        # Test adding a duplicate category (should fail)
-        self.assertFalse(self.pattern_classifier.add_category("cat1", "Category One Duplicate"))
-        category = self.pattern_classifier.get_category("cat1")
-        self.assertEqual(category["name"], "Category One") # Should not have changed
+        assert result is False
+        mock_unified_db.update_category.assert_not_called()
 
-    def test_get_category(self):
-        """Test retrieving existing and non-existent categories."""
-        self.pattern_classifier.add_category("cat2", "Category Two")
-        category = self.pattern_classifier.get_category("cat2")
-        self.assertIsNotNone(category)
-        self.assertEqual(category["id"], "cat2")
-        self.assertEqual(category["name"], "Category Two")
-        self.assertEqual(category["description"], "")
+    def test_delete_category_success(self, pattern_classification, mock_unified_db):
+        """Test successful category deletion."""
+        mock_unified_db.delete_category.return_value = True
 
-        # Test getting a non-existent category
-        self.assertIsNone(self.pattern_classifier.get_category("non_existent_cat"))
+        result = pattern_classification.delete_category("test-id")
 
-    def test_update_category(self):
-        """Test updating category details and handling non-existent categories."""
-        self.pattern_classifier.add_category("cat3", "Category Three", "Initial description")
-        
-        # Test updating name and description
-        self.assertTrue(self.pattern_classifier.update_category("cat3", "Updated Category Three", "New description"))
-        category = self.pattern_classifier.get_category("cat3")
-        self.assertEqual(category["name"], "Updated Category Three")
-        self.assertEqual(category["description"], "New description")
+        assert result is True
+        mock_unified_db.delete_category.assert_called_once_with("test-id")
 
-        # Test updating only name
-        self.assertTrue(self.pattern_classifier.update_category("cat3", new_name="Only Name Changed"))
-        category = self.pattern_classifier.get_category("cat3")
-        self.assertEqual(category["name"], "Only Name Changed")
-        self.assertEqual(category["description"], "New description") # Description should remain
+    def test_delete_category_failure(self, pattern_classification, mock_unified_db):
+        """Test category deletion failure."""
+        mock_unified_db.delete_category.return_value = False
 
-        # Test updating only description
-        self.assertTrue(self.pattern_classifier.update_category("cat3", new_description="Only Description Changed"))
-        category = self.pattern_classifier.get_category("cat3")
-        self.assertEqual(category["name"], "Only Name Changed") # Name should remain
-        self.assertEqual(category["description"], "Only Description Changed")
+        result = pattern_classification.delete_category("test-id")
 
-        # Test updating non-existent category (should fail)
-        self.assertFalse(self.pattern_classifier.update_category("non_existent_cat", "New Name"))
-        
-        # Test calling update with no actual changes requested (should fail)
-        self.assertFalse(self.pattern_classifier.update_category("cat3"))
+        assert result is False
 
-    def test_delete_category(self):
-        """Test deleting categories and associated pattern links."""
-        self.pattern_classifier.add_category("cat4", "Category Four")
-        self.pattern_classifier.add_category("cat5", "Category Five")
-        self.pattern_classifier.assign_pattern_to_category("patA", "cat4")
-        self.pattern_classifier.assign_pattern_to_category("patB", "cat4")
-        self.pattern_classifier.assign_pattern_to_category("patA", "cat5")
+    def test_delete_category_db_unavailable(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test category deletion when database unavailable."""
+        mock_unified_db.is_available.return_value = False
 
-        # Test successful deletion of cat4
-        self.assertTrue(self.pattern_classifier.delete_category("cat4"))
-        self.assertIsNone(self.pattern_classifier.get_category("cat4"))
-        self.assertEqual(self.pattern_classifier.get_patterns_in_category("cat4"), []) # No patterns in deleted category
-        self.assertEqual(self.pattern_classifier.get_categories_for_pattern("patA"), ["cat5"]) # patA should only be in cat5 now
+        result = pattern_classification.delete_category("test-id")
 
-        # Test deleting non-existent category (should fail)
-        self.assertFalse(self.pattern_classifier.delete_category("non_existent_cat"))
+        assert result is False
+        mock_unified_db.delete_category.assert_not_called()
 
-    def test_assign_pattern_to_category(self):
-        """Test assigning patterns to categories and handling existing/non-existent cases."""
-        self.pattern_classifier.add_category("cat6", "Category Six")
+    def test_assign_pattern_to_category_success(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test successful pattern assignment to category."""
+        # Mock pattern and category existence
+        mock_unified_db.get_pattern.return_value = {"id": "pattern-1"}
+        mock_unified_db.get_category.return_value = {"id": "category-1"}
+        mock_unified_db.assign_pattern_to_category.return_value = True
 
-        # Test successful assignment
-        self.assertTrue(self.pattern_classifier.assign_pattern_to_category("pat1", "cat6"))
-        self.assertEqual(self.pattern_classifier.get_patterns_in_category("cat6"), ["pat1"])
-        self.assertEqual(self.pattern_classifier.get_categories_for_pattern("pat1"), ["cat6"])
+        result = pattern_classification.assign_pattern_to_category(
+            "pattern-1", "category-1"
+        )
 
-        # Test assigning same pattern to same category (should fail as it's already assigned)
-        self.assertFalse(self.pattern_classifier.assign_pattern_to_category("pat1", "cat6"))
+        assert result is True
+        mock_unified_db.assign_pattern_to_category.assert_called_once_with(
+            "pattern-1", "category-1"
+        )
 
-        # Test assigning to non-existent category (should fail)
-        self.assertFalse(self.pattern_classifier.assign_pattern_to_category("pat2", "non_existent_cat"))
-        self.assertEqual(self.pattern_classifier.get_patterns_in_category("non_existent_cat"), [])
+    def test_assign_pattern_to_category_pattern_not_found(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test pattern assignment when pattern not found."""
+        mock_unified_db.get_pattern.return_value = None  # Pattern not found
+        mock_unified_db.get_category.return_value = {"id": "category-1"}
 
-        # Assign another pattern to the same category
-        self.assertTrue(self.pattern_classifier.assign_pattern_to_category("pat2", "cat6"))
-        self.assertEqual(self.pattern_classifier.get_patterns_in_category("cat6"), ["pat1", "pat2"])
+        result = pattern_classification.assign_pattern_to_category(
+            "non-existent", "category-1"
+        )
 
-        # Assign same pattern to another category
-        self.pattern_classifier.add_category("cat7", "Category Seven")
-        self.assertTrue(self.pattern_classifier.assign_pattern_to_category("pat1", "cat7"))
-        self.assertEqual(self.pattern_classifier.get_categories_for_pattern("pat1"), ["cat6", "cat7"])
+        assert result is False
+        mock_unified_db.assign_pattern_to_category.assert_not_called()
 
-    def test_remove_pattern_from_category(self):
-        """Test removing patterns from categories and handling non-existent links."""
-        self.pattern_classifier.add_category("cat8", "Category Eight")
-        self.pattern_classifier.add_category("cat9", "Category Nine")
-        self.pattern_classifier.assign_pattern_to_category("pat3", "cat8")
-        self.pattern_classifier.assign_pattern_to_category("pat3", "cat9")
-        self.pattern_classifier.assign_pattern_to_category("pat4", "cat8")
+    def test_assign_pattern_to_category_category_not_found(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test pattern assignment when category not found."""
+        mock_unified_db.get_pattern.return_value = {"id": "pattern-1"}
+        mock_unified_db.get_category.return_value = None  # Category not found
 
-        # Test successful removal
-        self.assertTrue(self.pattern_classifier.remove_pattern_from_category("pat3", "cat8"))
-        self.assertEqual(self.pattern_classifier.get_patterns_in_category("cat8"), ["pat4"])
-        self.assertEqual(self.pattern_classifier.get_categories_for_pattern("pat3"), ["cat9"])
+        result = pattern_classification.assign_pattern_to_category(
+            "pattern-1", "non-existent"
+        )
 
-        # Test removing non-existent link (already removed or never existed)
-        self.assertFalse(self.pattern_classifier.remove_pattern_from_category("pat3", "cat8")) # Already removed
-        self.assertFalse(self.pattern_classifier.remove_pattern_from_category("patX", "cat8")) # Non-existent pattern
-        self.assertFalse(self.pattern_classifier.remove_pattern_from_category("pat3", "catX")) # Non-existent category
+        assert result is False
+        mock_unified_db.assign_pattern_to_category.assert_not_called()
 
-        # Remove last link for pat3
-        self.assertTrue(self.pattern_classifier.remove_pattern_from_category("pat3", "cat9"))
-        self.assertEqual(self.pattern_classifier.get_categories_for_pattern("pat3"), [])
+    def test_assign_pattern_to_category_db_unavailable(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test pattern assignment when database unavailable."""
+        mock_unified_db.is_available.return_value = False
 
-    def test_get_patterns_in_category(self):
-        """Test retrieving patterns for a given category."""
-        self.pattern_classifier.add_category("cat10", "Category Ten")
-        self.pattern_classifier.assign_pattern_to_category("patA", "cat10")
-        self.pattern_classifier.assign_pattern_to_category("patC", "cat10")
-        self.pattern_classifier.assign_pattern_to_category("patB", "cat10")
+        result = pattern_classification.assign_pattern_to_category(
+            "pattern-1", "category-1"
+        )
 
-        # Test retrieving patterns (should be sorted)
-        patterns = self.pattern_classifier.get_patterns_in_category("cat10")
-        self.assertEqual(patterns, ["patA", "patB", "patC"])
+        assert result is False
+        mock_unified_db.assign_pattern_to_category.assert_not_called()
 
-        # Test category with no patterns
-        self.pattern_classifier.add_category("cat11", "Category Eleven")
-        self.assertEqual(self.pattern_classifier.get_patterns_in_category("cat11"), [])
+    def test_remove_pattern_from_category_success(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test successful pattern removal from category."""
+        mock_unified_db.remove_pattern_from_category.return_value = True
 
-        # Test non-existent category
-        self.assertEqual(self.pattern_classifier.get_patterns_in_category("non_existent_cat"), [])
+        result = pattern_classification.remove_pattern_from_category(
+            "pattern-1", "category-1"
+        )
 
-    def test_get_categories_for_pattern(self):
-        """Test retrieving categories for a given pattern."""
-        self.pattern_classifier.add_category("cat12", "Category Twelve")
-        self.pattern_classifier.add_category("cat13", "Category Thirteen")
-        self.pattern_classifier.add_category("cat14", "Category Fourteen")
+        assert result is True
+        mock_unified_db.remove_pattern_from_category.assert_called_once_with(
+            "pattern-1", "category-1"
+        )
 
-        self.pattern_classifier.assign_pattern_to_category("patX", "cat12")
-        self.pattern_classifier.assign_pattern_to_category("patX", "cat14")
-        self.pattern_classifier.assign_pattern_to_category("patY", "cat12")
+    def test_remove_pattern_from_category_failure(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test pattern removal failure."""
+        mock_unified_db.remove_pattern_from_category.return_value = False
 
-        # Test retrieving categories for a pattern (should be sorted)
-        categories = self.pattern_classifier.get_categories_for_pattern("patX")
-        self.assertEqual(categories, ["cat12", "cat14"])
+        result = pattern_classification.remove_pattern_from_category(
+            "pattern-1", "category-1"
+        )
 
-        # Test pattern with no categories
-        self.assertEqual(self.pattern_classifier.get_categories_for_pattern("patZ"), [])
+        assert result is False
 
-        # Test pattern with only one category
-        categories_y = self.pattern_classifier.get_categories_for_pattern("patY")
-        self.assertEqual(categories_y, ["cat12"])
+    def test_remove_pattern_from_category_db_unavailable(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test pattern removal when database unavailable."""
+        mock_unified_db.is_available.return_value = False
 
+        result = pattern_classification.remove_pattern_from_category(
+            "pattern-1", "category-1"
+        )
+
+        assert result is False
+        mock_unified_db.remove_pattern_from_category.assert_not_called()
+
+    def test_get_patterns_in_category_success(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test successful retrieval of patterns in category."""
+        expected_patterns = ["pattern-1", "pattern-2", "pattern-3"]
+        mock_unified_db.get_patterns_by_category.return_value = expected_patterns
+
+        result = pattern_classification.get_patterns_in_category("category-1")
+
+        assert result == expected_patterns
+        mock_unified_db.get_patterns_by_category.assert_called_once_with("category-1")
+
+    def test_get_patterns_in_category_empty(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test retrieval of patterns in empty category."""
+        mock_unified_db.get_patterns_by_category.return_value = []
+
+        result = pattern_classification.get_patterns_in_category("category-1")
+
+        assert result == []
+
+    def test_get_patterns_in_category_db_unavailable(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test pattern retrieval when database unavailable."""
+        mock_unified_db.is_available.return_value = False
+
+        result = pattern_classification.get_patterns_in_category("category-1")
+
+        assert result == []
+        mock_unified_db.get_patterns_by_category.assert_not_called()
+
+    def test_get_categories_for_pattern_success(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test successful retrieval of categories for pattern."""
+        expected_categories = [
+            {"id": "cat-1", "name": "Category 1"},
+            {"id": "cat-2", "name": "Category 2"},
+        ]
+        mock_unified_db.get_pattern_categories.return_value = expected_categories
+
+        result = pattern_classification.get_categories_for_pattern("pattern-1")
+
+        assert result == expected_categories
+        mock_unified_db.get_pattern_categories.assert_called_once_with("pattern-1")
+
+    def test_get_categories_for_pattern_empty(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test retrieval of categories for pattern with no categories."""
+        mock_unified_db.get_pattern_categories.return_value = []
+
+        result = pattern_classification.get_categories_for_pattern("pattern-1")
+
+        assert result == []
+
+    def test_get_categories_for_pattern_db_unavailable(
+        self, pattern_classification, mock_unified_db
+    ):
+        """Test category retrieval for pattern when database unavailable."""
+        mock_unified_db.is_available.return_value = False
+
+        result = pattern_classification.get_categories_for_pattern("pattern-1")
+
+        assert result == []
+        mock_unified_db.get_pattern_categories.assert_not_called()
+
+    def test_logging_behavior(self, pattern_classification, mock_unified_db):
+        """Test that appropriate logging occurs."""
+        # Test logging when DB is unavailable
+        mock_unified_db.is_available.return_value = False
+
+        with patch.object(pattern_classification._logger, "error") as mock_error_log:
+            pattern_classification.add_category("Test")
+            mock_error_log.assert_called_once()
+
+        with patch.object(
+            pattern_classification._logger, "warning"
+        ) as mock_warning_log:
+            pattern_classification.get_category("test")
+            mock_warning_log.assert_called_once()
+
+    def test_uuid_generation(self, pattern_classification, mock_unified_db):
+        """Test that UUID is generated when no category_id provided."""
+        mock_unified_db.add_category.return_value = True
+
+        with patch(
+            "uckn.core.molecules.pattern_classification.uuid.uuid4"
+        ) as mock_uuid:
+            mock_uuid.return_value = Mock()
+            mock_uuid.return_value.__str__ = Mock(return_value="generated-uuid")
+
+            result = pattern_classification.add_category("Test Category")
+
+            assert result == "generated-uuid"
+            mock_uuid.assert_called_once()
+
+    def test_edge_cases(self, pattern_classification, mock_unified_db):
+        """Test edge cases and boundary conditions."""
+        # Test empty strings
+        result = pattern_classification.add_category("")
+        assert result is not None  # Empty name should still generate UUID
+
+        # Test None values in update
+        result = pattern_classification.update_category("test", None, None)
+        assert result is False
+
+        # Test successful assignment but DB operation fails
+        mock_unified_db.get_pattern.return_value = {"id": "pattern-1"}
+        mock_unified_db.get_category.return_value = {"id": "category-1"}
+        mock_unified_db.assign_pattern_to_category.return_value = False
+
+        result = pattern_classification.assign_pattern_to_category(
+            "pattern-1", "category-1"
+        )
+        assert result is False

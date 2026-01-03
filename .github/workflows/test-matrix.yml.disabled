@@ -1,0 +1,104 @@
+name: Test Matrix
+
+on:
+  push:
+    branches: [main, development]
+    paths-ignore:
+      - '**.md'
+      - '**/docs/**'
+  pull_request:
+    branches: [main, development]
+    paths-ignore:
+      - '**.md'
+      - '**/docs/**'
+  workflow_dispatch:
+
+jobs:
+  test-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+        test-type: [unit, integration, e2e]
+    env:
+      ENVIRONMENT: ci
+      PYTHONUNBUFFERED: 1
+      PIXI_ENV: ci
+      UCKN_DISABLE_TORCH: "1"
+      HF_HUB_DISABLE_PROGRESS_BARS: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pixi
+        uses: prefix-dev/setup-pixi@v0.9.3
+        with:
+          pixi-version: v0.62.2
+          cache: false
+          run-install: false
+
+      - name: Install dependencies (pixi)
+        run: pixi install --locked || pixi install
+
+      - name: Install dev dependencies
+        run: pixi run dev
+
+      - name: Run database migrations
+        env:
+          ENVIRONMENT: ci
+        run: |
+          echo "🗄️ Setting up database tables for tests..."
+          pixi run db-migrate || echo "Migration completed or no migrations needed"
+
+      - name: Select tests by marker
+        id: select-tests
+        run: |
+          # Since tests don't have unit/integration/e2e markers yet, run all tests for now
+          # TODO: Add proper test markers to categorize tests
+          echo "Running all tests for ${{ matrix.test-type }} (markers not implemented yet)"
+
+      - name: Run selected tests
+        env:
+          ENVIRONMENT: ci
+          UCKN_DISABLE_TORCH: "1"
+          HF_HUB_DISABLE_PROGRESS_BARS: "1"
+          HF_HUB_DISABLE_TELEMETRY: "1"
+        run: |
+          # Run all tests since markers aren't implemented
+          pixi run -e quality test --json-report --json-report-file=pytest-${{ matrix.test-type }}.json
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.python-version }}-${{ matrix.test-type }}
+          path: pytest-${{ matrix.test-type }}.json
+
+  aggregate-results:
+    needs: test-matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Aggregate and compare test results
+        run: |
+          find ./artifacts -name "*.json" -exec cat {} + > all-results.json
+          # Optionally, add custom aggregation/comparison logic here
+
+      - name: Upload aggregated results
+        uses: actions/upload-artifact@v4
+        with:
+          name: aggregated-test-results
+          path: all-results.json
+
+      - name: Notify Results (GitHub API)
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+            -d '{"state": "success", "context": "Test Matrix", "description": "Matrix tests complete."}'

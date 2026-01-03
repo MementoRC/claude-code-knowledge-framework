@@ -5,14 +5,15 @@ Tracks and analyzes pattern application attempts, outcomes, and quality metrics.
 Provides real-time and batch analytics for knowledge pattern effectiveness.
 """
 
-import uuid
 import logging
-from datetime import datetime
-from typing import Dict, List, Optional, Any, Tuple
 import statistics
+import uuid
 from collections import defaultdict
+from datetime import datetime
+from typing import Any
 
 from ...storage.chromadb_connector import ChromaDBConnector
+
 
 class PatternAnalytics:
     """
@@ -39,20 +40,24 @@ class PatternAnalytics:
                 self.chroma_connector.collections[self.APPLICATION_COLLECTION] = (
                     self.chroma_connector.client.get_or_create_collection(
                         name=self.APPLICATION_COLLECTION,
-                        metadata={"description": "UCKN pattern application attempts"}
+                        metadata={"description": "UCKN pattern application attempts"},
                     )
                 )
-                self._logger.info(f"ChromaDB collection '{self.APPLICATION_COLLECTION}' initialized.")
+                self._logger.info(
+                    f"ChromaDB collection '{self.APPLICATION_COLLECTION}' initialized."
+                )
             except Exception as e:
-                self._logger.error(f"Failed to create pattern_applications collection: {e}")
+                self._logger.error(
+                    f"Failed to create pattern_applications collection: {e}"
+                )
 
     def record_application(
         self,
         pattern_id: str,
-        context: Optional[Dict[str, Any]] = None,
-        application_id: Optional[str] = None,
-        timestamp: Optional[str] = None
-    ) -> Optional[str]:
+        context: dict[str, Any] | None = None,
+        application_id: str | None = None,
+        timestamp: str | None = None,
+    ) -> str | None:
         """
         Record a pattern application attempt (pending outcome).
 
@@ -71,7 +76,7 @@ class PatternAnalytics:
             "outcome": "pending",
             "resolution_time_minutes": None,
             "context": context or {},
-            "failure_reason": None
+            "failure_reason": None,
         }
         try:
             self.chroma_connector.add_document(
@@ -79,9 +84,11 @@ class PatternAnalytics:
                 doc_id=application_id,
                 document=f"Pattern application for {pattern_id}",
                 embedding=[0.0],  # Placeholder, not used for analytics
-                metadata=record
+                metadata=record,
             )
-            self._logger.info(f"Recorded pattern application {application_id} for pattern {pattern_id}.")
+            self._logger.info(
+                f"Recorded pattern application {application_id} for pattern {pattern_id}."
+            )
             return application_id
         except Exception as e:
             self._logger.error(f"Failed to record application: {e}")
@@ -91,8 +98,8 @@ class PatternAnalytics:
         self,
         application_id: str,
         outcome: str,
-        resolution_time_minutes: Optional[float] = None,
-        failure_reason: Optional[str] = None
+        resolution_time_minutes: float | None = None,
+        failure_reason: str | None = None,
     ) -> bool:
         """
         Record the outcome (success/failure) and timing for a pattern application.
@@ -101,7 +108,9 @@ class PatternAnalytics:
             self._logger.warning("ChromaDB not available, cannot record outcome.")
             return False
 
-        app_record = self.chroma_connector.get_document(self.APPLICATION_COLLECTION, application_id)
+        app_record = self.chroma_connector.get_document(
+            self.APPLICATION_COLLECTION, application_id
+        )
         if not app_record:
             self._logger.error(f"Application record {application_id} not found.")
             return False
@@ -116,15 +125,17 @@ class PatternAnalytics:
         success = self.chroma_connector.update_document(
             collection_name=self.APPLICATION_COLLECTION,
             doc_id=application_id,
-            metadata=metadata
+            metadata=metadata,
         )
         if success:
-            self._logger.info(f"Recorded outcome '{outcome}' for application {application_id}.")
+            self._logger.info(
+                f"Recorded outcome '{outcome}' for application {application_id}."
+            )
             # Optionally, update pattern aggregate metrics
             self._update_pattern_metrics(metadata["pattern_id"])
         return success
 
-    def get_pattern_metrics(self, pattern_id: str) -> Dict[str, Any]:
+    def get_pattern_metrics(self, pattern_id: str) -> dict[str, Any]:
         """
         Get all analytics metrics for a specific pattern.
         """
@@ -154,18 +165,22 @@ class PatternAnalytics:
         }
 
     def calculate_success_rate(
-        self, applications: Optional[List[Dict[str, Any]]] = None
-    ) -> Tuple[Optional[float], Optional[Tuple[float, float]]]:
+        self, applications: list[dict[str, Any]] | None = None
+    ) -> tuple[float | None, tuple[float, float] | None]:
         """
         Calculate success rate and 95% confidence interval using Wilson score interval.
         """
         if applications is None:
-            self._logger.error("Applications list required for success rate calculation.")
+            self._logger.error(
+                "Applications list required for success rate calculation."
+            )
             return None, None
         n = len(applications)
         if n == 0:
             return None, None
-        successes = sum(1 for app in applications if app["metadata"].get("outcome") == "success")
+        successes = sum(
+            1 for app in applications if app["metadata"].get("outcome") == "success"
+        )
         p = successes / n
         # Wilson score interval for binomial proportion
         z = 1.96  # 95% confidence
@@ -176,7 +191,9 @@ class PatternAnalytics:
         upper = (centre + margin) / denominator
         return p, (max(0.0, lower), min(1.0, upper))
 
-    def _calculate_average_resolution_time(self, applications: List[Dict[str, Any]]) -> Optional[float]:
+    def _calculate_average_resolution_time(
+        self, applications: list[dict[str, Any]]
+    ) -> float | None:
         """
         Calculate weighted average resolution time for successful applications.
         """
@@ -190,7 +207,9 @@ class PatternAnalytics:
             return None
         return float(statistics.mean(times))
 
-    def calculate_quality_score(self, applications: List[Dict[str, Any]]) -> Optional[float]:
+    def calculate_quality_score(
+        self, applications: list[dict[str, Any]]
+    ) -> float | None:
         """
         Composite quality score: (success_rate * 0.4) + (time_score * 0.3) + (usage_score * 0.3)
         """
@@ -212,7 +231,7 @@ class PatternAnalytics:
 
     def get_trend_analysis(
         self, pattern_id: str, days: int = 30, interval: str = "day"
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Analyze trends in success rate and usage over time.
         Returns a list of dicts: [{"date": ..., "success_rate": ..., "count": ...}, ...]
@@ -238,16 +257,14 @@ class PatternAnalytics:
         for key in sorted(buckets):
             bucket_apps = buckets[key]
             rate, _ = self.calculate_success_rate(bucket_apps)
-            trend.append({
-                "date": str(key),
-                "success_rate": rate,
-                "count": len(bucket_apps)
-            })
+            trend.append(
+                {"date": str(key), "success_rate": rate, "count": len(bucket_apps)}
+            )
         return trend
 
     def get_top_performing_patterns(
         self, top_n: int = 5, min_applications: int = 5
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Get top patterns by quality score.
         """
@@ -272,7 +289,7 @@ class PatternAnalytics:
 
     def get_problematic_patterns(
         self, threshold: float = 0.5, min_applications: int = 5
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Identify patterns with low success rates.
         """
@@ -288,15 +305,17 @@ class PatternAnalytics:
                 continue
             rate, _ = self.calculate_success_rate(apps)
             if rate is not None and rate < threshold:
-                problematic.append({
-                    "pattern_id": pid,
-                    "success_rate": rate,
-                    "application_count": len(apps)
-                })
+                problematic.append(
+                    {
+                        "pattern_id": pid,
+                        "success_rate": rate,
+                        "application_count": len(apps),
+                    }
+                )
         problematic.sort(key=lambda x: x["success_rate"])
         return problematic
 
-    def _get_applications_for_pattern(self, pattern_id: str) -> List[Dict[str, Any]]:
+    def _get_applications_for_pattern(self, pattern_id: str) -> list[dict[str, Any]]:
         """
         Retrieve all application records for a given pattern.
         """
@@ -308,14 +327,16 @@ class PatternAnalytics:
                 query_embedding=[0.0],  # Not used, but required by API
                 n_results=10000,
                 min_similarity=0.0,
-                where_clause={"pattern_id": pattern_id}
+                where_clause={"pattern_id": pattern_id},
             )
             return results
         except Exception as e:
-            self._logger.error(f"Failed to get applications for pattern {pattern_id}: {e}")
+            self._logger.error(
+                f"Failed to get applications for pattern {pattern_id}: {e}"
+            )
             return []
 
-    def _get_all_applications(self) -> List[Dict[str, Any]]:
+    def _get_all_applications(self) -> list[dict[str, Any]]:
         """
         Retrieve all application records.
         """
@@ -332,7 +353,9 @@ class PatternAnalytics:
         Update aggregated metrics in the code_patterns collection metadata.
         """
         metrics = self.get_pattern_metrics(pattern_id)
-        pattern = self.chroma_connector.get_document(self.PATTERN_COLLECTION, pattern_id)
+        pattern = self.chroma_connector.get_document(
+            self.PATTERN_COLLECTION, pattern_id
+        )
         if not pattern:
             self._logger.warning(f"Pattern {pattern_id} not found for metrics update.")
             return
@@ -346,11 +369,13 @@ class PatternAnalytics:
             self.chroma_connector.update_document(
                 collection_name=self.PATTERN_COLLECTION,
                 doc_id=pattern_id,
-                metadata=metadata
+                metadata=metadata,
             )
             self._logger.info(f"Updated pattern {pattern_id} aggregated metrics.")
         except Exception as e:
-            self._logger.error(f"Failed to update pattern metrics for {pattern_id}: {e}")
+            self._logger.error(
+                f"Failed to update pattern metrics for {pattern_id}: {e}"
+            )
 
     # Batch analysis for historical data
     def batch_update_all_pattern_metrics(self):

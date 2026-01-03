@@ -1,0 +1,59 @@
+name: Status Check
+
+on:
+  push:
+    branches: [ feature/* ]
+  workflow_dispatch:
+
+jobs:
+  quick-check:
+    name: Quick Status Check
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup pixi
+      uses: prefix-dev/setup-pixi@v0.9.3
+      with:
+        pixi-version: v0.62.2
+        cache: false
+        run-install: false
+
+    - name: Install dependencies
+      run: |
+        pixi install
+
+    - name: Quick smoke test
+      run: |
+        echo "🚀 UCKN Framework Quick Check"
+
+        # Check basic structure
+        echo "📁 Checking project structure..."
+        test -d "src/uckn" || (echo "❌ Missing src/uckn" && exit 1)
+        test -f "src/uckn/__init__.py" || (echo "❌ Missing __init__.py" && exit 1)
+        test -d "src/uckn/core/atoms" || (echo "❌ Missing atoms" && exit 1)
+        test -d "src/uckn/core/molecules" || (echo "❌ Missing molecules" && exit 1)
+        test -d "src/uckn/core/organisms" || (echo "❌ Missing organisms" && exit 1)
+        echo "✅ Structure valid"
+
+        # Quick import test
+        echo "🔍 Testing imports..."
+        pixi run python -c "
+        try:
+            import sys
+            sys.path.insert(0, 'src')
+            from uckn import KnowledgeManager
+            print('✅ KnowledgeManager import successful')
+        except Exception as e:
+            print(f'❌ Import failed: {e}')
+            exit(1)
+        "
+
+        # Basic lint check
+        echo "🔍 Quick lint check..."
+        pixi run ruff check src/ --select=F,E9 --quiet || echo "⚠️ Some lint issues found"
+        echo "✅ Critical lint check completed"
+
+        echo "🎉 Quick check passed!"

@@ -4,15 +4,26 @@ Implements comprehensive API endpoints for knowledge access and pattern manageme
 """
 
 import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from ..core.organisms.knowledge_manager import KnowledgeManager
 from .dependencies import set_knowledge_manager
-from .routers import patterns, projects, collaboration, health, teams, auth, predictions, workflow
+from .middleware import AuthMiddleware, RateLimitingMiddleware
+from .routers import (
+    auth,
+    collaboration,
+    health,
+    patterns,
+    predictions,
+    projects,
+    teams,
+    workflow,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -20,7 +31,9 @@ logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(
+    app: FastAPI,
+) -> AsyncGenerator[None, None]:  # Fixed: added proper return type annotation
     """Application lifespan events."""
     # Startup
     logger.info("Starting UCKN FastAPI server...")
@@ -31,9 +44,9 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.error(f"Failed to initialize knowledge manager: {e}")
         raise
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down UCKN FastAPI server...")
 
@@ -46,8 +59,12 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
+
+# Add security middleware (order matters - authentication should be first)
+app.add_middleware(RateLimitingMiddleware)
+app.add_middleware(AuthMiddleware)
 
 # Add CORS middleware
 app.add_middleware(
@@ -59,13 +76,14 @@ app.add_middleware(
 )
 
 
-# Global exception handler
+# Global exception handler - Fixed with proper type annotations
 @app.exception_handler(Exception)
-async def global_exception_handler(request, exc):
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Handle global exceptions with proper type annotations."""
     logger.error(f"Global exception: {exc}")
     return JSONResponse(
         status_code=500,
-        content={"detail": "Internal server error", "type": "internal_error"}
+        content={"detail": "Internal server error", "type": "internal_error"},
     )
 
 

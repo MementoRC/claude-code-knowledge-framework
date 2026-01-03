@@ -5,8 +5,10 @@ Optimized Multi-Modal Embeddings for UCKN
 - Backward compatible with MultiModalEmbeddings API.
 """
 
-import numpy as np
 import time
+
+import numpy as np
+
 
 class MultiModalEmbeddingsOptimized:
     def __init__(self, cache_manager=None, resource_monitor=None, analytics=None):
@@ -43,7 +45,9 @@ class MultiModalEmbeddingsOptimized:
             self.analytics.log("embed_batch_latency", elapsed)
         return embeddings
 
-    def multi_modal_embed(self, code=None, text=None, config=None, error=None, combine_method="mean"):
+    def multi_modal_embed(
+        self, code=None, text=None, config=None, error=None, combine_method="mean"
+    ):
         # Simulate multi-modal embedding
         parts = [x for x in [code, text, config, error] if x is not None]
         if not parts:

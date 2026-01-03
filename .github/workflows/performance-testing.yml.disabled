@@ -1,0 +1,94 @@
+name: Performance & Load Testing
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 0' # Weekly on Sunday at 3am UTC
+  push:
+    branches: [main, development]
+    paths:
+      - 'src/**'
+      - 'tests/benchmarks/**'
+      - 'tests/load_tests/**'
+      - '.github/workflows/performance-testing.yml'
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    env:
+      ENVIRONMENT: ci
+      PIXI_ENV: ci
+      PYTHONUNBUFFERED: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pixi
+        uses: prefix-dev/setup-pixi@v0.9.3
+        with:
+          pixi-version: v0.62.2
+          cache: false
+          run-install: false
+
+      - name: Install dependencies (pixi)
+        run: pixi install
+
+      - name: Install dev dependencies
+        run: pixi run dev
+
+      - name: Run performance benchmarks
+        run: |
+          pixi run test -m benchmark --benchmark-only --benchmark-json=benchmark.json
+
+      - name: Run load tests
+        run: |
+          pixi run load-test-headless || true
+
+      - name: Upload performance artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-artifacts
+          path: |
+            benchmark.json
+            tests/load_tests/results/
+            .benchmarks/
+
+      - name: Baseline Performance Comparison
+        run: |
+          if [ -f benchmark.json ]; then
+            pixi run benchmark-compare || true
+          fi
+
+      - name: Performance Regression Detection
+        run: |
+          if [ -f benchmark.json ]; then
+            pixi run quality-gate || echo "Performance regression detected"
+          fi
+
+      - name: Analyze Load Test Results
+        run: |
+          if [ -d tests/load_tests/results ]; then
+            echo "Load test results collected successfully"
+            ls -la tests/load_tests/results/
+          fi
+
+      - name: Notify Results (GitHub API)
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+            -d '{"state": "success", "context": "Performance Tests", "description": "Performance and load tests complete."}'
+
+      - name: Performance Regression Alert
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/issues \
+            -d '{"title": "Performance Regression Detected", "body": "Performance regression detected in the latest run. Please investigate.", "labels": ["performance", "regression"]}'

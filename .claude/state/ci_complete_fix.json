@@ -1,0 +1,114 @@
+{
+  "session_id": "ci-fix-cycle4-integration-issues-20250725",
+  "restart_count": 3,
+  "max_restarts": 3,
+  "total_tests": 8,
+  "failing_tests": [
+    {
+      "job_name": "test-matrix (3.12, integration)",
+      "test_name": "test_add_and_search_pattern",
+      "error_type": "assert False",
+      "file_path": "tests/integration/test_knowledge_manager_integration.py",
+      "line": 87,
+      "status": "NEW_PATTERN",
+      "fix_attempt": 0,
+      "fix_description": "Database operations failing with assert False instead of None",
+      "root_cause": "Integration test logic changed - no longer testing for None but getting False results"
+    },
+    {
+      "job_name": "test-matrix (3.12, integration)",
+      "test_name": "test_add_and_search_error_solution",
+      "error_type": "assert False",
+      "file_path": "tests/integration/test_knowledge_manager_integration.py",
+      "line": 141,
+      "status": "NEW_PATTERN",
+      "fix_attempt": 0,
+      "fix_description": "Error solution operations failing with assert False"
+    },
+    {
+      "job_name": "test-and-coverage",
+      "test_name": "test_update_and_delete_pattern",
+      "error_type": "assert False",
+      "file_path": "tests/integration/test_knowledge_manager_integration.py",
+      "line": 167,
+      "status": "NEW_PATTERN",
+      "fix_attempt": 0,
+      "fix_description": "Pattern update/delete operations failing"
+    },
+    {
+      "job_name": "test-and-coverage",
+      "test_name": "TestEnhancedSemanticSearchEngine.test_engine_initialization_success",
+      "error_type": "AttributeError: module 'uckn.core' has no attribute 'enhanced_semantic_search_engine'",
+      "file_path": "tests/unit/atoms/test_semantic_search_engine.py",
+      "line": 1393,
+      "status": "IMPORT_ERROR",
+      "fix_attempt": 0,
+      "fix_description": "Missing module attribute after refactoring"
+    },
+    {
+      "job_name": "PR Quality Gate",
+      "test_name": "GitHub Actions Cache Service",
+      "error_type": "Cache service responded with 400",
+      "file_path": ".github/workflows/pr-checks.yml",
+      "line": 10,
+      "status": "INFRASTRUCTURE",
+      "fix_attempt": 0,
+      "fix_description": "GitHub infrastructure issue - cache service unavailable"
+    },
+    {
+      "job_name": "All test jobs",
+      "test_name": "Pydantic WorkflowState serialization",
+      "error_type": "PydanticSerializationUnexpectedValue",
+      "file_path": ".pixi/envs/quality/lib/python3.12/site-packages/pydantic/main.py",
+      "line": 463,
+      "status": "WARNING",
+      "fix_attempt": 0,
+      "fix_description": "Enum serialization warnings - not blocking but should be fixed"
+    },
+    {
+      "job_name": "test-matrix (3.12, unit)",
+      "test_name": "test_add_and_search_pattern",
+      "error_type": "assert False",
+      "file_path": "tests/integration/test_knowledge_manager_integration.py",
+      "line": 87,
+      "status": "DUPLICATE",
+      "fix_attempt": 0,
+      "fix_description": "Same test failing in unit test matrix"
+    },
+    {
+      "job_name": "test-matrix (3.12, e2e)",
+      "test_name": "test_add_and_search_pattern",
+      "error_type": "assert False",
+      "file_path": "tests/integration/test_knowledge_manager_integration.py",
+      "line": 87,
+      "status": "DUPLICATE",
+      "fix_attempt": 0,
+      "fix_description": "Same test failing in e2e test matrix"
+    }
+  ],
+  "current_test_index": 0,
+  "completed_tests": [
+    {
+      "test_name": "pixi install infrastructure",
+      "job_name": "All CI jobs",
+      "attempts_needed": 3,
+      "fixed_at": "2025-07-24T15:30:00Z",
+      "status": "MAJOR_BREAKTHROUGH"
+    }
+  ],
+  "failed_to_fix": [],
+  "started_at": "2025-07-25T18:53:00Z",
+  "status": "pattern_evolution_detected",
+  "total_iterations_used": 16,
+  "pattern_evolution": {
+    "previous_pattern": "assert None is not None - database operations returning None",
+    "current_pattern": "assert False - generic assertion failures in integration tests",
+    "evolution_cause": "Pixi fix revealed underlying test logic issues masked by infrastructure problems",
+    "priority_order": [
+      "IMPORT_ERROR - missing module attributes (blocking)",
+      "NEW_PATTERN - integration test assertion failures (critical)",
+      "WARNING - Pydantic serialization warnings (medium)",
+      "INFRASTRUCTURE - GitHub cache service (external)"
+    ]
+  }
+}

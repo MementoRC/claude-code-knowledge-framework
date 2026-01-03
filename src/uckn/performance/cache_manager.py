@@ -7,19 +7,23 @@ UCKN Performance Cache Manager
 """
 
 import logging
-import time
 import threading
-from typing import Any, Optional, Callable
+import time
+from collections.abc import Callable
+from typing import Any
 
 try:
     import redis
+
     REDIS_AVAILABLE = True
 except ImportError:
     redis = None
     REDIS_AVAILABLE = False
 
+
 class MemoryCache:
     """Simple thread-safe in-memory LRU cache with TTL support."""
+
     def __init__(self, max_size=1024, default_ttl=600):
         self.cache = {}
         self.access = {}
@@ -64,19 +68,27 @@ class MemoryCache:
             self.cache.clear()
             self.access.clear()
 
+
 class RedisCache:
     """Redis-backed cache with TTL and fallback to memory cache."""
-    def __init__(self, host="localhost", port=6379, db=0, default_ttl=600, memory_cache=None):
+
+    def __init__(
+        self, host="localhost", port=6379, db=0, default_ttl=600, memory_cache=None
+    ):
         self.logger = logging.getLogger(__name__)
         self.default_ttl = default_ttl
         self.memory_cache = memory_cache or MemoryCache()
         if REDIS_AVAILABLE:
             try:
-                self.client = redis.StrictRedis(host=host, port=port, db=db, decode_responses=False)
+                self.client = redis.StrictRedis(
+                    host=host, port=port, db=db, decode_responses=False
+                )
                 self.client.ping()
                 self.enabled = True
             except Exception as e:
-                self.logger.warning(f"Redis unavailable: {e}. Falling back to memory cache.")
+                self.logger.warning(
+                    f"Redis unavailable: {e}. Falling back to memory cache."
+                )
                 self.client = None
                 self.enabled = False
         else:
@@ -120,21 +132,33 @@ class RedisCache:
                 self.logger.error(f"Redis flushdb failed: {e}")
         self.memory_cache.clear()
 
+
 class PerformanceCacheManager:
     """
     Multi-level cache manager for UCKN performance optimization.
     - Used for embeddings, search results, etc.
     - Supports cache warming, invalidation, TTL, and LRU.
     """
-    def __init__(self, max_size=2048, default_ttl=900, redis_host="localhost", redis_port=6379, redis_db=0):
+
+    def __init__(
+        self,
+        max_size=2048,
+        default_ttl=900,
+        redis_host="localhost",
+        redis_port=6379,
+        redis_db=0,
+    ):
         self.memory_cache = MemoryCache(max_size=max_size, default_ttl=default_ttl)
         self.redis_cache = RedisCache(
-            host=redis_host, port=redis_port, db=redis_db,
-            default_ttl=default_ttl, memory_cache=self.memory_cache
+            host=redis_host,
+            port=redis_port,
+            db=redis_db,
+            default_ttl=default_ttl,
+            memory_cache=self.memory_cache,
         )
         self.logger = logging.getLogger(__name__)
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None):
+    def set(self, key: str, value: Any, ttl: int | None = None):
         self.redis_cache.set(key, value, ttl)
 
     def get(self, key: str) -> Any:
@@ -146,7 +170,9 @@ class PerformanceCacheManager:
     def clear(self):
         self.redis_cache.clear()
 
-    def cache_warm(self, keys: list, fetch_fn: Callable[[str], Any], ttl: Optional[int] = None):
+    def cache_warm(
+        self, keys: list, fetch_fn: Callable[[str], Any], ttl: int | None = None
+    ):
         """Pre-populate cache for a list of keys using fetch_fn."""
         for key in keys:
             if self.get(key) is None:
@@ -162,6 +188,7 @@ class PerformanceCacheManager:
                     self.redis_cache.client.delete(key)
             except Exception as e:
                 self.logger.error(f"Pattern invalidation failed: {e}")
+
 
 # Singleton for global cache manager
 performance_cache = PerformanceCacheManager()

@@ -3,22 +3,22 @@ UCKN Tech Stack Detector Atom
 """
 
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 
 class TechStackDetector:
     """Detect project technology stack"""
 
-    def analyze_project(self, project_path: str) -> Dict[str, Any]:
+    def analyze_project(self, project_path: str) -> dict[str, Any]:
         """Analyze project for technology stack"""
         path = Path(project_path)
 
-        stack = {
+        stack: dict[str, list[str]] = {
             "languages": [],
             "package_managers": [],
             "frameworks": [],
             "testing": [],
-            "ci_cd": []
+            "ci_cd": [],
         }
 
         # Detect Python

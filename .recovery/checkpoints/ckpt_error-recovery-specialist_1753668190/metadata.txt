@@ -1,0 +1,7 @@
+checkpoint_id=ckpt_error-recovery-specialist_1753668190
+agent_type=error-recovery-specialist
+operation=system_initialization
+task_id=setup
+timestamp=2025-07-27T21:03:10-05:00
+project_root=/home/memento/ClaudeCode/Servers/claude-code-knowledge-framework/worktrees/feat-ci-integration
+session_id=MementoRC/claude-code-knowledge-framework

@@ -222,7 +222,7 @@ Use in GitHub Actions:
 - name: Setup UCKN
   run: |
     pixi run --project ./uckn-framework setup-pixi-integration .
-    
+
 - name: Analyze with UCKN
   run: |
     pixi run --project ./uckn-framework python -c "

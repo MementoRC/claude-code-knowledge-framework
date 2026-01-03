@@ -9,7 +9,9 @@ UCKN Batch Processing Optimizer
 
 import logging
 import threading
-from typing import List, Callable, Any, Optional, Iterator
+from collections.abc import Callable, Iterator
+from typing import Any
+
 
 class BatchProcessor:
     """
@@ -17,24 +19,25 @@ class BatchProcessor:
     - Batches items for embedding or DB ops
     - Supports progress tracking and cancellation
     """
+
     def __init__(self, batch_size=128):
         self.batch_size = batch_size
         self.logger = logging.getLogger(__name__)
         self._cancel_event = threading.Event()
 
-    def batch_iter(self, items: List[Any]) -> Iterator[List[Any]]:
+    def batch_iter(self, items: list[Any]) -> Iterator[list[Any]]:
         """Yield items in batches."""
         for i in range(0, len(items), self.batch_size):
             if self._cancel_event.is_set():
                 break
-            yield items[i:i+self.batch_size]
+            yield items[i : i + self.batch_size]
 
     def process_batches(
         self,
-        items: List[Any],
-        process_fn: Callable[[List[Any]], Any],
-        progress_callback: Optional[Callable[[int, int], None]] = None
-    ) -> List[Any]:
+        items: list[Any],
+        process_fn: Callable[[list[Any]], Any],
+        progress_callback: Callable[[int, int], None] | None = None,
+    ) -> list[Any]:
         """Process items in batches, with optional progress callback."""
         results = []
         total = len(items)
@@ -57,5 +60,6 @@ class BatchProcessor:
     def reset(self):
         """Reset cancellation state."""
         self._cancel_event.clear()
+
 
 BatchProcessor = BatchProcessor
