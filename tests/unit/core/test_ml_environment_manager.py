@@ -59,8 +59,17 @@ class TestMLEnvironmentManager:
         """Test production environment with full ML capabilities."""
         # Clear UCKN_DISABLE_TORCH and CI variables to allow production detection
         # Use clear=True to remove CI, GITHUB_ACTIONS, etc.
-        minimal_env = {k: v for k, v in os.environ.items()
-                       if k not in ("CI", "GITHUB_ACTIONS", "CONTINUOUS_INTEGRATION", "UCKN_DISABLE_TORCH")}
+        minimal_env = {
+            k: v
+            for k, v in os.environ.items()
+            if k
+            not in (
+                "CI",
+                "GITHUB_ACTIONS",
+                "CONTINUOUS_INTEGRATION",
+                "UCKN_DISABLE_TORCH",
+            )
+        }
         minimal_env["UCKN_DISABLE_TORCH"] = "0"
         with patch.dict(os.environ, minimal_env, clear=True):
             # Mock all ML packages as available
@@ -91,8 +100,17 @@ class TestMLEnvironmentManager:
             return module_name in ["sentence_transformers"]
 
         # Clear UCKN_DISABLE_TORCH and CI variables to allow development detection
-        minimal_env = {k: v for k, v in os.environ.items()
-                       if k not in ("CI", "GITHUB_ACTIONS", "CONTINUOUS_INTEGRATION", "UCKN_DISABLE_TORCH")}
+        minimal_env = {
+            k: v
+            for k, v in os.environ.items()
+            if k
+            not in (
+                "CI",
+                "GITHUB_ACTIONS",
+                "CONTINUOUS_INTEGRATION",
+                "UCKN_DISABLE_TORCH",
+            )
+        }
         minimal_env["UCKN_DISABLE_TORCH"] = "0"
         with patch.dict(os.environ, minimal_env, clear=True):
             with patch.object(
