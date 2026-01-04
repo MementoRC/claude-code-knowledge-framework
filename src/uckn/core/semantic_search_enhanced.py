@@ -47,7 +47,7 @@ except ImportError:
     CHROMADB_CONNECTOR_AVAILABLE = False
 
 try:
-    from .multi_modal_embeddings import MultiModalEmbeddings
+    from .atoms.multi_modal_embeddings import MultiModalEmbeddings
 
     MULTIMODAL_EMBEDDINGS_AVAILABLE = True
 except ImportError:
@@ -55,7 +55,7 @@ except ImportError:
         "MultiModalEmbeddings not found. "
         "Multi-modal search capabilities will be limited."
     )
-    MultiModalEmbeddings = None
+    MultiModalEmbeddings = None  # type: ignore[misc, assignment]
     MULTIMODAL_EMBEDDINGS_AVAILABLE = False
 
 

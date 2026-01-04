@@ -81,14 +81,13 @@ class MultiModalEmbeddings:
     def __init__(self, device: str | None = None):
         self._logger = logging.getLogger(__name__)
         # Defensive: If torch is unavailable, always use cpu
+        self.device: str = "cpu"  # Default value
         if (
             torch is not None
             and hasattr(torch, "cuda")
             and callable(getattr(torch.cuda, "is_available", None))
         ):
             self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        else:
-            self.device = "cpu"
         self._lock = threading.Lock()
 
         # Model loading
