@@ -8,6 +8,7 @@ based on user behavior, popular searches, and content analysis.
 import logging
 import re
 from collections import defaultdict
+from logging import Logger
 from typing import Any
 
 
@@ -22,10 +23,10 @@ class SearchSuggestionEngine:
     - Technology-aware suggestions
     """
 
-    def __init__(self, logger: logging.Logger | None = None):
+    def __init__(self, logger: Logger | None = None):
         self.logger = logger or logging.getLogger(__name__)
-        self.query_history = defaultdict(int)
-        self.successful_queries = defaultdict(int)
+        self.query_history: defaultdict[str, int] = defaultdict(int)
+        self.successful_queries: defaultdict[str, int] = defaultdict(int)
         self.technology_keywords = {
             "python",
             "javascript",
@@ -113,12 +114,17 @@ class SearchSuggestionEngine:
                 )
 
         # Sort by score and remove duplicates
-        unique_suggestions = {}
+        unique_suggestions: dict[str, dict[str, Any]] = {}
         for suggestion in suggestions:
-            text = suggestion["text"]
-            if (
-                text not in unique_suggestions
-                or suggestion["score"] > unique_suggestions[text]["score"]
+            text = str(suggestion["text"])
+            suggestion_score = suggestion["score"]
+            existing_score = (
+                unique_suggestions[text]["score"] if text in unique_suggestions else 0
+            )
+            if text not in unique_suggestions or (
+                isinstance(suggestion_score, int | float)
+                and isinstance(existing_score, int | float)
+                and suggestion_score > existing_score
             ):
                 unique_suggestions[text] = suggestion
 
@@ -155,8 +161,11 @@ class SearchSuggestionEngine:
                 )
 
         # Sort candidates and take top suggestions
-        candidates.sort(key=lambda x: x["score"], reverse=True)
-        return [c["query"] for c in candidates[:limit]]
+        candidates.sort(
+            key=lambda x: x["score"] if isinstance(x["score"], int | float) else 0,
+            reverse=True,
+        )
+        return [str(c["query"]) for c in candidates[:limit]]
 
     def _normalize_query(self, query: str) -> str:
         """Normalize a query for consistent processing."""

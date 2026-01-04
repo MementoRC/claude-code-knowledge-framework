@@ -158,7 +158,10 @@ class QueryParser:
                 i < len(tokens)
                 and isinstance(processed_tokens[-1], dict | str)
                 and tokens[i] not in ["AND", "OR", "NOT", ")"]
-                and not (isinstance(tokens[i], dict) and tokens[i].get("operator"))
+                and not (
+                    isinstance(tokens[i], dict)
+                    and tokens[i].get("operator") is not None
+                )
             ):  # If next token is not an operator or a parsed sub-query
                 if (
                     isinstance(tokens[i], str) and tokens[i] == "("
@@ -176,7 +179,7 @@ class QueryParser:
         q = deque(processed_tokens)
 
         # Pass 1: Handle NOT
-        temp_q = deque()
+        temp_q: deque[Any] = deque()
         while q:
             item = q.popleft()
             if item == "NOT":
@@ -190,56 +193,56 @@ class QueryParser:
         q = temp_q
 
         # Pass 2: Handle AND
-        temp_q = deque()
+        temp_q_and: deque[Any] = deque()
         while q:
             item = q.popleft()
             if item == "AND":
-                if not temp_q:
+                if not temp_q_and:
                     self._logger.warning("AND operator without left operand in query.")
                     continue
-                left = temp_q.pop()
+                left = temp_q_and.pop()
                 if not q:
                     self._logger.warning("AND operator without right operand in query.")
-                    temp_q.append(left)  # Put left back
+                    temp_q_and.append(left)  # Put left back
                     continue
                 right = q.popleft()
-                temp_q.append({"operator": "AND", "clauses": [left, right]})
+                temp_q_and.append({"operator": "AND", "clauses": [left, right]})
             else:
-                temp_q.append(item)
-        q = temp_q
+                temp_q_and.append(item)
+        q = temp_q_and
 
         # Pass 3: Handle OR
-        temp_q = deque()
+        temp_q_or: deque[Any] = deque()
         while q:
             item = q.popleft()
             if item == "OR":
-                if not temp_q:
+                if not temp_q_or:
                     self._logger.warning("OR operator without left operand in query.")
                     continue
-                left = temp_q.pop()
+                left = temp_q_or.pop()
                 if not q:
                     self._logger.warning("OR operator without right operand in query.")
-                    temp_q.append(left)  # Put left back
+                    temp_q_or.append(left)  # Put left back
                     continue
                 right = q.popleft()
-                temp_q.append({"operator": "OR", "clauses": [left, right]})
+                temp_q_or.append({"operator": "OR", "clauses": [left, right]})
             else:
-                temp_q.append(item)
+                temp_q_or.append(item)
 
-        if not temp_q:
+        if not temp_q_or:
             return {"operator": "AND", "clauses": []}  # Empty query or only operators
 
         # If there's only one item left, it's the root of the AST
-        if len(temp_q) == 1:
-            return temp_q[0]
+        if len(temp_q_or) == 1:
+            return temp_q_or[0]
         else:
             # If multiple items remain, it implies implicit ANDs at the top level
             # This can happen if the initial parsing didn't insert enough ANDs or if the query is malformed
             # For safety, wrap remaining top-level items in an implicit AND
             self._logger.warning(
-                f"Multiple top-level clauses after parsing, implicitly combining with AND: {temp_q}"
+                f"Multiple top-level clauses after parsing, implicitly combining with AND: {temp_q_or}"
             )
-            return {"operator": "AND", "clauses": list(temp_q)}
+            return {"operator": "AND", "clauses": list(temp_q_or)}
 
     def extract_terms(self, query_dict: dict[str, Any]) -> list[str]:
         """Extract all terms from a parsed query for use in vector search."""
