@@ -38,6 +38,7 @@ Changelog = "https://github.com/MementoRC/claude-code-knowledge-framework/blob/m
 uckn = "uckn.cli:main"
 uckn-server = "uckn.server:main"
 uckn-migrate = "uckn.migrate:main"
+uckn-http-server = "uckn.http_server:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -240,6 +241,10 @@ docs-build = "mkdocs build"
 # MCP Server tasks
 mcp-server = { cmd = "python -m uckn.mcp.universal_knowledge_server", env = { PYTHONPATH = "src" } }
 
+# HTTP Transport Server (port 4004)
+http-server = { cmd = "python src/uckn/http_server.py", env = { PYTHONPATH = "src" } }
+http-server-debug = { cmd = "python src/uckn/http_server.py --log-level DEBUG", env = { PYTHONPATH = "src" } }
+
 [tool.ruff]
 target-version = "py310"
 line-length = 88
@@ -280,9 +285,19 @@ disallow_any_generics = false
 # Disable most warnings temporarily
 show_error_codes = false
 namespace_packages = true
+explicit_package_bases = true
+mypy_path = "src"
 
 [[tool.mypy.overrides]]
 module = ["uckn.core.atoms.tech_stack_detector"]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["uckn.core.atoms.pattern_extractor"]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["uckn.transport.*"]
 ignore_errors = true
 
 [tool.pytest.ini_options]
